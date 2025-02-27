@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Mentari Mod",
+  "version": "1.0",
+  "description": "Melacak Forum Diskusi.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["https://mentari.unpam.ac.id/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["token.js"],
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"]
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
