@@ -149,7 +149,8 @@ console.log("Token.js sedang dijalankan!");
         background: transparent;
         border: none;
         cursor: pointer;
-        color: #777;
+        color: #f0872d;
+        font-weight: bold;
         border-radius: 3px;
         width: 24px;
         height: 24px;
@@ -158,7 +159,9 @@ console.log("Token.js sedang dijalankan!");
       }
 
       .token-popup-actions button:hover {
-        color: #0070f3;
+        color: #1e1e1e;
+        background: #f0872d;
+        border-radius: 3px;
       }
 
       .token-popup-content {
@@ -606,10 +609,6 @@ console.log("Token.js sedang dijalankan!");
     const userInfoTab = document.getElementById("user-info-tab");
     if (!userInfoTab || !tokenInfo) return;
 
-    const lastUpdate =
-      getFromLocalStorage(STORAGE_KEYS.LAST_UPDATE) ||
-      new Date().toLocaleString();
-
     userInfoTab.innerHTML = `
       <div class="token-card-wrapper">
         <div class="token-card-header">
@@ -637,11 +636,23 @@ console.log("Token.js sedang dijalankan!");
         </div>
         
         <div class="token-footer">
-          <a href="https://github.com/Lukman754" target="_blank" class="token-github-link">
-            <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="15" ></span>
-            <span class="token-value" style="padding-bottom: 5px;">Lukman754</span>
-          </a>
-          <div class="token-date-info">Last updated: ${lastUpdate}</div>
+          <div style="display: flex; align-items: center;">
+            <span class="token-value">Made with </span>
+            <img src="https://img.icons8.com/?size=100&id=H5H0mqCCr5AV&format=png&color=000000" style="width: 15px; margin: 0 3px;" >
+            <span>by Lukman Muludin</span>
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <a href="https://instagram.com/_.chopin" target="_blank" class="token-github-link">
+              <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" ></span>
+            </a>
+            <a href="https://facebook.com/lukman.mauludin.754" target="_blank" class="token-github-link">
+              <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=118467&format=png&color=ffffff" width="18" ></span>
+            </a>
+            <a href="https://github.com/Lukman754" target="_blank" class="token-github-link">
+              <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" ></span>
+            </a>
+          </div>
         </div>
       </div>
     `;
@@ -1141,4 +1152,3 @@ console.log("Token.js sedang dijalankan!");
 
   init();
 })();
-
