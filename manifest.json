@@ -10,6 +10,10 @@
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"],
       "js": ["content.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "js": ["home.js"]
     }
   ],
   "web_accessible_resources": [
