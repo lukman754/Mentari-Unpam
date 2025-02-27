@@ -8,6 +8,35 @@ console.log("Token.js sedang dijalankan!");
   let userInfo = null;
   let studentDataList = [];
 
+  // Nama kunci untuk localStorage
+  const STORAGE_KEYS = {
+    AUTH_TOKEN: "mentari_auth_token",
+    USER_INFO: "mentari_user_info",
+    COURSE_DATA: "mentari_course_data",
+    LAST_UPDATE: "mentari_last_update",
+  };
+
+  // Fungsi untuk menyimpan data ke localStorage
+  function saveToLocalStorage(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      console.log(`Data berhasil disimpan ke ${key}`);
+    } catch (error) {
+      console.error(`Error menyimpan data ke ${key}:`, error);
+    }
+  }
+
+  // Fungsi untuk mengambil data dari localStorage
+  function getFromLocalStorage(key) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error(`Error mengambil data dari ${key}:`, error);
+      return null;
+    }
+  }
+
   // Buat popup UI
   function createPopupUI() {
     // Cek jika popup sudah ada
@@ -427,6 +456,7 @@ console.log("Token.js sedang dijalankan!");
     `;
 
     document.head.appendChild(style);
+
     document.body.appendChild(popup);
 
     // Handle event listeners
@@ -476,7 +506,7 @@ console.log("Token.js sedang dijalankan!");
   function refreshAllData() {
     checkStorages();
     if (authToken) {
-      fetchCoursesListAndDetails();
+      fetchCoursesListAndDetails(true); // Force refresh
     }
   }
 
@@ -576,6 +606,10 @@ console.log("Token.js sedang dijalankan!");
     const userInfoTab = document.getElementById("user-info-tab");
     if (!userInfoTab || !tokenInfo) return;
 
+    const lastUpdate =
+      getFromLocalStorage(STORAGE_KEYS.LAST_UPDATE) ||
+      new Date().toLocaleString();
+
     userInfoTab.innerHTML = `
       <div class="token-card-wrapper">
         <div class="token-card-header">
@@ -607,7 +641,7 @@ console.log("Token.js sedang dijalankan!");
             <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="15" ></span>
             <span class="token-value" style="padding-bottom: 5px;">Lukman754</span>
           </a>
-          <div class="token-date-info">Last updated: ${new Date().toLocaleDateString()}</div>
+          <div class="token-date-info">Last updated: ${lastUpdate}</div>
         </div>
       </div>
     `;
@@ -757,12 +791,19 @@ console.log("Token.js sedang dijalankan!");
       console.log(`- Role: ${tokenInfo.role}`);
       console.log(`- Expired: ${tokenInfo.expires}`);
 
+      // Simpan token dan userInfo ke localStorage
+      saveToLocalStorage(STORAGE_KEYS.AUTH_TOKEN, token);
+      saveToLocalStorage(STORAGE_KEYS.USER_INFO, tokenInfo);
+
       // Update UI
       updateTokenUI(token, tokenInfo);
       updateUserInfoUI(tokenInfo);
 
-      // Fetch courses data after token is captured
-      setTimeout(() => fetchCoursesListAndDetails(), 1000);
+      // Fetch courses data after token is captured (if belum ada data)
+      const cachedCourseData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA);
+      if (!cachedCourseData || cachedCourseData.length === 0) {
+        setTimeout(() => fetchCoursesListAndDetails(), 1000);
+      }
     }
   }
 
@@ -800,7 +841,23 @@ console.log("Token.js sedang dijalankan!");
   }
 
   // Fetch all courses
-  async function fetchCoursesListAndDetails() {
+  async function fetchCoursesListAndDetails(forceRefresh = false) {
+    // Cek apakah sudah ada data tersimpan dan tidak dipaksa refresh
+    if (!forceRefresh) {
+      const cachedCourseData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA);
+      if (cachedCourseData && cachedCourseData.length > 0) {
+        console.log(
+          "Menggunakan data course dari cache:",
+          cachedCourseData.length,
+          "courses"
+        );
+        courseDataList = cachedCourseData;
+        updateForumUI(courseDataList);
+        updateStudentUI(courseDataList);
+        return cachedCourseData;
+      }
+    }
+
     if (isHandlingCourseApiRequest || !authToken) return;
 
     try {
@@ -832,6 +889,10 @@ console.log("Token.js sedang dijalankan!");
         }
       }
 
+      // Simpan courseDataList ke localStorage
+      saveToLocalStorage(STORAGE_KEYS.COURSE_DATA, courseDataList);
+      saveToLocalStorage(STORAGE_KEYS.LAST_UPDATE, new Date().toLocaleString());
+
       // Update forum UI after fetching all courses
       updateForumUI(courseDataList);
 
@@ -848,6 +909,30 @@ console.log("Token.js sedang dijalankan!");
 
   // Check storages for tokens
   function checkStorages() {
+    // Cek apakah ada token yang tersimpan di localStorage
+    const savedToken = getFromLocalStorage(STORAGE_KEYS.AUTH_TOKEN);
+    const savedUserInfo = getFromLocalStorage(STORAGE_KEYS.USER_INFO);
+
+    if (savedToken && savedUserInfo) {
+      authToken = savedToken;
+      userInfo = savedUserInfo;
+
+      // Update UI dengan data yang tersimpan
+      updateTokenUI(savedToken, savedUserInfo);
+      updateUserInfoUI(savedUserInfo);
+
+      // Load course data jika tersedia
+      const cachedCourseData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA);
+      if (cachedCourseData && cachedCourseData.length > 0) {
+        courseDataList = cachedCourseData;
+        updateForumUI(courseDataList);
+        updateStudentUI(courseDataList);
+      }
+
+      return true;
+    }
+
+    // Jika tidak ada token tersimpan, lakukan pengecekan seperti biasa
     const possibleKeys = [
       "token",
       "auth_token",
@@ -884,6 +969,8 @@ console.log("Token.js sedang dijalankan!");
         saveToken(value, `sessionStorage.${key}`);
       }
     }
+
+    return false;
   }
 
   // Intercept XHR requests
@@ -937,8 +1024,17 @@ console.log("Token.js sedang dijalankan!");
     };
   }
 
-  // Auto click the Dashboard button
+  // Auto click the Dashboard button (hanya jika data belum ada)
   function clickDashboardButton() {
+    // Cek apakah sudah ada data tersimpan
+    const cachedCourseData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA);
+    if (cachedCourseData && cachedCourseData.length > 0) {
+      console.log(
+        "Data course sudah tersedia, tidak perlu klik dashboard otomatis"
+      );
+      return;
+    }
+
     // Find and click the Dashboard button
     const dashboardButtons = Array.from(document.querySelectorAll("button"));
     const dashboardButton = dashboardButtons.find((button) => {
@@ -1003,32 +1099,46 @@ console.log("Token.js sedang dijalankan!");
 
   window.fetchCoursesList = fetchCoursesListAndDetails;
 
+  // Fungsi untuk menghapus cache data
+  window.clearCacheData = function () {
+    localStorage.removeItem(STORAGE_KEYS.COURSE_DATA);
+    localStorage.removeItem(STORAGE_KEYS.LAST_UPDATE);
+    console.log(
+      "Cache data berhasil dihapus. Refresh halaman untuk mengambil data baru."
+    );
+  };
+
   // Initialize
   function init() {
     createPopupUI();
     interceptXHR();
     interceptFetch();
-    checkStorages();
+
+    // Cek apakah ada data di localStorage
+    const hasExistingData = checkStorages();
+
+    // Jika tidak ada data, coba klik card
+    if (!hasExistingData) {
+      setTimeout(() => {
+        // Temukan elemen dengan kelas "card MuiBox-root"
+        let card = document.querySelector(".card.MuiBox-root");
+
+        // Jika ditemukan, klik elemen tersebut
+        if (card) {
+          console.log("Card ditemukan! Mengklik...");
+          card.click();
+        } else {
+          console.warn("Card tidak ditemukan!");
+        }
+
+        // Attempt to click the Dashboard button after a short delay
+        setTimeout(() => {
+          clickDashboardButton();
+        }, 1000);
+      }, 1000);
+    }
   }
 
   init();
-
-  // Run jalankanToken function (original functionality)
-  setTimeout(() => {
-    // Temukan elemen dengan kelas "card MuiBox-root"
-    let card = document.querySelector(".card.MuiBox-root");
-
-    // Jika ditemukan, klik elemen tersebut
-    if (card) {
-      console.log("Card ditemukan! Mengklik...");
-      card.click();
-    } else {
-      console.warn("Card tidak ditemukan!");
-    }
-
-    // Attempt to click the Dashboard button after a short delay
-    setTimeout(() => {
-      clickDashboardButton();
-    }, 1000);
-  }, 1000);
 })();
+
