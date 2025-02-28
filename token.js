@@ -37,438 +37,569 @@ console.log("Token.js sedang dijalankan!");
     }
   }
 
+  // Fungsi untuk menghapus cache data
+  window.clearCacheData = function () {
+    localStorage.removeItem(STORAGE_KEYS.COURSE_DATA);
+    localStorage.removeItem(STORAGE_KEYS.LAST_UPDATE);
+    console.log(
+      "Cache data berhasil dihapus. Refresh halaman untuk mengambil data baru."
+    );
+  };
+
+  // Fungsi untuk melakukan tracking ulang
+  window.refreshAndTrack = function () {
+    clearCacheData();
+    authToken = null;
+    userInfo = null;
+    courseDataList = [];
+    studentDataList = [];
+    checkStorages();
+    fetchCoursesListAndDetails(true); // Force refresh
+  };
+
+  // Buat popup UI
   // Buat popup UI
   function createPopupUI() {
     // Cek jika popup sudah ada
     if (document.getElementById("token-runner-popup")) return;
 
+    let script = document.createElement("script");
+    script.src = "https://kit.fontawesome.com/f59e2d85df.js";
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
+
     // Buat container utama
     const popup = document.createElement("div");
     popup.id = "token-runner-popup";
     popup.innerHTML = `
-      <div class="token-popup-header">
-        <b><img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" height="15" />  <span class="shimmer-text">MENTARI MOD</span></b>
-        <div class="token-popup-actions">
-          <button id="token-refresh-btn" title="Refresh Data">↻</button>
-          <button id="token-toggle-btn" title="Toggle">▲</button>
+    <div class="token-popup-header">
+      <b style="align-items: center;"><img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" height="15" />  <span class="shimmer-text">MENTARI MOD</span></b>
+      <div class="token-popup-actions">
+        
+        <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
+        <button id="token-toggle-btn" title="Toggle"><i class='fa-solid fa-chevron-down fa-fw'></i></button>
+
+        <!-- <button id="token-refresh-btn" title="Refresh Data">↻</button> -->
+        <!-- <button id="token-clear-btn" title="Clear Cache"><i class="fa-solid fa-trash"></i></button> -->
+      </div>
+    </div>
+    <div class="token-loading-bar"></div>
+    <div class="token-popup-content">
+      <div class="token-tabs">
+        <button class="token-tab active" data-tab="user-info">Info</button>
+        <!-- <button class="token-tab" data-tab="token-data">Token</button> -->
+        <button class="token-tab" data-tab="forum-data">Forum Diskusi</button>
+        <button class="token-tab" data-tab="student-data">Mahasiswa</button>
+      </div>
+      <div class="token-tab-content active" id="user-info-tab">
+        <div class="token-info-section">
+          <p>Klik Dashboard atau buka salah satu Course</p>
         </div>
       </div>
-      <div class="token-popup-content">
-        <div class="token-tabs">
-          <button class="token-tab active" data-tab="user-info">Info</button>
-          <!-- <button class="token-tab" data-tab="token-data">Token</button> -->
-          <button class="token-tab" data-tab="forum-data">Forum Diskusi</button>
-          <button class="token-tab" data-tab="student-data">Mahasiswa</button>
-        </div>
-        <div class="token-tab-content active" id="user-info-tab">
-          <div class="token-info-section">
-            <p>Klik Dashboard atau buka salah satu Course</p>
-          </div>
-        </div>
-        <div class="token-tab-content" id="token-data-tab">
-          <div class="token-info-section">
-            <p>Menunggu token...</p>
-          </div>
-        </div>
-        <div class="token-tab-content" id="forum-data-tab">
-          <div class="token-info-section">
-            <p>Forum Diskusi yang belum dikerjakan</p>
-          </div>
-          <div id="forum-list"></div>
-        </div>
-        <div class="token-tab-content" id="student-data-tab">
-          <div class="token-info-section">
-            <p>Daftar Mahasiswa</p>
-          </div>
-          <div id="student-list"></div>
+      <div class="token-tab-content" id="token-data-tab">
+        <div class="token-info-section">
+          <p>Menunggu token...</p>
         </div>
       </div>
-    `;
+      <div class="token-tab-content" id="forum-data-tab">
+        <div class="token-info-section">
+          <p>Forum Diskusi yang belum dikerjakan</p>
+        </div>
+        <div id="forum-list"></div>
+      </div>
+      <div class="token-tab-content" id="student-data-tab">
+        <div class="token-info-section">
+          <p>Daftar Mahasiswa</p>
+        </div>
+        <div id="student-list"></div>
+      </div>
+    </div>
+  `;
 
     // CSS untuk popup - lebih minimalis
     const style = document.createElement("style");
     style.textContent = `
-      #token-runner-popup {
-        position: fixed;
-        bottom: 20px; /* Increased to avoid covering bottom buttons */
-        right: 20px;
-        margin-left: 20px;
-        max-height: 600px;
-        background: rgba(17, 17, 17, 0.7); /* Semi-transparent background */
-        color: #eee;
-        border-radius: 6px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        z-index: 10001;
-        overflow: hidden;
-        transition: height 0.3s ease;
-        border: 1px solid rgba(51, 51, 51, 0.8);
-        backdrop-filter: blur(8px); /* Add blur effect */
-        -webkit-backdrop-filter: blur(8px); /* For Safari support */
+    #token-runner-popup {
+      position: fixed;
+      bottom: 20px; /* Increased to avoid covering bottom buttons */
+      right: 20px;
+      margin-left: 20px;
+      max-height: 600px;
+      background: rgba(17, 17, 17, 0.7); /* Semi-transparent background */
+      color: #eee;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      z-index: 10001;
+      overflow: hidden;
+      transition: height 0.3s ease;
+      border: 1px solid rgba(51, 51, 51, 0.8);
+      backdrop-filter: blur(8px); /* Add blur effect */
+      -webkit-backdrop-filter: blur(8px); /* For Safari support */
+    }
+
+    
+    #token-runner-popup.collapsed {
+      height: 40px;
+    }
+
+    .token-popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #1e1e1e;
+      border-bottom: 1px solid #222;
+    }
+
+    .token-popup-header b {
+      font-size: 15px;
+      color: #f0872d;
+    }
+
+    .shimmer-text {
+      background: linear-gradient(90deg, #f0872d, #fff, #f0872d);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s infinite linear;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+
+    .token-popup-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .token-popup-actions button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #1e1e1e;
+      background-color: red;
+      font-weight: bold;
+      border-radius: 30px;
+      width: 16px;
+      height: 16px;
+      padding: 2px;
+      font-size: 10px;
+    }
+
+    .token-popup-actions button:hover {
+      transform: rotate(180deg);
+      transition: transform 0.3s ease;
+    }
+
+    .token-loading-bar {
+      position: absolute;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background-color: #2ecc71;
+      top: 40px; /* Position it just below the header */
+      transition: width 0.3s ease;
+      display: none;
+    }
+
+    .token-loading-bar.active {
+      display: block;
+      animation: loading-progress 1.5s ease infinite;
+    }
+
+    @keyframes loading-progress {
+      0% {
+        width: 0%;
+        left: 0;
       }
-
-      
-      #token-runner-popup.collapsed {
-        height: 40px;
+      50% {
+        width: 70%;
+        left: 15%;
       }
-
-      .token-popup-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        background: #1e1e1e;
-        border-bottom: 1px solid #222;
+      100% {
+        width: 0%;
+        left: 100%;
       }
+    }
 
-      .token-popup-header b {
-        font-size: 15px;
-        color: #f0872d;
-      }
+    .token-popup-content {
+      max-height: 500px;
+      overflow: hidden;
+    }
 
-      .shimmer-text {
-        background: linear-gradient(90deg, #f0872d, #fff, #f0872d);
-        background-size: 200% 100%;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shimmer 3s infinite linear;
-      }
+    .token-tabs {
+      display: flex;
+      border-bottom: 1px solid #222;
+      background: #1a1a1a;
+    }
 
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-      }
+    .token-tab {
+      padding: 6px 12px;
+      background: transparent;
+      border: none;
+      color: #777;
+      cursor: pointer;
+      font-size: 12px;
+      border-bottom: 2px solid transparent;
+    }
 
+    .token-tab:hover {
+      color: #fff;
+    }
 
-      .token-popup-actions {
-        display: flex;
-        gap: 6px;
-      }
+    .token-tab.active {
+      color: #fff;
+      border-bottom: 2px solid #0070f3;
+    }
 
-      .token-popup-actions button {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        color: #f0872d;
-        font-weight: bold;
-        border-radius: 3px;
-        width: 24px;
-        height: 24px;
-        padding: 0;
-        font-size: 14px;
-      }
+    .token-tab-content {
+      display: none;
+      padding: 12px;
+      max-height: 600px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
 
-      .token-popup-actions button:hover {
-        color: #1e1e1e;
-        background: #f0872d;
-        border-radius: 3px;
-      }
+    .token-tab-content::-webkit-scrollbar {
+      display: none;
+    }
 
-      .token-popup-content {
-        max-height: 500px;
-        overflow: hidden;
-      }
+    .token-tab-content.active {
+      display: block;
+    }
 
-      .token-tabs {
-        display: flex;
-        border-bottom: 1px solid #222;
-        background: #1a1a1a;
-      }
+    .token-info-section {
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
 
-      .token-tab {
-        padding: 6px 12px;
-        background: transparent;
-        border: none;
-        color: #777;
-        cursor: pointer;
-        font-size: 12px;
-        border-bottom: 2px solid transparent;
-      }
+    .token-info-section h4 {
+      margin: 0 0 6px 0;
+      font-size: 12px;
+      color: #777;
+      font-weight: normal;
+    }
 
-      .token-tab:hover {
-        color: #fff;
-      }
+    .token-info-section p {
+      margin: 0 0 6px 0;
+    }
 
-      .token-tab.active {
-        color: #fff;
-        border-bottom: 2px solid #0070f3;
-      }
+    .token-key {
+      color: #777;
+    }
 
-      .token-tab-content {
-        display: none;
-        padding: 12px;
-        max-height: 600px;
-        overflow-y: auto;
-        scrollbar-width: none;
-      }
+    .token-value {
+      color: #eee;
+      word-break: break-all;
+    }
 
-      .token-tab-content::-webkit-scrollbar {
-        display: none;
-      }
+    .token-copy-btn {
+      background: #333;
+      border: none;
+      color: #eee;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
 
-      .token-tab-content.active {
-        display: block;
-      }
+    .token-copy-btn:hover {
+      background: #0070f3;
+    }
 
-      .token-info-section {
-        margin-bottom: 10px;
-        font-size: 12px;
-        line-height: 1.4;
-      }
+    #forum-list, #student-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-      .token-info-section h4 {
-        margin: 0 0 6px 0;
-        font-size: 12px;
-        color: #777;
-        font-weight: normal;
-      }
+    .forum-item, .student-item {
+      background: #191919;
+      border-radius: 4px;
+      padding: 8px 10px;
+      border: 1px solid #222;
+    }
 
-      .token-info-section p {
-        margin: 0 0 6px 0;
-      }
+    .forum-item:hover {
+      background: #222;
+    }
 
-      .token-key {
-        color: #777;
-      }
+    .forum-item-header, .student-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
 
-      .token-value {
-        color: #eee;
-        word-break: break-all;
-      }
+    .forum-item-title, .student-item-title {
+      font-weight: normal;
+      color: #eee;
+      margin: 0;
+      font-size: 13px;
+    }
 
-      .token-copy-btn {
-        background: #333;
-        border: none;
-        color: #eee;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 11px;
-        cursor: pointer;
-        margin-left: 5px;
-      }
+    .forum-item-code, .student-item-code {
+      font-size: 11px;
+      color: #777;
+      margin: 0;
+    }
 
-      .token-copy-btn:hover {
-        background: #0070f3;
-      }
-
-      #forum-list, #student-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .forum-item, .student-item {
-        background: #191919;
-        border-radius: 4px;
-        padding: 8px 10px;
-        border: 1px solid #222;
-      }
-
-      .forum-item:hover {
-        background: #222;
-      }
-
-      .forum-item-header, .student-item-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 6px;
-      }
-
-      .forum-item-title, .student-item-title {
-        font-weight: normal;
-        color: #eee;
-        margin: 0;
-        font-size: 13px;
-      }
-
-      .forum-item-code, .student-item-code {
-        font-size: 11px;
-        color: #777;
-        margin: 0;
-      }
-
-      .forum-item-link, .student-item-link {
-        display: inline-block;
-        color: white;
-        text-decoration: none;
-        border-radius: 3px;
-        font-size: 14px;
-      }
+    .forum-item-link, .student-item-link {
+      display: inline-block;
+      color: white;
+      text-decoration: none;
+      border-radius: 3px;
+      font-size: 14px;
+    }
 
 
-      .forum-no-data, .student-no-data {
-        color: #777;
-        font-style: italic;
-        text-align: center;
-        padding: 12px;
-      }
+    .forum-no-data, .student-no-data {
+      color: #777;
+      font-style: italic;
+      text-align: center;
+      padding: 12px;
+    }
 
-      .token-badge {
-        display: inline-block;
-        background: #222;
-        color: #999;
-        padding: 1px 4px;
-        border-radius: 3px;
-        font-size: 10px;
-        margin-right: 4px;
-      }
+    .token-badge {
+      display: inline-block;
+      background: #222;
+      color: #999;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-right: 4px;
+    }
 
-      .forum-item-link:hover {
-        .token-badge{
-            background: #253949;
-            color: #41a3f2;
-          }
+    .forum-item-link:hover {
+      .token-badge{
+          background: #253949;
+          color: #41a3f2;
         }
-
-      pre {
-        background: #191919; 
-        padding: 8px; 
-        border-radius: 4px; 
-        max-height: 150px; 
-        font-size: 11px; 
-        color: #ccc;
-        overflow: auto;
-        scrollbar-width: none;
       }
 
-      pre::-webkit-scrollbar {
-        display: none;
-      }
-      
-      .student-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      .student-details {
-        flex: 1;
-      }
-      
-      .student-contact {
-        font-size: 11px;
-        color: #999;
-      }
-      
-      .course-header {
-        background: #222;
-        padding: 6px 10px;
-        border-radius: 4px;
-        margin-bottom: 8px;
-        font-size: 12px;
-        font-weight: bold;
-      }
+    pre {
+      background: #191919; 
+      padding: 8px; 
+      border-radius: 4px; 
+      max-height: 150px; 
+      font-size: 11px; 
+      color: #ccc;
+      overflow: auto;
+      scrollbar-width: none;
+    }
 
-      /* New card wrapper styles */
-      .token-card-wrapper {
-        background: linear-gradient(145deg, #232323, #1a1a1a);
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
+    pre::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .student-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .student-details {
+      flex: 1;
+    }
+    
+    .student-contact {
+      font-size: 11px;
+      color: #999;
+    }
+    
+    .course-header {
+      background: #222;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: bold;
+    }
 
-      .token-card-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
+    /* New card wrapper styles */
+    .token-card-wrapper {
+      background: linear-gradient(145deg, #232323, #1a1a1a);
+      border-radius: 8px;
+      padding: 16px;
+    }
 
-      .token-avatar {
-        width: 36px;
-        height: 36px;
-        background: #41a3f2;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 10px;
-        color: #fff;
-        font-weight: bold;
-        font-size: 14px;
-      }
+    .token-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-      .token-user-title {
-        font-size: 16px;
-        font-weight: 500;
-        color: #fff;
-        margin: 0;
-      }
+    .token-avatar {
+      width: 36px;
+      height: 36px;
+      background: #41a3f2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+    }
 
-      .token-role-badge {
-        margin-left: auto;
-        background: rgba(65, 163, 242, 0.15);
-        color: #41a3f2;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 500;
-        text-transform: uppercase;
-      }
+    .token-user-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      margin: 0;
+    }
 
-      .token-data-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
+    .token-role-badge {
+      margin-left: auto;
+      background: rgba(65, 163, 242, 0.15);
+      color: #41a3f2;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
 
-      .token-data-item {
-        padding: 8px;
-        background: rgba(30, 30, 30, 0.5);
-        border-radius: 6px;
-      }
+    .token-data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
-      .token-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        font-size: 11px;
-      }
+    .token-data-item {
+      padding: 8px;
+      background: rgba(30, 30, 30, 0.5);
+      border-radius: 6px;
+    }
 
-      .token-github-link {
-        display: flex;
-        align-items: center;
-        color: #999;
-        text-decoration: none;
-        transition: color 0.2s;
-      }
+    .token-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 11px;
+    }
 
-      .token-github-link:hover {
-        color: #41a3f2;
-      }
+    .token-github-link {
+      display: flex;
+      align-items: center;
+      color: #999;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
 
-      .token-github-icon {
-        margin-right: 5px;
-        font-size: 14px;
-      }
+    .token-github-link:hover {
+      color: #41a3f2;
+    }
 
-      .token-date-info {
-        color: #777;
-      }
+    .token-github-icon {
+      margin-right: 5px;
+      font-size: 14px;
+    }
 
-      /* Add some subtle hover effects */
-      .token-card-wrapper:hover {
-        border-color: rgba(65, 163, 242, 0.4);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-      }
-    `;
+    .token-date-info {
+      color: #777;
+    }
+
+    /* Add some subtle hover effects */
+    .token-card-wrapper:hover {
+      border-color: rgba(65, 163, 242, 0.4);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    .token-popup-actions button#token-reset-btn,
+    .token-popup-actions button#token-clear-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #1e1e1e;
+      background-color: #2ecc71;
+      font-weight: bold;
+      border-radius: 30px;
+      width: 16px;
+      height: 16px;
+      padding: 2px;
+      font-size: 10px;
+    }
+
+    .token-popup-actions button#token-reset-btn:hover,
+    .token-popup-actions button#token-clear-btn:hover {
+      transform: rotate(180deg);
+      transition: transform 0.3s;
+    }
+  `;
 
     document.head.appendChild(style);
-
     document.body.appendChild(popup);
+
+    // Enhanced refresh function with loading animation
+    function refreshAndTrackWithLoading() {
+      // Show loading animation
+      const loadingBar = document.querySelector(".token-loading-bar");
+      loadingBar.classList.add("active");
+
+      // Call the original function if it exists
+      if (typeof window.refreshAndTrack === "function") {
+        // Call the original function
+        const result = window.refreshAndTrack();
+
+        // If it returns a promise, handle it
+        if (result && typeof result.then === "function") {
+          result
+            .then(() => {
+              setTimeout(() => loadingBar.classList.remove("active"), 500);
+            })
+            .catch(() => {
+              setTimeout(() => loadingBar.classList.remove("active"), 500);
+            });
+        } else {
+          // If not a promise, hide loading after a delay
+          setTimeout(() => loadingBar.classList.remove("active"), 1500);
+        }
+
+        return result;
+      } else {
+        // If original function doesn't exist, just show animation for visual feedback
+        setTimeout(() => loadingBar.classList.remove("active"), 1500);
+      }
+    }
+
+    // Toggle collapse function
+    function toggleCollapse() {
+      const popup = document.getElementById("token-runner-popup");
+      popup.classList.toggle("collapsed");
+
+      const toggleBtn = document.getElementById("token-toggle-btn");
+      if (popup.classList.contains("collapsed")) {
+        toggleBtn.innerHTML = "<i class='fa-solid fa-chevron-up fa-fw'></i>";
+      } else {
+        toggleBtn.innerHTML = "<i class='fa-solid fa-chevron-down fa-fw'></i>";
+      }
+    }
 
     // Handle event listeners
     document
       .getElementById("token-toggle-btn")
       .addEventListener("click", toggleCollapse);
     document
-      .getElementById("token-refresh-btn")
-      .addEventListener("click", refreshAllData);
+      .getElementById("token-reset-btn")
+      .addEventListener("click", refreshAndTrackWithLoading);
+    // document
+    //   .getElementById("token-refresh-btn")
+    //   .addEventListener("click", refreshAllData);
+
+    // document
+    //   .getElementById("token-clear-btn")
+    //   .addEventListener("click", clearCacheData);
 
     // Tab switching
     document.querySelectorAll(".token-tab").forEach((tab) => {
@@ -496,10 +627,10 @@ console.log("Token.js sedang dijalankan!");
       // Change button icon
       const btn = document.getElementById("token-toggle-btn");
       if (popup.classList.contains("collapsed")) {
-        btn.innerHTML = "▼";
+        btn.innerHTML = "<i class='fa-solid fa-chevron-up'></i>";
         btn.title = "Expand";
       } else {
-        btn.innerHTML = "▲";
+        btn.innerHTML = "<i class='fa-solid fa-chevron-down'></i>";
         btn.title = "Collapse";
       }
     }
@@ -744,43 +875,689 @@ console.log("Token.js sedang dijalankan!");
     const studentList = document.getElementById("student-list");
     if (!studentList) return;
 
-    // Filter courses with students
-    const coursesWithStudents = courseDataList.filter(
-      (course) => course && course.peserta && course.peserta.length > 0
-    );
+    // Extract unique students from all courses
+    const allUniqueStudents = [];
+    const studentMap = new Map(); // Use Map to track unique students by NIM
 
-    // Update UI
-    if (coursesWithStudents.length === 0) {
+    courseDataList.forEach((course) => {
+      if (course && course.peserta && course.peserta.length > 0) {
+        course.peserta.forEach((student) => {
+          if (!studentMap.has(student.nim)) {
+            studentMap.set(student.nim, {
+              ...student,
+              absen: allUniqueStudents.length + 1, // Add sequential absen number
+            });
+            allUniqueStudents.push(studentMap.get(student.nim));
+          }
+        });
+      }
+    });
+
+    // Check if we have students
+    if (allUniqueStudents.length === 0) {
       studentList.innerHTML = `<div class="student-no-data">Tidak ada data mahasiswa</div>`;
       return;
     }
 
-    let html = "";
-    coursesWithStudents.forEach((course) => {
-      html += `
-        <div class="course-header">
-          ${course.coursename}
-          <span class="token-badge">${course.kode_course}</span>
-        </div>
-      `;
+    // Create grouping interface
+    const groupingForm = `
+    <div class="data-card grouping-form">
+      <h3 class="card-title">Pengelompokan Mahasiswa</h3>
+      <div class="input-group">
+        <input type="number" id="group-count" min="1" max="${allUniqueStudents.length}" value="1" class="group-input" placeholder="Jumlah Kelompok">
+        <button id="create-groups-btn" class="primary-btn">Buat Kelompok</button>
+      </div>
+      <div class="grouping-options">
+        <label class="radio-container">
+          <input type="radio" name="grouping-method" value="sequential" checked>
+          <span class="radio-label">Berurutan</span>
+        </label>
+        <label class="radio-container">
+          <input type="radio" name="grouping-method" value="random">
+          <span class="radio-label">Acak</span>
+        </label>
+      </div>
+    </div>
+  `;
 
-      course.peserta.forEach((student) => {
-        html += `
-          <div class="student-item">
-            <div class="student-info">
-              <div class="student-details">
-                <p class="student-item-title">${student.nama_mahasiswa}</p>
-                <p class="student-item-code">
-                  <span class="token-badge">${student.nim}</span>
-                </p>
-              </div>
-            </div>
+    // Group results card (hidden initially, moved above student list)
+    const groupResultsCard = `
+    <div class="data-card" id="group-results-card" style="display: none;">
+      <div class="card-header">
+        <h3 class="card-title">Hasil Pengelompokan</h3>
+        <div class="card-actions">
+          <button id="copy-all-groups-btn" class="secondary-btn">
+            <i class="fas fa-copy"></i> Copy Data
+          </button>
+        </div>
+      </div>
+      <div id="group-results"></div>
+    </div>
+  `;
+
+    // Student list with copy button
+    let studentsHtml = `
+    ${groupingForm}
+    ${groupResultsCard}
+    <div class="data-card">
+      <div class="card-header">
+        <h3 class="card-title">Daftar Mahasiswa</h3>
+        <div class="card-actions">
+          <button id="copy-all-students-btn" class="secondary-btn">
+            <i class="fas fa-copy"></i> Copy Data
+          </button>
+        </div>
+      </div>
+      <div class="student-count">Total Mahasiswa: ${allUniqueStudents.length}</div>
+      <div class="students-container">
+  `;
+
+    allUniqueStudents.forEach((student) => {
+      studentsHtml += `
+      <div class="student-item" data-nim="${student.nim}">
+        <div class="student-info">
+          <div class="student-inline">
+            <span class="student-absen">${student.absen}</span>
+            <p class="student-item-title">${student.nama_mahasiswa}</p>
+            <span class="token-badge">${student.nim}</span>
           </div>
-        `;
-      });
+        </div>
+      </div>
+    `;
     });
 
-    studentList.innerHTML = html;
+    studentsHtml += `
+      </div>
+    </div>
+  `;
+
+    studentList.innerHTML = studentsHtml;
+
+    // Add event listener to the create groups button
+    document
+      .getElementById("create-groups-btn")
+      .addEventListener("click", () => {
+        const groupCount = parseInt(
+          document.getElementById("group-count").value,
+          10
+        );
+        const groupingMethod = document.querySelector(
+          'input[name="grouping-method"]:checked'
+        ).value;
+
+        if (groupCount < 1 || groupCount > allUniqueStudents.length) {
+          alert(
+            `Jumlah kelompok harus antara 1 dan ${allUniqueStudents.length}`
+          );
+          return;
+        }
+
+        createGroups(allUniqueStudents, groupCount, groupingMethod);
+        document.getElementById("group-results-card").style.display = "block";
+
+        // Scroll to group results with an offset to keep tabs visible
+        const tabsHeight =
+          document.querySelector(".token-tabs")?.offsetHeight || 50;
+        const scrollPosition =
+          document.getElementById("group-results-card").offsetTop -
+          tabsHeight -
+          10;
+
+        window.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        });
+      });
+
+    // Add copy functionality for student data
+    document
+      .getElementById("copy-all-students-btn")
+      .addEventListener("click", () => {
+        const studentData = allUniqueStudents
+          .map(
+            (student) =>
+              `${student.absen}. ${student.nama_mahasiswa} (${student.nim})`
+          )
+          .join("\n");
+
+        copyToClipboard(studentData, "Data mahasiswa berhasil disalin");
+      });
+
+    // Add CSS for the new elements
+    if (!document.getElementById("enhanced-styles")) {
+      const style = document.createElement("style");
+      style.id = "enhanced-styles";
+      style.textContent = `
+      /* Card Styles */
+      .data-card {
+        background: #1e1e1e;
+        border-radius: 8px;
+        margin-bottom: 9rem;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border: 1px solid #333;
+      }
+
+      #group-results-card{
+        margin-bottom: 0;
+      }
+      
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #333;
+      }
+      
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #eee;
+        margin: 0 0 12px 0;
+      }
+      
+      .card-actions {
+        display: flex;
+        gap: 8px;
+      }
+      
+      /* Button Styles */
+      .primary-btn {
+        background: #0070f3;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+      
+      .primary-btn:hover {
+        background: #0060df;
+      }
+      
+      .secondary-btn {
+        background: #333;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      
+      .secondary-btn:hover {
+        background: #444;
+      }
+      
+      /* Grouping Form */
+      .grouping-form {
+        margin-bottom: 0px;
+      }
+      
+      .input-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      
+      .group-input {
+        flex: 1;
+        background: #252525;
+        border: 1px solid #333;
+        color: #eee;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      
+      .grouping-options {
+        display: flex;
+        gap: 16px;
+      }
+      
+      .radio-container {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+      
+      .radio-label {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #ccc;
+      }
+      
+      /* Student List */
+      .students-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+      
+      .student-item {
+        background: #252525;
+        border-radius: 6px;
+        padding: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #333;
+      }
+      
+      .student-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      
+      /* New inline student info style */
+      .student-inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+        width: 100%;
+      }
+      
+      .student-absen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        background: #0070f3;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+      
+      .student-item-title {
+        font-weight: 500;
+        margin: 0;
+        font-size: 14px;
+        color: #eee;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .token-badge {
+        background: #333;
+        color: #aaa;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        flex-shrink: 0;
+      }
+      
+      .student-count {
+        color: #999;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      
+      /* Group Results */
+      #group-results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+      
+      .group-container {
+        background: #252525;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #333;
+      }
+      
+      .group-header {
+        background: #333;
+        padding: 10px 12px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        color: #eee;
+      }
+      
+      .group-count {
+        font-size: 12px;
+        color: #aaa;
+      }
+      
+      .group-members {
+        padding: 8px;
+      }
+      
+      .group-member {
+        display: flex;
+        padding: 8px;
+        border-bottom: 1px solid #333;
+        align-items: center;
+      }
+      
+      .group-member:last-child {
+        border-bottom: none;
+      }
+      
+      .member-absen {
+        min-width: 24px;
+        height: 24px;
+        background: #0070f3;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        margin-right: 10px;
+        color: white;
+        flex-shrink: 0;
+      }
+      
+      .member-name {
+        flex: 1;
+        font-size: 14px;
+        color: #eee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .member-nim {
+        color: #aaa;
+        font-size: 12px;
+        font-family: monospace;
+        margin-left: 8px;
+        flex-shrink: 0;
+      }
+      
+      /* Tab styles - added to ensure tabs stay visible */
+      .token-tabs {
+        display: flex;
+        background: #1a1a1a;
+        border-bottom: 1px solid #333;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      
+      .token-tab {
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        color: #ccc;
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+      }
+      
+      .token-tab:hover {
+        color: #fff;
+      }
+      
+      .token-tab.active {
+        color: #fff;
+        border-bottom: 2px solid #0070f3;
+        background: #1e1e1e;
+      }
+      
+      /* Toast notification */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #333;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 1000;
+        animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        animation-fill-mode: forwards;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .students-container, 
+        #group-results {
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+        
+        .input-group {
+          flex-direction: column;
+        }
+        
+        .card-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        
+        .card-actions {
+          margin-top: 8px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .students-container, 
+        #group-results {
+          grid-template-columns: 1fr;
+        }
+        
+        .grouping-options {
+          flex-direction: column;
+          gap: 8px;
+        }
+      }
+    `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // Function to create and display groups with improved distribution logic
+  function createGroups(students, groupCount, method) {
+    const groupResultsDiv = document.getElementById("group-results");
+
+    // Make a copy of the students array to avoid modifying the original
+    let studentsToDivide = [...students];
+
+    // Randomize if needed
+    if (method === "random") {
+      for (let i = studentsToDivide.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [studentsToDivide[i], studentsToDivide[j]] = [
+          studentsToDivide[j],
+          studentsToDivide[i],
+        ];
+      }
+    }
+
+    // Calculate base size and remainder
+    const totalStudents = studentsToDivide.length;
+    const baseSize = Math.floor(totalStudents / groupCount);
+    const remainder = totalStudents % groupCount;
+
+    // Create groups with improved distribution
+    const groups = [];
+    let currentIndex = 0;
+
+    for (let i = 0; i < groupCount; i++) {
+      // Calculate group size: if i < remainder, add 1 extra student
+      // This ensures the extra students are distributed evenly among the first 'remainder' groups
+      const groupSize = baseSize + (i < remainder ? 1 : 0);
+
+      // Skip creating empty groups
+      if (groupSize > 0) {
+        const groupMembers = studentsToDivide.slice(
+          currentIndex,
+          currentIndex + groupSize
+        );
+        groups.push(groupMembers);
+        currentIndex += groupSize;
+      }
+    }
+
+    // Alternative distribution logic for special cases
+    const lastGroupIndex = groups.length - 1;
+
+    // If the last group has significantly fewer members (less than half of average)
+    if (
+      groups.length > 1 &&
+      groups[lastGroupIndex].length < baseSize / 2 &&
+      groups[lastGroupIndex].length <= 2
+    ) {
+      const lastGroup = groups.pop(); // Remove the last group
+
+      // Distribute these students to other groups
+      lastGroup.forEach((student, index) => {
+        // Add each student to a different group, cycling through all groups
+        const targetGroupIndex = index % groups.length;
+        groups[targetGroupIndex].push(student);
+      });
+    }
+
+    // Generate HTML
+    let html = "";
+    groups.forEach((group, index) => {
+      html += `
+      <div class="group-container">
+        <div class="group-header">
+          <div>Kelompok ${index + 1}</div>
+          <div class="group-count">${group.length} mahasiswa</div>
+        </div>
+        <div class="group-members">
+    `;
+
+      group.forEach((student) => {
+        html += `
+        <div class="group-member">
+          <div class="member-absen">${student.absen}</div>
+          <div class="member-name">${student.nama_mahasiswa}</div>
+          <div class="member-nim">${student.nim}</div>
+        </div>
+      `;
+      });
+
+      html += `
+        </div>
+      </div>
+    `;
+    });
+
+    groupResultsDiv.innerHTML = html;
+
+    // Add event listener for copying all groups data
+    document
+      .getElementById("copy-all-groups-btn")
+      .addEventListener("click", () => {
+        let groupsData = "";
+
+        groups.forEach((group, index) => {
+          groupsData += `KELOMPOK ${index + 1} (${group.length} mahasiswa)\n`;
+
+          group.forEach((student) => {
+            groupsData += `${student.absen}. ${student.nama_mahasiswa} (${student.nim})\n`;
+          });
+
+          groupsData += "\n";
+        });
+
+        copyToClipboard(groupsData, "Data kelompok berhasil disalin");
+      });
+  }
+
+  // Function to copy text to clipboard and show notification
+  function copyToClipboard(text, message) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        showToast(message);
+      })
+      .catch((err) => {
+        showToast("Gagal menyalin: " + err);
+      });
+  }
+
+  // Function to show toast notification
+  function showToast(message) {
+    // Remove existing toast if any
+    const existingToast = document.querySelector(".toast");
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    // Create new toast
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerHTML = `
+    <i class="fas fa-check-circle"></i>
+    <span>${message}</span>
+  `;
+
+    document.body.appendChild(toast);
+
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+
+  // Function to copy text to clipboard and show notification
+  function copyToClipboard(text, message) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        showToast(message);
+      })
+      .catch((err) => {
+        showToast("Gagal menyalin: " + err);
+      });
+  }
+
+  // Function to show toast notification
+  function showToast(message) {
+    // Remove existing toast if any
+    const existingToast = document.querySelector(".toast");
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    // Create new toast
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerHTML = `
+    <i class="fas fa-check-circle"></i>
+    <span>${message}</span>
+  `;
+
+    document.body.appendChild(toast);
+
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
   }
 
   // Save token and display user info
