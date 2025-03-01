@@ -72,12 +72,12 @@ console.log("Token.js sedang dijalankan!");
     const popup = document.createElement("div");
     popup.id = "token-runner-popup";
     popup.innerHTML = `
-    <div class="token-popup-header">
+    <div id="token-toggle-btn" class="token-popup-header">
       <b style="align-items: center;"><img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" height="15" />  <span class="shimmer-text">MENTARI MOD</span></b>
       <div class="token-popup-actions">
         
         <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
-        <button id="token-toggle-btn" title="Toggle"><i class='fa-solid fa-chevron-down fa-fw'></i></button>
+        <button  title="Toggle"><i class='fa-solid fa-chevron-down fa-fw'></i></button>
 
         <!-- <button id="token-refresh-btn" title="Refresh Data">↻</button> -->
         <!-- <button id="token-clear-btn" title="Clear Cache"><i class="fa-solid fa-trash"></i></button> -->
@@ -108,9 +108,6 @@ console.log("Token.js sedang dijalankan!");
         <div id="forum-list"></div>
       </div>
       <div class="token-tab-content" id="student-data-tab">
-        <div class="token-info-section">
-          <p>Daftar Mahasiswa</p>
-        </div>
         <div id="student-list"></div>
       </div>
     </div>
@@ -484,6 +481,7 @@ console.log("Token.js sedang dijalankan!");
       display: flex;
       align-items: center;
       justify-content: space-between;
+      opacity: 0.5;
       margin-top: 12px;
       padding-top: 8px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -573,19 +571,6 @@ console.log("Token.js sedang dijalankan!");
       }
     }
 
-    // Toggle collapse function
-    function toggleCollapse() {
-      const popup = document.getElementById("token-runner-popup");
-      popup.classList.toggle("collapsed");
-
-      const toggleBtn = document.getElementById("token-toggle-btn");
-      if (popup.classList.contains("collapsed")) {
-        toggleBtn.innerHTML = "<i class='fa-solid fa-chevron-up fa-fw'></i>";
-      } else {
-        toggleBtn.innerHTML = "<i class='fa-solid fa-chevron-down fa-fw'></i>";
-      }
-    }
-
     // Handle event listeners
     document
       .getElementById("token-toggle-btn")
@@ -622,17 +607,12 @@ console.log("Token.js sedang dijalankan!");
   function toggleCollapse() {
     const popup = document.getElementById("token-runner-popup");
     if (popup) {
-      popup.classList.toggle("collapsed");
-
-      // Change button icon
-      const btn = document.getElementById("token-toggle-btn");
       if (popup.classList.contains("collapsed")) {
-        btn.innerHTML = "<i class='fa-solid fa-chevron-up'></i>";
-        btn.title = "Expand";
+        popup.style.width = ""; // Lebar lebih kecil
       } else {
-        btn.innerHTML = "<i class='fa-solid fa-chevron-down'></i>";
-        btn.title = "Collapse";
+        popup.style.width = "220px";
       }
+      popup.classList.toggle("collapsed");
     }
   }
 
@@ -767,11 +747,11 @@ console.log("Token.js sedang dijalankan!");
         </div>
         
         <div class="token-footer">
-          <div style="display: flex; align-items: center;">
+          <a href="https://github.com/lukman754/Mentari-Unpam" style="display: flex; align-items: center; text-decoration: none; color: #fff;">
             <span class="token-value">Made with </span>
             <img src="https://img.icons8.com/?size=100&id=H5H0mqCCr5AV&format=png&color=000000" style="width: 15px; margin: 0 3px;" >
             <span>by Lukman Muludin</span>
-          </div>
+          </a>
 
           <div style="display: flex; align-items: center;">
             <a href="https://instagram.com/_.chopin" target="_blank" class="token-github-link">
@@ -1169,12 +1149,12 @@ console.log("Token.js sedang dijalankan!");
         display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 24px;
-        height: 24px;
-        background: #0070f3;
-        color: #fff;
+        min-width: 20px;
+        height: 20px;
+        background:rgb(182, 243, 0);
+        color: #252525;
         border-radius: 50%;
-        font-size: 12px;
+        font-size: 10px;
         font-weight: bold;
         flex-shrink: 0;
       }
@@ -1314,17 +1294,17 @@ console.log("Token.js sedang dijalankan!");
       /* Toast notification */
       .toast {
         position: fixed;
-        bottom: 20px;
+        top: 20px;
         right: 20px;
-        background: #333;
-        color: white;
+        background:rgba(101, 243, 0, 0.56);
+        color: #1e1e1e;
         padding: 12px 20px;
         border-radius: 4px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         display: flex;
         align-items: center;
         gap: 8px;
-        z-index: 1000;
+        z-index: 100099;
         animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
         animation-fill-mode: forwards;
       }
@@ -1346,12 +1326,8 @@ console.log("Token.js sedang dijalankan!");
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         }
         
-        .input-group {
-          flex-direction: column;
-        }
         
         .card-header {
-          flex-direction: column;
           align-items: flex-start;
         }
         
@@ -1361,15 +1337,14 @@ console.log("Token.js sedang dijalankan!");
       }
       
       @media (max-width: 480px) {
-        .students-container, 
+        /*
+        .students-container,
         #group-results {
           grid-template-columns: 1fr;
         }
+        */
         
-        .grouping-options {
-          flex-direction: column;
-          gap: 8px;
-        }
+        
       }
     `;
       document.head.appendChild(style);
