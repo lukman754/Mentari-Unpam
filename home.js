@@ -6,8 +6,10 @@ const intervalId = setInterval(() => {
   );
   if (personLearnImage) {
     personLearnImage.src =
-      "https://media.tenor.com/tz5N07QkpVkAAAAi/holo-tail.gif";
+      "https://github.com/tonybaloney/vscode-pets/blob/main/media/fox/red_idle_8fps.gif?raw=true";
     personLearnImage.style.width = "auto"; // Menambahkan inline style width: auto
+    personLearnImage.style.top = "45%";
+    personLearnImage.style.left = "25%";
   }
 
   // Ganti logo Mentari dengan gambar dari GitHub
@@ -19,7 +21,27 @@ const intervalId = setInterval(() => {
       "https://github.com/user-attachments/assets/bc206a62-4b37-4064-a1af-872e7a157463";
     mentariLogo.style.width = "auto"; // Menambahkan inline style width: auto untuk logo juga
   }
-}, 100); // Periksa setiap 100ms
+
+  // Ganti pengaturan background image
+  const bgImage = document.querySelector('img[src*="Background-Dt75uuh7.jpg"]');
+  if (bgImage) {
+    bgImage.src = "https://images7.alphacoders.com/112/thumb-1920-1121331.png";
+
+    // Menggunakan object-fit alih-alih background properties untuk <img>
+    bgImage.style.width = "100%";
+    bgImage.style.height = "100%";
+    bgImage.style.objectFit = "cover"; // Mempertahankan rasio aspek dan menutupi area
+    bgImage.style.objectPosition = "center";
+  }
+
+  // Tambahkan style untuk MuiTypography-root MuiTypography-h5
+  const h5Element = document.querySelector(
+    ".MuiTypography-root.MuiTypography-h5"
+  );
+  if (h5Element) {
+    h5Element.style.lineHeight = "0.334";
+  }
+}); // Periksa setiap 100ms
 
 console.log("Interval aktif - kedua gambar akan terus diganti secara otomatis");
 
