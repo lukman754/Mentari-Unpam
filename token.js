@@ -313,7 +313,7 @@ console.log("Token.js sedang dijalankan!");
     #forum-list, #student-list {
       display: flex;
       flex-direction: column;
-      
+      gap: 8px;
     }
 
     .forum-item, .student-item {
@@ -1140,7 +1140,7 @@ console.log("Token.js sedang dijalankan!");
     }
     
     .course-header {
-      padding: 16px;
+      padding: 8px;
       background: #252525;
       border-left: 4px solid #0070f3;
       margin-bottom: 0;
@@ -1149,7 +1149,7 @@ console.log("Token.js sedang dijalankan!");
     }
     
     .course-header h2 {
-      margin: 0 0 8px 0;
+      margin: 0;
       font-size: 14px;
       color: #eee;
     }
@@ -1177,7 +1177,7 @@ console.log("Token.js sedang dijalankan!");
     .section-header {
       background: #333;
       color: white;
-      padding: 12px 16px;
+      padding: 6px 8px;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -1186,7 +1186,7 @@ console.log("Token.js sedang dijalankan!");
     
     .section-header h3 {
       margin: 0;
-      font-size: 15px;
+      font-size: 12px;
     }
     
     .section-toggle {
@@ -1199,7 +1199,7 @@ console.log("Token.js sedang dijalankan!");
     }
     
     .section-content {
-      padding: 16px;
+      padding: 8px;
       display: none;
     }
     
@@ -1269,7 +1269,7 @@ console.log("Token.js sedang dijalankan!");
       border: 1px solid #333;
       border-radius: 6px;
       padding: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       width: 100%;
       box-sizing: border-box;
     }
@@ -1335,11 +1335,11 @@ console.log("Token.js sedang dijalankan!");
     .action-button {
       background: #0070f3;
       color: white;
-      padding: 7px 14px;
+      padding: 4px 8px;
       border-radius: 4px;
       text-decoration: none;
       transition: all 0.2s;
-      font-size: 13px;
+      font-size: 12px;
     }
     
     .action-button:hover {
@@ -1410,19 +1410,19 @@ console.log("Token.js sedang dijalankan!");
     /* Responsive adjustments */
     @media (max-width: 480px) {
       .course-header h2 {
-        font-size: 14px;
+        font-size: 12px;
       }
       
       .section-header h3 {
-        font-size: 14px;
+        font-size: 12px;
       }
       
       .materials-card h4 {
-        font-size: 14px;
+        font-size: 12px;
       }
       
       .item-details h4 {
-        font-size: 13px;
+        font-size: 12px;
       }
       
       .action-button {
