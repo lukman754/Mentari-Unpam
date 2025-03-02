@@ -287,50 +287,6 @@ async function waitForElements() {
   });
 }
 
-// Function to click the Reply button
-function clickReplyButton() {
-  const replyButton = document.querySelector(
-    "button.MuiButton-containedSuccess"
-  );
-  if (replyButton) {
-    console.log("Clicking Reply button...");
-    replyButton.click();
-    return true;
-  }
-  return false;
-}
-
-// Function to check if textarea exists
-function checkTextarea() {
-  return (
-    document.querySelector("textarea.MuiInputBase-inputMultiline") !== null
-  );
-}
-
-// Function to wait for textarea to appear
-async function waitForTextarea(maxWaitTime = 5000) {
-  return new Promise((resolve) => {
-    const startTime = Date.now();
-
-    const checkForTextarea = () => {
-      if (checkTextarea()) {
-        resolve(true);
-        return;
-      }
-
-      const elapsedTime = Date.now() - startTime;
-      if (elapsedTime > maxWaitTime) {
-        resolve(false);
-        return;
-      }
-
-      setTimeout(checkForTextarea, 100);
-    };
-
-    checkForTextarea();
-  });
-}
-
 // Function to initialize the form
 async function initializeForm() {
   await waitForElements();
@@ -410,39 +366,10 @@ function setupEventListeners() {
     answerContainer.style.display = "none";
 
     try {
-      // Check if textarea exists or try to make it appear
-      let textareaExists = checkTextarea();
-
-      if (!textareaExists) {
-        // Try to click Reply button
-        const clickedReply = clickReplyButton();
-
-        if (clickedReply) {
-          // Wait for textarea to appear
-          textareaExists = await waitForTextarea();
-        }
-      }
-
       const answer = await generateEssayAnswer(apiKey);
-
-      // If textarea exists, fill it with the answer
-      if (textareaExists) {
-        const textarea = document.querySelector(
-          "textarea.MuiInputBase-inputMultiline"
-        );
-        textarea.value = answer;
-
-        // Trigger input event to update any react/virtual DOM state
-        const inputEvent = new Event("input", { bubbles: true });
-        textarea.dispatchEvent(inputEvent);
-
-        showPopup("Answer inserted into textarea!");
-      } else {
-        // Show answer in the container as before if textarea not found
-        markdownAnswer.textContent = answer;
-        answerContainer.style.display = "block";
-        showPopup("Textarea not found. Answer generated in preview.");
-      }
+      markdownAnswer.textContent = answer;
+      answerContainer.style.display = "block";
+      showPopup("Answer generated successfully!");
     } catch (error) {
       errorDiv.textContent = error.message || "Failed to generate answer";
       errorDiv.style.display = "block";
@@ -487,7 +414,7 @@ async function generateEssayAnswer(apiKey) {
 
   // Create a prompt for the essay question
   const prompt = `
-    berikan jawaban yang jelas dan unik seperti seorang mahasiswa jangan terlalu baku namun sopan, jawabannya dibuat menjadi paragraf saja jika terdapat point maka point itu diringkas saja dan jangan gunakan huruf spesial seperti (# *) dll, gunakan itu jika memang digunakan, dan jangan terlalu banyak point untuk pertanyaan berikut ini:
+    berikan jawaban yang jelas dan unik seperti seorang mahasiswa jangan terlalu baku namun sopan, jawabannya dibuat menjadi 3 paragraf yang saling berhubungan, berikan enter 2x tiap akhir paragraf jika terdapat point maka point itu diringkas saja dan jangan gunakan huruf spesial seperti (# *) dll, gunakan itu jika memang digunakan, dan jangan terlalu banyak point untuk pertanyaan berikut ini:
     Pertanyaan: ${questionText}
   `;
 
