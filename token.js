@@ -72,12 +72,12 @@ console.log("Token.js sedang dijalankan!");
     const popup = document.createElement("div");
     popup.id = "token-runner-popup";
     popup.innerHTML = `
-    <div id="token-toggle-btn" class="token-popup-header">
+    <div class="token-popup-header">
       <b style="align-items: center;"><img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" height="15" />  <span class="shimmer-text">MENTARI MOD</span></b>
       <div class="token-popup-actions">
         
-        <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
-        <button  title="Toggle"><i class='fa-solid fa-chevron-down fa-fw'></i></button>
+        <button id="token-reset-btn" title="Reset Cache & Track Ulang" style="z-index: 999999999;"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
+        <button id="token-toggle-btn" title="Toggle"><i class='fa-solid fa-chevron-down fa-fw'></i></button>
 
         <!-- <button id="token-refresh-btn" title="Refresh Data">↻</button> -->
         <!-- <button id="token-clear-btn" title="Clear Cache"><i class="fa-solid fa-trash"></i></button> -->
@@ -313,7 +313,7 @@ console.log("Token.js sedang dijalankan!");
     #forum-list, #student-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      
     }
 
     .forum-item, .student-item {
@@ -768,7 +768,7 @@ console.log("Token.js sedang dijalankan!");
       </div>
     `;
   }
-
+  // Update forum data UI
   // Update forum data UI
   function updateForumUI(courseDataList) {
     const forumTab = document.getElementById("forum-data-tab");
@@ -777,74 +777,663 @@ console.log("Token.js sedang dijalankan!");
     const forumList = document.getElementById("forum-list");
     if (!forumList) return;
 
-    // Filter forums
-    const forums = [];
+    let html = "";
 
+    // Process and filter courses
     courseDataList.forEach((courseData) => {
       if (!courseData || !courseData.data) return;
 
-      const course = {
-        kode_course: courseData.kode_course,
-        coursename: courseData.coursename,
-        forums: [],
-      };
+      const kode_course = courseData.kode_course;
+      const courseName = courseData.coursename;
 
-      courseData.data.forEach((section) => {
-        if (!section.sub_section) return;
+      // Filter sections that have forum discussions with IDs
+      const validSections = courseData.data.filter((section) => {
+        if (!section.sub_section) return false;
 
-        section.sub_section.forEach((subsection) => {
-          if (subsection.kode_template === "FORUM_DISKUSI") {
-            course.forums.push({
-              section: section.nama_section,
-              kode_section: section.kode_section,
-              ...subsection,
-            });
-          }
-        });
+        // Check if any sub-section is a forum discussion with an ID
+        return section.sub_section.some(
+          (sub) => sub.kode_template === "FORUM_DISKUSI" && sub.id
+        );
       });
 
-      if (course.forums.length > 0) {
-        forums.push(course);
-      }
+      // Skip this course if there are no valid sections with forum discussions
+      if (validSections.length === 0) return;
+
+      // Create a unique ID for this course card
+      const courseId = `course-${kode_course}`;
+
+      // Start the course card
+      html += `
+    <div class="course-card">
+      <div class="course-header">
+        <h2>${courseName}</h2>
+        <p class="course-code">${kode_course}</p>
+      </div>
+      <div class="course-content" id="${courseId}">
+  `;
+
+      // Process each valid section
+      validSections.forEach((section, sectionIndex) => {
+        if (!section.sub_section) return;
+
+        // Create a unique ID for this section
+        const sectionId = `section-${kode_course}-${sectionIndex}`;
+
+        html += `
+      <div class="section-card">
+        <div class="section-header" onclick="toggleSection('${sectionId}', '${courseId}')">
+          <h3>${section.nama_section}</h3>
+          <span class="section-toggle" id="toggle-${sectionId}">
+            <i class="fas fa-chevron-down"></i>
+          </span>
+        </div>
+        <div class="section-content" id="${sectionId}">
+    `;
+
+        // Group learning materials (buku, video, ppt, etc.)
+        const learningMaterials = section.sub_section.filter((sub) =>
+          [
+            "BUKU_ISBN",
+            "VIDEO_AJAR",
+            "POWER_POINT",
+            "ARTIKEL_RISET",
+            "MATERI_LAINNYA",
+          ].includes(sub.kode_template)
+        );
+
+        // Filter out learning materials without a valid URL
+        const availableLearningMaterials = learningMaterials.filter(
+          (material) => material.link
+        );
+
+        // Other items
+        const otherItems = section.sub_section.filter(
+          (sub) =>
+            ![
+              "BUKU_ISBN",
+              "VIDEO_AJAR",
+              "POWER_POINT",
+              "ARTIKEL_RISET",
+              "MATERI_LAINNYA",
+            ].includes(sub.kode_template)
+        );
+
+        // Display learning materials grouped in one card ONLY if there are available materials
+        if (availableLearningMaterials.length > 0) {
+          html += `
+        <div class="materials-card">
+          <h4>Materi Pembelajaran</h4>
+          <div class="materials-list">
+      `;
+
+          availableLearningMaterials.forEach((material) => {
+            let url = material.link;
+            let completionStatus = material.completion
+              ? "completed"
+              : "incomplete";
+
+            html += `
+          <a href="${url}" class="material-item ${completionStatus}" target="_blank">
+            <div class="material-icon">
+              ${getMaterialIcon(material.kode_template)}
+            </div>
+            <div class="material-details">
+              <span>${material.judul}</span>
+              ${
+                material.completion
+                  ? '<span class="completion-badge">Selesai</span>'
+                  : ""
+              }
+            </div>
+          </a>
+        `;
+          });
+
+          html += `
+          </div>
+        </div>
+      `;
+        }
+
+        // Display other items individually
+        otherItems.forEach((item) => {
+          let url = "";
+          let warningMessage = item.warningAlert || "";
+          let completionStatus = item.completion ? "completed" : "incomplete";
+          let validUrl = false;
+
+          // Get duration for quiz items (PRE_TEST, POST_TEST)
+          let durationText = "";
+          if (
+            (item.kode_template === "PRE_TEST" ||
+              item.kode_template === "POST_TEST") &&
+            item.setting_quiz &&
+            item.setting_quiz.duration &&
+            !item.completion
+          ) {
+            durationText = `<span class="duration-badge">${item.setting_quiz.duration} menit</span>`;
+          }
+
+          // Generate URL based on item type
+          switch (item.kode_template) {
+            case "PRE_TEST":
+            case "POST_TEST":
+              url = item.id
+                ? `https://mentari.unpam.ac.id/u-courses/${kode_course}/quiz/${item.id}`
+                : "";
+              validUrl = !!item.id;
+              break;
+            case "FORUM_DISKUSI":
+              url = item.id
+                ? `https://mentari.unpam.ac.id/u-courses/${kode_course}/forum/${item.id}`
+                : "";
+              validUrl = !!item.id;
+              break;
+            case "PENUGASAN_TERSTRUKTUR":
+              url = ""; // URL not specified yet
+              validUrl = false;
+              break;
+            case "KUESIONER":
+              url = `https://mentari.unpam.ac.id/u-courses/${kode_course}/kuesioner/${section.kode_section}`;
+              validUrl = !!section.kode_section;
+              break;
+          }
+
+          html += `
+        <div class="item-card ${completionStatus} ${
+            warningMessage ? "has-warning" : ""
+          }">
+          <div class="item-header">
+            <div class="item-icon">
+              ${getItemIcon(item.kode_template)}
+            </div>
+            <div class="item-details">
+              <h4>${item.judul} ${durationText}</h4>
+              ${
+                item.completion
+                  ? '<span class="completion-badge">Selesai</span>'
+                  : ""
+              }
+            </div>
+          </div>
+          
+          ${item.konten ? `<div class="item-content">${item.konten}</div>` : ""}
+          
+          ${
+            warningMessage
+              ? `<div class="warning-message">${warningMessage}</div>`
+              : ""
+          }
+          
+          ${
+            item.file
+              ? `
+            <div class="item-file">
+              <a href="https://mentari.unpam.ac.id/api/file/${item.file}" target="_blank">
+                <i class="fas fa-file-download"></i> Lampiran
+              </a>
+            </div>
+          `
+              : ""
+          }
+          
+          ${
+            validUrl && !warningMessage
+              ? `
+            <div class="item-action">
+              <a href="${url}" class="action-button" target="_blank">
+                ${getActionText(item.kode_template)}
+              </a>
+            </div>
+          `
+              : validUrl && warningMessage
+              ? `
+            <div class="item-action">
+              <a href="${url}" class="action-button disabled" disabled>
+                ${getActionText(item.kode_template)}
+              </a>
+            </div>
+          `
+              : `
+            <div class="item-action">
+              <span class="action-button disabled">
+                ${getActionText(item.kode_template)} (Tidak Tersedia)
+              </span>
+            </div>
+          `
+          }
+        </div>
+      `;
+        });
+
+        html += `
+        </div>
+      </div>
+    `;
+      });
+
+      // Close the course card
+      html += `
+      </div>
+    </div>
+  `;
     });
 
-    // Update UI
-    if (forums.length === 0) {
-      forumList.innerHTML = `<div class="forum-no-data">Tidak ada forum diskusi</div>`;
+    // Check if there's any content
+    if (html === "") {
+      forumList.innerHTML = `<div class="forum-no-data">Tidak ada forum diskusi yang tersedia</div>`;
       return;
     }
 
-    let html = "";
-    forums.forEach((course) => {
-      course.forums.forEach((forum) => {
-        const courseUrl = createCustomUrl(course.kode_course);
-
-        html += `
-        ${
-          courseUrl
-            ? `<a href="${courseUrl}" class="forum-item-link">
-                <div class="forum-item">
-                  <div class="forum-item-header">
-                    <div>
-                      <p class="forum-item-code">
-                        <span class="token-badge">${forum.section}</span>
-                        <span class="token-badge">${course.kode_course}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <p>${course.coursename}</p>
-                    
-                  </div>
-                </div>
-              </a>`
-            : ""
-        }
-        `;
-      });
-    });
-
     forumList.innerHTML = html;
+
+    // Add toggle function to window scope that closes other sections
+    window.toggleSection = function (sectionId, courseId) {
+      const sectionContent = document.getElementById(sectionId);
+      const toggleIcon = document.getElementById(`toggle-${sectionId}`);
+
+      // Get all section contents within this course
+      const allSections = document.querySelectorAll(
+        `#${courseId} .section-content`
+      );
+      const allToggles = document.querySelectorAll(
+        `#${courseId} .section-toggle`
+      );
+
+      // If this section is already active, just close it
+      if (sectionContent.classList.contains("active")) {
+        sectionContent.classList.remove("active");
+        toggleIcon.classList.add("collapsed");
+        return;
+      }
+
+      // Otherwise, close all sections and open this one
+      allSections.forEach((section) => {
+        section.classList.remove("active");
+      });
+
+      allToggles.forEach((toggle) => {
+        toggle.classList.add("collapsed");
+      });
+
+      // Open this section
+      sectionContent.classList.add("active");
+      toggleIcon.classList.remove("collapsed");
+    };
+
+    // Add styles - this function needs to be defined elsewhere
+    if (typeof addStyles === "function") {
+      addStyles();
+    }
+
+    // Helper functions
+    function getMaterialIcon(templateType) {
+      switch (templateType) {
+        case "BUKU_ISBN":
+          return '<i class="fas fa-book"></i>';
+        case "VIDEO_AJAR":
+          return '<i class="fas fa-video"></i>';
+        case "POWER_POINT":
+          return '<i class="fas fa-file-powerpoint"></i>';
+        case "ARTIKEL_RISET":
+          return '<i class="fas fa-file-alt"></i>';
+        case "MATERI_LAINNYA":
+          return '<i class="fas fa-folder-open"></i>';
+        default:
+          return '<i class="fas fa-file"></i>';
+      }
+    }
+
+    function getItemIcon(templateType) {
+      switch (templateType) {
+        case "PRE_TEST":
+        case "POST_TEST":
+          return '<i class="fas fa-tasks"></i>';
+        case "FORUM_DISKUSI":
+          return '<i class="fas fa-comments"></i>';
+        case "PENUGASAN_TERSTRUKTUR":
+          return '<i class="fas fa-clipboard-list"></i>';
+        case "KUESIONER":
+          return '<i class="fas fa-poll"></i>';
+        default:
+          return '<i class="fas fa-file"></i>';
+      }
+    }
+
+    function getActionText(templateType) {
+      switch (templateType) {
+        case "PRE_TEST":
+        case "POST_TEST":
+          return "Mulai Quiz";
+        case "FORUM_DISKUSI":
+          return "Buka Forum";
+        case "PENUGASAN_TERSTRUKTUR":
+          return "Lihat Tugas";
+        case "KUESIONER":
+          return "Isi Kuesioner";
+        default:
+          return "Buka";
+      }
+    }
+
+    function addStyles() {
+      // Check if styles are already added
+      if (document.getElementById("forum-ui-styles")) return;
+
+      const styleElement = document.createElement("style");
+      styleElement.id = "forum-ui-styles";
+      styleElement.textContent = `
+    /* Forum UI Dark Theme - Max width 500px with Collapsible Sections */
+    /* Course Card Styles */
+    .course-card {
+      background: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      margin-bottom: 8px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid #333;
+      box-sizing: border-box;
+    }
+    
+    .course-header {
+      padding: 16px;
+      background: #252525;
+      border-left: 4px solid #0070f3;
+      margin-bottom: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .course-header h2 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #eee;
+    }
+    
+    .course-code {
+      color: #aaa;
+      font-size: 10px;
+      margin: 0;
+    }
+    
+    .course-content {
+      padding: 8px;
+    }
+    
+    .section-card {
+      background: #252525;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 100%;
+      border: 1px solid #333;
+      box-sizing: border-box;
+    }
+    
+    .section-header {
+      background: #333;
+      color: white;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .section-header h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+    
+    .section-toggle {
+      color: white;
+      transition: transform 0.3s;
+    }
+    
+    .section-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+    
+    .section-content {
+      padding: 16px;
+      display: none;
+    }
+    
+    .section-content.active {
+      display: block;
+    }
+    
+    .materials-card {
+      background: #1e1e1e;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #333;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .materials-card h4 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #eee;
+      font-size: 15px;
+    }
+    
+    .materials-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    
+    .material-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: #252525;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #eee;
+      transition: all 0.2s;
+      border: 1px solid #333;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .material-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      background: #282828;
+    }
+    
+    .material-icon {
+      margin-right: 10px;
+      color: #0070f3;
+      flex-shrink: 0;
+    }
+    
+    .material-details {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+    
+    .item-card {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .item-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .item-icon {
+      background: #252525;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      color: #0070f3;
+      flex-shrink: 0;
+    }
+    
+    .item-details {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .item-details h4 {
+      margin: 0;
+      font-size: 14px;
+      color: #eee;
+    }
+    
+    .item-content {
+      border-left: 3px solid #333;
+      padding-left: 12px;
+      margin: 12px 0;
+      color: #aaa;
+      font-size: 13px;
+    }
+    
+    .item-file {
+      margin: 12px 0;
+    }
+    
+    .item-file a {
+      color: #0070f3;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    
+    .item-action {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .action-button {
+      background: #0070f3;
+      color: white;
+      padding: 7px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    
+    .action-button:hover {
+      background: #0060df;
+    }
+    
+    .action-button.disabled {
+      background: #333;
+      color: #777;
+      cursor: not-allowed;
+    }
+    
+    .completion-badge {
+      background: #00a550;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    
+    .duration-badge {
+      background: #ff9800;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    
+    .warning-message {
+      background: #332b00;
+      color: #ffd166;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 13px;
+      border: 1px solid #554800;
+    }
+    
+    .completed {
+      border-left: 3px solid #00a550;
+    }
+    
+    .has-warning {
+      border-left: 3px solid #ffd166;
+    }
+    
+    .forum-no-data {
+      padding: 20px;
+      text-align: center;
+      color: #999;
+      font-style: italic;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    /* Container for the entire forum */
+    #forum-list {
+      max-width: 500px;
+      margin: 0 auto;
+      box-sizing: border-box;
+      width: 100%;
+      margin-bottom: 125px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .course-header h2 {
+        font-size: 14px;
+      }
+      
+      .section-header h3 {
+        font-size: 14px;
+      }
+      
+      .materials-card h4 {
+        font-size: 14px;
+      }
+      
+      .item-details h4 {
+        font-size: 13px;
+      }
+      
+      .action-button {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+    }
+  `;
+
+      document.head.appendChild(styleElement);
+    }
   }
 
   // Update student data UI
@@ -1153,7 +1742,7 @@ console.log("Token.js sedang dijalankan!");
         height: 20px;
         background:rgb(182, 243, 0);
         color: #252525;
-        border-radius: 50%;
+        border-radius: 5px;
         font-size: 10px;
         font-weight: bold;
         flex-shrink: 0;
@@ -1231,14 +1820,15 @@ console.log("Token.js sedang dijalankan!");
       }
       
       .member-absen {
-        min-width: 24px;
-        height: 24px;
-        background: #0070f3;
-        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        background:rgb(45, 143, 255);
+        color: #252525;
+        border-radius: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 10px;
         margin-right: 10px;
         color: white;
         flex-shrink: 0;
@@ -1294,13 +1884,14 @@ console.log("Token.js sedang dijalankan!");
       /* Toast notification */
       .toast {
         position: fixed;
-        top: 20px;
+        bottom: 20px;
         right: 20px;
-        background:rgba(101, 243, 0, 0.56);
-        color: #1e1e1e;
+        background:#1e1e1e;
+        color:rgb(0, 221, 15);
         padding: 12px 20px;
         border-radius: 4px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
         display: flex;
         align-items: center;
         gap: 8px;
