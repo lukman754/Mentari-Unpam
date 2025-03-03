@@ -25,6 +25,7 @@
 
 - **Akses Forum Diskusi Terpadu**: Lihat semua forum diskusi aktif dalam satu tampilan
 - **Pelacakan Tugas**: Menyembunyikan course yang sudah diselesaikan secara otomatis
+- **Menyalin semua link**: menyalin semua url course yang sedang aktif
 - **Info Profil**: Menampilkan nama dan NIM mahasiswa
 - **Pengelolaan Kelas**: Melihat daftar mahasiswa dalam kelas
 - **Pembagian Kelompok**: Fitur untuk mengelompokkan mahasiswa dengan jumlah yang dapat disesuaikan
