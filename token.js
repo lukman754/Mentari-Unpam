@@ -989,6 +989,10 @@ console.log("Token.js sedang dijalankan!");
         // Create a unique ID for this section
         const sectionId = `section-${kode_course}-${sectionIndex}`;
 
+        // Get the section code for direct section URL
+        const kode_section = section.kode_section;
+        const sectionUrl = `https://mentari.unpam.ac.id/u-courses/${kode_course}?accord_pertemuan=${kode_section}`;
+
         html += `
       <div class="section-card">
         <div class="section-header" onclick="toggleSection('${sectionId}', '${courseId}')">
@@ -998,6 +1002,12 @@ console.log("Token.js sedang dijalankan!");
           </span>
         </div>
         <div class="section-content" id="${sectionId}">
+          <!-- Direct Section Link Button -->
+          <div class="section-direct-link">
+            <a href="${sectionUrl}" class="section-link-button" target="_blank">
+              <i class="fas fa-external-link-alt"></i> Buka Pertemuan
+            </a>
+          </div>
       `;
 
         // Group learning materials (buku, video, ppt, etc.)
@@ -1486,6 +1496,33 @@ console.log("Token.js sedang dijalankan!");
     
     .section-content.active {
       display: block;
+    }
+    
+    /* Section direct link button */
+    .section-direct-link {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .section-link-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #0070f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 12px;
+      transition: all 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .section-link-button:hover {
+      background: #0060df;
+      transform: translateY(-2px);
     }
     
     /* Make images in forum content responsive */
