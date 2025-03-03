@@ -604,6 +604,7 @@ console.log("Token.js sedang dijalankan!");
   }
 
   // Add this function to your existing JavaScript
+  // Add this function to your existing JavaScript
   function addPositionToggleToPopup() {
     // Check if popup exists
     const popup = document.getElementById("token-runner-popup");
@@ -621,12 +622,37 @@ console.log("Token.js sedang dijalankan!");
     const actionsDiv = document.querySelector(".token-popup-actions");
     actionsDiv.insertBefore(positionBtn, actionsDiv.firstChild);
 
-    // Define possible positions
+    // Define possible positions with proper object syntax
+    // Note: marginLeft is separate from the positioning properties
     const positions = [
-      { bottom: "20px", right: "20px", top: "auto", left: "auto" }, // Bottom Right
-      { bottom: "20px", right: "auto", top: "auto", left: "20px" }, // Bottom Left
-      { bottom: "auto", right: "auto", top: "20px", left: "20px" }, // Top Left
-      { bottom: "auto", right: "20px", top: "20px", left: "auto" }, // Top Right
+      {
+        bottom: "20px",
+        right: "20px",
+        top: "auto",
+        left: "auto",
+        isRight: true,
+      }, // Bottom Right
+      {
+        bottom: "20px",
+        right: "auto",
+        top: "auto",
+        left: "20px",
+        isRight: false,
+      }, // Bottom Left
+      {
+        bottom: "auto",
+        right: "auto",
+        top: "20px",
+        left: "20px",
+        isRight: false,
+      }, // Top Left
+      {
+        bottom: "auto",
+        right: "20px",
+        top: "20px",
+        left: "auto",
+        isRight: true,
+      }, // Top Right
     ];
 
     // Get current position or set default (0 for bottom-right)
@@ -652,9 +678,18 @@ console.log("Token.js sedang dijalankan!");
     // Function to apply position
     function applyPosition(posIndex) {
       const pos = positions[posIndex];
-      Object.keys(pos).forEach((key) => {
-        popup.style[key] = pos[key];
-      });
+
+      // Apply positioning properties
+      popup.style.bottom = pos.bottom;
+      popup.style.right = pos.right;
+      popup.style.top = pos.top;
+      popup.style.left = pos.left;
+
+      // Apply margin based on position
+      // If on right side, add marginLeft, otherwise clear it
+      popup.style.marginLeft = pos.isRight ? "20px" : "0";
+      // If on left side, add marginRight, otherwise clear it
+      popup.style.marginRight = !pos.isRight ? "20px" : "0";
 
       // Add fancy animation
       popup.style.transition = "all 0.3s ease";
@@ -2619,3 +2654,4 @@ console.log("Token.js sedang dijalankan!");
 
   init();
 })();
+
