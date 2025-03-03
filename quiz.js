@@ -1,4 +1,5 @@
 // Function to create and inject the API key form
+
 function createApiKeyForm() {
   // Check if form already exists
   if (document.getElementById("apiKeyForm")) return;
