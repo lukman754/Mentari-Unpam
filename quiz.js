@@ -1,8 +1,19 @@
-// Function to create and inject the API key form
-
+// Function to create and inject the API key form into multiple choice questions
 function createApiKeyForm() {
-  // Check if form already exists
+  // Check if a form already exists somewhere on the page
   if (document.getElementById("apiKeyForm")) return;
+
+  // Find all question containers that have "Multiple Choice" text
+  const questionContainers = document.querySelectorAll(
+    ".MuiPaper-root.MuiPaper-outlined"
+  );
+  const multipleChoiceContainers = Array.from(questionContainers).filter(
+    (container) => {
+      return container.textContent.includes("Multiple Choice");
+    }
+  );
+
+  if (multipleChoiceContainers.length === 0) return;
 
   // Create form elements with improved structure for responsive layout
   const formHtml = `
@@ -36,27 +47,22 @@ function createApiKeyForm() {
     <div id="apiKeyResponsePopup"></div>
   `;
 
-  // Find target elements using more reliable selectors
-  const optionsContainer = Array.from(
-    document.querySelectorAll(".MuiFormControlLabel-root")
-  ).at(-1)?.parentElement;
+  // Create the form element
+  const formElement = createElementFromHTML(formHtml);
 
-  if (optionsContainer) {
-    // Create the form element
-    const formElement = createElementFromHTML(formHtml);
+  // Insert the form into each multiple choice container
+  multipleChoiceContainers.forEach((container, index) => {
+    // Only insert the actual form in the first multiple choice question
+    if (index === 0) {
+      container.appendChild(formElement.cloneNode(true));
+    }
+  });
 
-    // Insert after the options container
-    optionsContainer.parentNode.insertBefore(
-      formElement,
-      optionsContainer.nextSibling
-    );
+  // Add the CSS styles to the page
+  addStyles();
 
-    // Add the CSS styles to the page
-    addStyles();
-
-    // Setup event listeners
-    setupEventListeners();
-  }
+  // Setup event listeners
+  setupEventListeners();
 }
 
 // Function to add the CSS styles to the document
@@ -89,9 +95,6 @@ function addStyles() {
         width: 200px;
       }
     }
-
-    /* Input container */
-    
 
     #apiKeyForm label {
       display: block;
@@ -188,8 +191,10 @@ function addStyles() {
 async function waitForElements() {
   return new Promise((resolve) => {
     const checkElements = () => {
-      const options = document.querySelectorAll(".MuiFormControlLabel-root");
-      if (options.length > 0) {
+      const questions = document.querySelectorAll(
+        ".MuiPaper-root.MuiPaper-outlined"
+      );
+      if (questions.length > 0) {
         setTimeout(() => {
           resolve();
         }, 1000); // 1 second delay
@@ -252,6 +257,8 @@ function setupEventListeners() {
   const solveButton = document.getElementById("solveButton");
   const errorDiv = document.getElementById("apiKeyError");
 
+  if (!apiKeyInput || !solveButton || !errorDiv) return;
+
   // Load saved API key
   const savedApiKey = localStorage.getItem("gemini_api_key");
   if (savedApiKey) {
@@ -276,12 +283,15 @@ function setupEventListeners() {
     errorDiv.style.display = "none";
 
     try {
-      await jawabQuiz(apiKey);
-      showPopup("Answer processed successfully!");
+      // Process all unanswered questions
+      const results = await jawabSemuaQuiz(apiKey);
+      showPopup(
+        `Processed ${results.success} questions successfully! (${results.failed} failed)`
+      );
     } catch (error) {
-      errorDiv.textContent = error.message || "Failed to process answer";
+      errorDiv.textContent = error.message || "Failed to process answers";
       errorDiv.style.display = "block";
-      showPopup(error.message || "Failed to process answer", true);
+      showPopup(error.message || "Failed to process answers", true);
     } finally {
       solveButton.disabled = false;
       solveButton.textContent = "Solve Quiz";
@@ -289,11 +299,50 @@ function setupEventListeners() {
   });
 }
 
-async function jawabQuiz(apiKey) {
-  // Get the question from the h6 element
-  const questionElement = document.querySelector("h6.MuiTypography-subtitle1");
-  const pertanyaanElement = document.querySelector(".ck-content > p");
-  const opsiElements = document.querySelectorAll(".MuiFormControlLabel-root");
+// Function to process all quiz questions
+async function jawabSemuaQuiz(apiKey) {
+  const questionContainers = document.querySelectorAll(
+    ".MuiPaper-root.MuiPaper-outlined"
+  );
+  let results = { success: 0, failed: 0 };
+
+  // Check if we have any questions
+  if (questionContainers.length === 0) {
+    throw new Error("No quiz questions found on the page.");
+  }
+
+  // Process each question that hasn't been answered yet
+  for (const container of questionContainers) {
+    // Check if this question has already been answered
+    const alreadyAnswered =
+      container.querySelector(".MuiChip-outlinedSuccess") !== null;
+
+    if (!alreadyAnswered) {
+      try {
+        await jawabQuiz(apiKey, container);
+        results.success++;
+      } catch (error) {
+        console.error("Error processing question:", error);
+        results.failed++;
+      }
+
+      // Add a small delay between questions to avoid rate limiting
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+
+  return results;
+}
+
+async function jawabQuiz(apiKey, questionContainer) {
+  // Get the question from the h6 element within the provided container
+  const questionElement = questionContainer.querySelector(
+    "h6.MuiTypography-subtitle1"
+  );
+  const pertanyaanElement = questionContainer.querySelector(".ck-content > p");
+  const opsiElements = questionContainer.querySelectorAll(
+    ".MuiFormControlLabel-root"
+  );
 
   if (!questionElement || opsiElements.length === 0) {
     throw new Error("Question or options not found.");
@@ -315,7 +364,7 @@ async function jawabQuiz(apiKey) {
   });
 
   const prompt = `
-    Jawab soal berikut dengan benar dan berikan jawabannya dengan format 'Jawabannya adalah (X)' di mana X adalah huruf pilihan yang benar (A, B, C, atau D).
+    Jawab soal berikut dengan benar dan berikan jawabannya dengan format 'Jawabannya adalah (X)' di mana X adalah huruf pilihan yang benar (A, B, C, D, atau E).
     
     Pertanyaan: ${questionText}
     ${additionalInfo ? `Keterangan tambahan: ${additionalInfo}` : ""}
@@ -344,17 +393,17 @@ async function jawabQuiz(apiKey) {
   const jawaban = result.candidates[0].content.parts[0].text;
   console.log("Gemini response:", jawaban);
 
-  // Extract the answer letter (A, B, C, or D) from the response
-  const answerMatch = jawaban.match(/Jawabannya adalah \(([A-D])\)/i);
+  // Extract the answer letter (A, B, C, D, or E) from the response
+  const answerMatch = jawaban.match(/Jawabannya adalah \(([A-E])\)/i);
   if (!answerMatch) {
     throw new Error("Could not determine the correct answer from AI response");
   }
 
-  const correctAnswer = answerMatch[1]; // This will be A, B, C, or D
+  const correctAnswer = answerMatch[1]; // This will be A, B, C, D, or E
   console.log("Correct answer determined to be:", correctAnswer);
 
   // Insert answer into ck-content for reference
-  const ckContent = document.querySelector(".ck-content");
+  const ckContent = questionContainer.querySelector(".ck-content");
   if (ckContent) {
     const pJawaban = document.createElement("p");
     pJawaban.textContent = jawaban;
@@ -374,12 +423,11 @@ async function jawabQuiz(apiKey) {
       radioButton.click(); // Programmatically click the radio button
 
       // Highlight the selected answer
-      opsiElements[correctIndex].style.backgroundColor = "#ffd166";
-      opsiElements[correctIndex].style.border = "1px solid #554800";
-      opsiElements[correctIndex].style.color = "#000";
+      opsiElements[correctIndex].style.backgroundColor = "rgb(18, 18, 18)";
+      opsiElements[correctIndex].style.border = "1px solid rgb(30, 30, 30)";
+      opsiElements[correctIndex].style.color = "#fff";
       opsiElements[correctIndex].style.fontWeight = "bold";
       opsiElements[correctIndex].style.borderRadius = "4px";
-      // margin left & right is 0
       opsiElements[correctIndex].style.margin = "10px 0";
     } else {
       throw new Error("Could not find radio button to select");
