@@ -12,11 +12,7 @@
   - [Login Page](#login-page)
   - [User Page](#user-page)
 - [Cara Instalasi Ekstensi](#cara-instalasi-ekstensi)
-  - [Google Chrome](#google-chrome)
-  - [Mozilla Firefox](#mozilla-firefox)
-  - [Microsoft Edge](#microsoft-edge)
-  - [Brave Browser](#brave-browser)
-  - [Opera](#opera)
+  - [Windows](#windows)
   - [Mises Browser (iOS/Android)](#mises-browser-iosandroid)
 
 ## 🌞 Tentang MENTARI
@@ -59,43 +55,11 @@ Menu ini menampilkan seluruh data mahasiswa dalam kelas dan menyediakan fitur pe
 
 ## 🔧 Cara Instalasi Ekstensi
 
-### Google Chrome
-1. Unduh file ekstensi MENTARI MOD (.zip)
+### Windows
+1. Unduh file ekstensi [mentari-mod.zip](https://github.com/lukman754/Mentari-Unpam/releases/tag/v1.0)
 2. Ekstrak file zip ke folder di komputer Anda
 3. Buka Chrome dan ketik `chrome://extensions/` di address bar
 4. Aktifkan "Mode Pengembang" (toggle di pojok kanan atas)
-5. Klik "Load unpacked" dan pilih folder hasil ekstraksi
-6. Ekstensi telah terpasang dan siap digunakan
-
-### Mozilla Firefox
-1. Unduh file ekstensi MENTARI MOD (.xpi)
-2. Buka Firefox dan ketik `about:addons` di address bar
-3. Klik ikon roda gigi dan pilih "Install Add-on From File..."
-4. Pilih file .xpi yang telah diunduh
-5. Klik "Tambahkan" untuk mengonfirmasi instalasi
-6. Ekstensi telah terpasang dan siap digunakan
-
-### Microsoft Edge
-1. Unduh file ekstensi MENTARI MOD (.zip)
-2. Ekstrak file zip ke folder di komputer Anda
-3. Buka Edge dan ketik `edge://extensions/` di address bar
-4. Aktifkan "Mode Pengembang" (toggle di pojok kiri bawah)
-5. Klik "Load unpacked" dan pilih folder hasil ekstraksi
-6. Ekstensi telah terpasang dan siap digunakan
-
-### Brave Browser
-1. Unduh file ekstensi MENTARI MOD (.zip)
-2. Ekstrak file zip ke folder di komputer Anda
-3. Buka Brave dan ketik `brave://extensions/` di address bar
-4. Aktifkan "Mode Pengembang" (toggle di pojok kanan atas)
-5. Klik "Load unpacked" dan pilih folder hasil ekstraksi
-6. Ekstensi telah terpasang dan siap digunakan
-
-### Opera
-1. Unduh file ekstensi MENTARI MOD (.zip)
-2. Ekstrak file zip ke folder di komputer Anda
-3. Buka Opera dan ketik `opera://extensions` di address bar
-4. Klik "Developer mode" di pojok kanan atas
 5. Klik "Load unpacked" dan pilih folder hasil ekstraksi
 6. Ekstensi telah terpasang dan siap digunakan
 
