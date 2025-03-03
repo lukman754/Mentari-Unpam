@@ -100,11 +100,13 @@ Menu ini menampilkan seluruh data mahasiswa dalam kelas dan menyediakan fitur pe
 6. Ekstensi telah terpasang dan siap digunakan
 
 ### Mises Browser (iOS/Android)
-1. Buka Mises Browser di perangkat iOS/Android Anda
-2. Ketuk ikon menu ekstensi atau (tiga titik) di pojok kanan atas
-3. Aktifkan "Developer Mode" di kanan atas
-4. Klik tombol "+ (from .zip/.crx/.user.js)
-5. Pilih file file mentari-unpam-main.zip
+1. Download Mises Browser di [AppStore](https://apps.apple.com/us/app/mises-browser/id6451129542) atau [PlayStore](https://play.google.com/store/apps/details?id=site.mises.browser)
+2. Buka Mises Browser di perangkat iOS/Android Anda
+3. Ketuk ikon menu ekstensi atau (tiga titik) di pojok kanan atas
+4. Klik tombol "Extensions"
+5. Aktifkan "Developer Mode" di kanan atas
+6. Klik tombol "+ (from .zip/.crx/.user.js)"
+7. Pilih file file mentari-unpam-main.zip
 8. Ekstensi telah terpasang dan siap digunakan, refresh halaman mentari untuk menampilkan perubahan
 
 ---
