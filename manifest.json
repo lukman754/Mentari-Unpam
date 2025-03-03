@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod",
+  "name": "Mentari Mod v1.0",
   "version": "1.0",
   "description": "Melacak Forum Diskusi.",
   "permissions": ["scripting", "activeTab"],
@@ -14,6 +14,14 @@
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
       "js": ["home.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/forum/*/topics/*"],
+      "js": ["forum.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/exam/*"],
+      "js": ["quiz.js"]
     }
   ],
   "web_accessible_resources": [
