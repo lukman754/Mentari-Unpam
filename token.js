@@ -910,6 +910,15 @@ console.log("Token.js sedang dijalankan!");
 
     let html = "";
 
+    // Add copy all links button at the top
+    html += `
+    <div class="copy-links-container">
+      <button id="copy-all-links" class="copy-links-button">
+        <i class="fas fa-copy"></i> Copy All Links
+      </button>
+    </div>
+    `;
+
     // Process and filter courses
     courseDataList.forEach((courseData) => {
       if (!courseData || !courseData.data) return;
@@ -950,12 +959,17 @@ console.log("Token.js sedang dijalankan!");
       // Create a unique ID for this course card
       const courseId = `course-${kode_course}`;
 
+      // Course URL
+      const courseUrl = `https://mentari.unpam.ac.id/u-courses/${kode_course}`;
+
       // Start the course card
       html += `
-    <div class="course-card">
+    <div class="course-card" data-course-name="${courseName}" data-course-url="${courseUrl}">
       <div class="course-header">
-        <h2>${courseName}</h2>
-        <p class="course-code">${kode_course}</p>
+        <a href="${courseUrl}" target="_blank" class="course-header-link">
+          <h2>${courseName}</h2>
+          <p class="course-code">${kode_course}</p>
+        </a>
       </div>
       <div class="course-content" id="${courseId}">
     `;
@@ -1029,7 +1043,8 @@ console.log("Token.js sedang dijalankan!");
               : "incomplete";
 
             html += `
-          <a href="${url}" class="material-item ${completionStatus}" target="_blank">
+          <a href="${url}" class="material-item ${completionStatus}" target="_blank" 
+             data-item-name="${material.judul}" data-item-url="${url}">
             <div class="material-icon">
               ${getMaterialIcon(material.kode_template)}
             </div>
@@ -1060,6 +1075,7 @@ console.log("Token.js sedang dijalankan!");
           let warningMessage = item.warningAlert || "";
           let completionStatus = item.completion ? "completed" : "incomplete";
           let validUrl = false;
+          let itemType = getItemTypeText(item.kode_template);
 
           // Get duration for quiz items (PRE_TEST, POST_TEST)
           let durationText = "";
@@ -1098,10 +1114,16 @@ console.log("Token.js sedang dijalankan!");
               break;
           }
 
+          // Add data attributes for the copy function
+          let dataAttrs = "";
+          if (validUrl) {
+            dataAttrs = `data-item-name="${item.judul}" data-item-url="${url}" data-item-type="${itemType}"`;
+          }
+
           html += `
         <div class="item-card ${completionStatus} ${
             warningMessage ? "has-warning" : ""
-          }">
+          }" ${dataAttrs}>
           <div class="item-header">
             <div class="item-icon">
               ${getItemIcon(item.kode_template)}
@@ -1116,7 +1138,11 @@ console.log("Token.js sedang dijalankan!");
             </div>
           </div>
           
-          ${item.konten ? `<div class="item-content">${item.konten}</div>` : ""}
+          ${
+            item.konten
+              ? `<div class="item-content responsive-content">${item.konten}</div>`
+              : ""
+          }
           
           ${
             warningMessage
@@ -1220,6 +1246,73 @@ console.log("Token.js sedang dijalankan!");
       toggleIcon.classList.remove("collapsed");
     };
 
+    // Add Copy Links functionality
+    const copyButton = document.getElementById("copy-all-links");
+    if (copyButton) {
+      copyButton.addEventListener("click", function () {
+        // Collect all course and item links
+        let linkText = "";
+
+        // Get all course cards
+        const courseCards = document.querySelectorAll(".course-card");
+
+        courseCards.forEach((course) => {
+          const courseName = course.getAttribute("data-course-name");
+          const courseUrl = course.getAttribute("data-course-url");
+
+          // Add course name and URL
+          linkText += `${courseName} : ${courseUrl}\n`;
+
+          // Get all items with URLs
+          const items = course.querySelectorAll(
+            "[data-item-name][data-item-url]"
+          );
+
+          items.forEach((item) => {
+            const itemName = item.getAttribute("data-item-name");
+            const itemUrl = item.getAttribute("data-item-url");
+            const itemType = item.getAttribute("data-item-type") || "";
+
+            // Add item name and URL
+            if (itemType) {
+              linkText += `${itemType} - ${itemName} : ${itemUrl}\n`;
+            } else {
+              linkText += `${itemName} : ${itemUrl}\n`;
+            }
+          });
+
+          // Add a separator between courses
+          linkText += "\n";
+        });
+
+        // Copy to clipboard
+        navigator.clipboard
+          .writeText(linkText)
+          .then(() => {
+            // Show success message
+            copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            copyButton.classList.add("copied");
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+              copyButton.innerHTML =
+                '<i class="fas fa-copy"></i> Copy All Links';
+              copyButton.classList.remove("copied");
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error("Failed to copy links: ", err);
+            copyButton.innerHTML = '<i class="fas fa-times"></i> Failed!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+              copyButton.innerHTML =
+                '<i class="fas fa-copy"></i> Copy All Links';
+            }, 2000);
+          });
+      });
+    }
+
     // Add styles - this function needs to be defined elsewhere
     if (typeof addStyles === "function") {
       addStyles();
@@ -1275,6 +1368,23 @@ console.log("Token.js sedang dijalankan!");
       }
     }
 
+    function getItemTypeText(templateType) {
+      switch (templateType) {
+        case "PRE_TEST":
+          return "Pretest";
+        case "POST_TEST":
+          return "Posttest";
+        case "FORUM_DISKUSI":
+          return "Forum Diskusi";
+        case "PENUGASAN_TERSTRUKTUR":
+          return "Penugasan Terstruktur";
+        case "KUESIONER":
+          return "Kuesioner";
+        default:
+          return "";
+      }
+    }
+
     function addStyles() {
       // Check if styles are already added
       if (document.getElementById("forum-ui-styles")) return;
@@ -1305,6 +1415,18 @@ console.log("Token.js sedang dijalankan!");
       margin-bottom: 0;
       width: 100%;
       box-sizing: border-box;
+    }
+    
+    .course-header-link {
+      display: block;
+      text-decoration: none;
+      cursor: pointer;
+      color: inherit;
+      transition: all 0.2s;
+    }
+    
+    .course-header-link:hover {
+      background: #303030;
     }
     
     .course-header h2 {
@@ -1364,6 +1486,15 @@ console.log("Token.js sedang dijalankan!");
     
     .section-content.active {
       display: block;
+    }
+    
+    /* Make images in forum content responsive */
+    .responsive-content img {
+      max-width: 100% !important;
+      height: auto !important;
+      width: 100% !important;
+      margin: 10px 0;
+      border-radius: 4px;
     }
     
     .materials-card {
@@ -1564,6 +1695,35 @@ console.log("Token.js sedang dijalankan!");
       box-sizing: border-box;
       width: 100%;
       margin-bottom: 125px;
+    }
+    
+    /* Copy links button */
+    .copy-links-container {
+      text-align: center;
+    }
+    
+    .copy-links-button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      width: 100%;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    
+    .copy-links-button:hover {
+      background: #0060df;
+      transform: translateY(-2px);
+    }
+    
+    .copy-links-button.copied {
+      background: #00a550;
     }
     
     /* Responsive adjustments */
@@ -2654,4 +2814,3 @@ console.log("Token.js sedang dijalankan!");
 
   init();
 })();
-
