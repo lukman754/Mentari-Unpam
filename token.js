@@ -603,6 +603,110 @@ console.log("Token.js sedang dijalankan!");
     });
   }
 
+  // Add this function to your existing JavaScript
+  function addPositionToggleToPopup() {
+    // Check if popup exists
+    const popup = document.getElementById("token-runner-popup");
+    if (!popup) return;
+
+    // Create position toggle button
+    const positionBtn = document.createElement("button");
+    positionBtn.id = "token-position-btn";
+    positionBtn.title = "Change Position";
+    positionBtn.innerHTML =
+      '<i class="fa-solid fa-arrows-up-down-left-right fa-fw"></i>';
+    positionBtn.style.backgroundColor = "#41a3f2"; // Blue color to distinguish it
+
+    // Add the button to the header actions
+    const actionsDiv = document.querySelector(".token-popup-actions");
+    actionsDiv.insertBefore(positionBtn, actionsDiv.firstChild);
+
+    // Define possible positions
+    const positions = [
+      { bottom: "20px", right: "20px", top: "auto", left: "auto" }, // Bottom Right
+      { bottom: "20px", right: "auto", top: "auto", left: "20px" }, // Bottom Left
+      { bottom: "auto", right: "auto", top: "20px", left: "20px" }, // Top Left
+      { bottom: "auto", right: "20px", top: "20px", left: "auto" }, // Top Right
+    ];
+
+    // Get current position or set default (0 for bottom-right)
+    let currentPosition = parseInt(
+      localStorage.getItem("tokenRunnerPosition") || "0"
+    );
+
+    // Apply the stored position when the page loads
+    applyPosition(currentPosition);
+
+    // Add click event listener to cycle through positions
+    positionBtn.addEventListener("click", function () {
+      // Move to next position
+      currentPosition = (currentPosition + 1) % positions.length;
+
+      // Apply position
+      applyPosition(currentPosition);
+
+      // Save position to localStorage
+      localStorage.setItem("tokenRunnerPosition", currentPosition.toString());
+    });
+
+    // Function to apply position
+    function applyPosition(posIndex) {
+      const pos = positions[posIndex];
+      Object.keys(pos).forEach((key) => {
+        popup.style[key] = pos[key];
+      });
+
+      // Add fancy animation
+      popup.style.transition = "all 0.3s ease";
+
+      // Add position indicator to title attribute
+      const positionNames = [
+        "Bottom Right",
+        "Bottom Left",
+        "Top Left",
+        "Top Right",
+      ];
+      positionBtn.title = `Position: ${positionNames[posIndex]} (Click to change)`;
+    }
+
+    // Add CSS for the position button
+    const style = document.createElement("style");
+    style.textContent = `
+    #token-position-btn {
+      background-color: #41a3f2 !important;
+    }
+    
+    #token-position-btn:hover {
+      transform: scale(1.2) !important;
+      transition: transform 0.3s ease !important;
+    }
+    
+    @keyframes pulse-position-btn {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
+    #token-position-btn i {
+      animation: pulse-position-btn 2s infinite;
+    }
+  `;
+
+    document.head.appendChild(style);
+  }
+
+  // Modify the original createPopupUI function to call our new function
+  const originalCreatePopupUI = createPopupUI;
+  createPopupUI = function () {
+    originalCreatePopupUI();
+    addPositionToggleToPopup();
+  };
+
+  // If the popup is already created, add the toggle immediately
+  if (document.getElementById("token-runner-popup")) {
+    addPositionToggleToPopup();
+  }
+
   // Toggle collapse
   function toggleCollapse() {
     const popup = document.getElementById("token-runner-popup");
@@ -613,14 +717,6 @@ console.log("Token.js sedang dijalankan!");
         popup.style.width = "220px";
       }
       popup.classList.toggle("collapsed");
-    }
-  }
-
-  // Refresh all data
-  function refreshAllData() {
-    checkStorages();
-    if (authToken) {
-      fetchCoursesListAndDetails(true); // Force refresh
     }
   }
 
@@ -799,6 +895,23 @@ console.log("Token.js sedang dijalankan!");
       // Skip this course if there are no valid sections with forum discussions
       if (validSections.length === 0) return;
 
+      // Check if ALL sections with sub_sections having IDs are completed
+      const allSectionsCompleted = validSections.every((section) => {
+        if (!section.sub_section) return true;
+
+        // Get all sub_sections with IDs
+        const subSectionsWithId = section.sub_section.filter((sub) => sub.id);
+
+        // If there are no sub_sections with IDs, consider it complete
+        if (subSectionsWithId.length === 0) return true;
+
+        // Check if all sub_sections with IDs have completion=true
+        return subSectionsWithId.every((sub) => sub.completion === true);
+      });
+
+      // Skip this course if all sections with IDs are completed
+      if (allSectionsCompleted) return;
+
       // Create a unique ID for this course card
       const courseId = `course-${kode_course}`;
 
@@ -810,11 +923,19 @@ console.log("Token.js sedang dijalankan!");
         <p class="course-code">${kode_course}</p>
       </div>
       <div class="course-content" id="${courseId}">
-  `;
+    `;
 
       // Process each valid section
       validSections.forEach((section, sectionIndex) => {
         if (!section.sub_section) return;
+
+        // Check if ALL sub_sections with IDs in this section are completed
+        const allSubSectionsCompleted = section.sub_section
+          .filter((sub) => sub.id)
+          .every((sub) => sub.completion === true);
+
+        // Skip this section if all its sub_sections with IDs are completed
+        if (allSubSectionsCompleted) return;
 
         // Create a unique ID for this section
         const sectionId = `section-${kode_course}-${sectionIndex}`;
@@ -828,7 +949,7 @@ console.log("Token.js sedang dijalankan!");
           </span>
         </div>
         <div class="section-content" id="${sectionId}">
-    `;
+      `;
 
         // Group learning materials (buku, video, ppt, etc.)
         const learningMaterials = section.sub_section.filter((sub) =>
@@ -864,7 +985,7 @@ console.log("Token.js sedang dijalankan!");
         <div class="materials-card">
           <h4>Materi Pembelajaran</h4>
           <div class="materials-list">
-      `;
+        `;
 
           availableLearningMaterials.forEach((material) => {
             let url = material.link;
@@ -892,11 +1013,14 @@ console.log("Token.js sedang dijalankan!");
           html += `
           </div>
         </div>
-      `;
+        `;
         }
 
-        // Display other items individually
+        // Display other items individually, but only show those that haven't been completed or don't have an ID
         otherItems.forEach((item) => {
+          // Skip items with IDs that are already completed
+          if (item.id && item.completion === true) return;
+
           let url = "";
           let warningMessage = item.warningAlert || "";
           let completionStatus = item.completion ? "completed" : "incomplete";
@@ -1009,14 +1133,14 @@ console.log("Token.js sedang dijalankan!");
         html += `
         </div>
       </div>
-    `;
+      `;
       });
 
       // Close the course card
       html += `
       </div>
     </div>
-  `;
+    `;
     });
 
     // Check if there's any content
