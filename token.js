@@ -917,6 +917,11 @@ console.log("Token.js sedang dijalankan!");
       <i class="fas fa-copy"></i> Copy All Links
     </button>
   </div>
+  <div class="copy-links-container">
+    <a href="https://my.unpam.ac.id/presensi/" id="presensi" class="presensi-button">
+      <i class="fas fa-clipboard-list"></i> Lihat Presensi
+    </a>
+  </div>
   `;
 
     // Extract day of week from course names and prepare for sorting
@@ -978,7 +983,11 @@ console.log("Token.js sedang dijalankan!");
         );
 
         // HIDE CRITERIA 1: Both FORUM_DISKUSI and POST_TEST are completed (true)
-        if (forumWithId.completion === true && postTest && postTest.completion === true) {
+        if (
+          forumWithId.completion === true &&
+          postTest &&
+          postTest.completion === true
+        ) {
           return false;
         }
 
@@ -1422,7 +1431,6 @@ console.log("Token.js sedang dijalankan!");
       }
     }
 
-
     function addStyles() {
       // Check if styles are already added
       if (document.getElementById("forum-ui-styles")) return;
@@ -1795,6 +1803,27 @@ console.log("Token.js sedang dijalankan!");
       
       .copy-links-button.copied {
         background: #00a550;
+      }
+
+      .presensi-button {
+        background:rgb(0, 160, 32);
+        color: white;
+        border: none;
+        width: 100%;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        text-decoration: none;
+      }
+      
+      .presensi-button:hover {
+        background:rgb(0, 122, 2);
+        transform: translateY(-2px);
       }
       
       /* Responsive adjustments */
