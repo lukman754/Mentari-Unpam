@@ -517,6 +517,7 @@ async function jawabQuiz(apiKey, questionContainer) {
     pJawaban.style.paddingTop = "10px";
     pJawaban.style.marginTop = "10px";
     pJawaban.style.backgroundColor = "#212121";
+    pJawaban.style.color = "#fff";
     pJawaban.style.padding = "12px";
     pJawaban.style.borderRadius = "4px";
     ckContent.appendChild(pJawaban);
