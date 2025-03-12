@@ -56,6 +56,8 @@ Menu ini menampilkan seluruh data mahasiswa dalam kelas dan menyediakan fitur pe
 
 ## 🔧 Cara Instalasi Ekstensi
 
+https://youtu.be/4CDs7ZwEq0c
+
 ### Windows
 1. Unduh file ekstensi [mentari-mod.zip](https://github.com/lukman754/Mentari-Unpam/releases/tag/v1.0)
 2. Ekstrak file zip ke folder di komputer Anda
