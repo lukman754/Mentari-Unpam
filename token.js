@@ -71,6 +71,7 @@ console.log("Token.js sedang dijalankan!");
     // Buat container utama
     const popup = document.createElement("div");
     popup.id = "token-runner-popup";
+    popup.className = "collapsed"; // Tambahkan ini untuk membuatnya collapsed secara default
     popup.innerHTML = `
     <div class="token-popup-header">
       <b style="align-items: center;"><img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" height="15" />  <span class="shimmer-text">MENTARI MOD</span></b>
@@ -88,7 +89,7 @@ console.log("Token.js sedang dijalankan!");
       <div class="token-tabs">
         <button class="token-tab active" data-tab="user-info">Info</button>
         <!-- <button class="token-tab" data-tab="token-data">Token</button> -->
-        <button class="token-tab" data-tab="forum-data">Forum Diskusi</button>
+        <button class="token-tab" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
       </div>
       <div class="token-tab-content active" id="user-info-tab">
@@ -575,6 +576,7 @@ console.log("Token.js sedang dijalankan!");
     document
       .getElementById("token-toggle-btn")
       .addEventListener("click", toggleCollapse);
+
     document
       .getElementById("token-reset-btn")
       .addEventListener("click", refreshAndTrackWithLoading);
@@ -749,7 +751,7 @@ console.log("Token.js sedang dijalankan!");
       if (popup.classList.contains("collapsed")) {
         popup.style.width = ""; // Lebar lebih kecil
       } else {
-        popup.style.width = "220px";
+        popup.style.width = "300px";
       }
       popup.classList.toggle("collapsed");
     }
@@ -885,13 +887,13 @@ console.log("Token.js sedang dijalankan!");
           </a>
 
           <div style="display: flex; align-items: center;">
-            <a href="https://instagram.com/_.chopin" target="_blank" class="token-github-link">
+            <a href="https://instagram.com/_.chopin" class="token-github-link">
               <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" ></span>
             </a>
-            <a href="https://facebook.com/lukman.mauludin.754" target="_blank" class="token-github-link">
+            <a href="https://facebook.com/lukman.mauludin.754" class="token-github-link">
               <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=118467&format=png&color=ffffff" width="18" ></span>
             </a>
-            <a href="https://github.com/Lukman754" target="_blank" class="token-github-link">
+            <a href="https://github.com/Lukman754" class="token-github-link">
               <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" ></span>
             </a>
           </div>
@@ -916,9 +918,7 @@ console.log("Token.js sedang dijalankan!");
     <button id="copy-all-links" class="copy-links-button">
       <i class="fas fa-copy"></i> Copy All Links
     </button>
-  </div>
-  <div class="copy-links-container">
-    <a href="https://my.unpam.ac.id/presensi/" id="presensi" class="presensi-button">
+    <a href="https://my.unpam.ac.id/presensi/" target="_blank" id="presensi" class="presensi-button">
       <i class="fas fa-clipboard-list"></i> Lihat Presensi
     </a>
   </div>
@@ -1012,7 +1012,7 @@ console.log("Token.js sedang dijalankan!");
       html += `
   <div class="course-card" data-course-name="${courseName}" data-course-url="${courseUrl}">
     <div class="course-header">
-      <a href="${courseUrl}" target="_blank" class="course-header-link">
+      <a href="${courseUrl}" class="course-header-link">
         <h2>${courseName}</h2>
         <p class="course-code">${kode_course}</p>
       </a>
@@ -1042,7 +1042,7 @@ console.log("Token.js sedang dijalankan!");
       <div class="section-content" id="${sectionId}">
         <!-- Direct Section Link Button -->
         <div class="section-direct-link">
-          <a href="${sectionUrl}" class="section-link-button" target="_blank">
+          <a href="${sectionUrl}" class="section-link-button">
             <i class="fas fa-external-link-alt"></i> Buka Pertemuan
           </a>
         </div>
@@ -1091,7 +1091,7 @@ console.log("Token.js sedang dijalankan!");
               : "incomplete";
 
             html += `
-        <a href="${url}" class="material-item ${completionStatus}" target="_blank" 
+        <a href="${url}" class="material-item ${completionStatus}" 
            data-item-name="${material.judul}" data-item-url="${url}">
           <div class="material-icon">
             ${getMaterialIcon(material.kode_template)}
@@ -1200,7 +1200,7 @@ console.log("Token.js sedang dijalankan!");
           item.file
             ? `
           <div class="item-file">
-            <a href="https://mentari.unpam.ac.id/api/file/${item.file}" target="_blank">
+            <a href="https://mentari.unpam.ac.id/api/file/${item.file}">
               <i class="fas fa-file-download"></i> Lampiran
             </a>
           </div>
@@ -1212,7 +1212,7 @@ console.log("Token.js sedang dijalankan!");
           validUrl && !warningMessage
             ? `
           <div class="item-action">
-            <a href="${url}" class="action-button" target="_blank">
+            <a href="${url}" class="action-button">
               ${getActionText(item.kode_template)}
             </a>
           </div>
@@ -1779,6 +1779,8 @@ console.log("Token.js sedang dijalankan!");
       /* Copy links button */
       .copy-links-container {
         text-align: center;
+        display: flex;
+        gap: 0.5em;
       }
       
       .copy-links-button {

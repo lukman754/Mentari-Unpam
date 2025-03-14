@@ -9,15 +9,11 @@
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"],
-      "js": ["content.js"]
+      "js": ["content.js", "gemini.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
       "js": ["home.js"]
-    },
-    {
-      "matches": ["https://mentari.unpam.ac.id/u-courses/*/forum/*/topics/*"],
-      "js": ["forum.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/u-courses/*/exam/*"],
@@ -26,6 +22,10 @@
     {
       "matches": ["https://mentari.unpam.ac.id/u-courses/*/kuesioner/*"],
       "js": ["kuisioner.js"]
+    },
+    {
+      "matches": ["https://my.unpam.ac.id/presensi/*"],
+      "js": ["presensi.js"]
     }
   ],
   "web_accessible_resources": [
