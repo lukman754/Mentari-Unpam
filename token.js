@@ -120,8 +120,8 @@ console.log("Token.js sedang dijalankan!");
     #token-runner-popup {
       position: fixed;
       bottom: 20px; /* Increased to avoid covering bottom buttons */
-      right: 20px;
-      margin-left: 20px;
+      left: 20px;
+      margin-right: 20px;
       max-height: 600px;
       background: rgba(17, 17, 17, 0.7); /* Semi-transparent background */
       color: #eee;

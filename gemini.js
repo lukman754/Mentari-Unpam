@@ -4,6 +4,13 @@ function addMessageToChat(sender, text) {
   const messageElement = document.createElement("div");
   messageElement.className = `message ${sender}-message`;
 
+  // Store original text with line breaks for copy operations
+  messageElement.setAttribute("data-original-text", text);
+
+  // Format for display while preserving line breaks
+  // Handle text content properly to avoid double parsing of <p> tags
+  const formattedText = text.replace(/\n/g, "<br>");
+
   if (sender === "user") {
     messageElement.innerHTML = `
       <div class="message-controls">
@@ -14,7 +21,10 @@ function addMessageToChat(sender, text) {
           </svg>
         </button>
       </div>
-      ${text}
+      <div class="user-avatar">
+        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Fox.webp" alt="User" width="24" height="24">
+      </div>
+      <div class="message-content">${formattedText}</div>
     `;
 
     // Add edit functionality to user messages
@@ -23,7 +33,9 @@ function addMessageToChat(sender, text) {
       if (editBtn) {
         editBtn.addEventListener("click", () => {
           const questionInput = document.getElementById("questionInput");
-          questionInput.value = text;
+          // Use original text (with line breaks) from data attribute
+          questionInput.value =
+            messageElement.getAttribute("data-original-text");
           questionInput.focus();
 
           // Find and remove this message and all messages after it
@@ -47,12 +59,14 @@ function addMessageToChat(sender, text) {
       }
     }, 0);
   } else {
+    // Bot message with robot icon and distinct copy buttons
     messageElement.innerHTML = `
       <div class="message-controls">
         <button class="copy-to-textarea" title="Copy to Textarea">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3"></path>
+            <path d="M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3"></path>
+            <rect x="9" y="9" width="6" height="6"></rect>
           </svg>
         </button>
         <button class="copy-to-clipboard" title="Copy to Clipboard">
@@ -62,7 +76,10 @@ function addMessageToChat(sender, text) {
           </svg>
         </button>
       </div>
-      ${text}
+      <div class="bot-avatar">
+        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Bot" width="24" height="24">
+      </div>
+      <div class="message-content">${formattedText}</div>
     `;
 
     // Add functionality to bot message buttons
@@ -71,14 +88,18 @@ function addMessageToChat(sender, text) {
       const copyToTextareaBtn =
         messageElement.querySelector(".copy-to-textarea");
       if (copyToTextareaBtn) {
-        copyToTextareaBtn.addEventListener("click", () => {
+        copyToTextareaBtn.addEventListener("click", function () {
+          // Get the original text with line breaks
+          const originalText =
+            messageElement.getAttribute("data-original-text");
+
           // Find and put text to the external textarea
           const externalTextarea = document.querySelector(
             ".MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])"
           );
 
           if (externalTextarea) {
-            externalTextarea.value = text;
+            externalTextarea.value = originalText;
             externalTextarea.dispatchEvent(
               new Event("input", { bubbles: true })
             );
@@ -90,14 +111,15 @@ function addMessageToChat(sender, text) {
           }
 
           // Visual feedback on button
-          const originalText = copyToTextareaBtn.innerHTML;
-          copyToTextareaBtn.innerHTML = `
+          const originalIcon = this.innerHTML;
+          this.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           `;
+          const btn = this;
           setTimeout(() => {
-            copyToTextareaBtn.innerHTML = originalText;
+            btn.innerHTML = originalIcon;
           }, 2000);
         });
       }
@@ -106,10 +128,14 @@ function addMessageToChat(sender, text) {
       const copyToClipboardBtn =
         messageElement.querySelector(".copy-to-clipboard");
       if (copyToClipboardBtn) {
-        copyToClipboardBtn.addEventListener("click", () => {
+        copyToClipboardBtn.addEventListener("click", function () {
+          // Get the original text with line breaks
+          const originalText =
+            messageElement.getAttribute("data-original-text");
+
           // Copy text directly to clipboard
           navigator.clipboard
-            .writeText(text)
+            .writeText(originalText)
             .then(() => {
               showChatNotification("Teks berhasil disalin ke clipboard!");
             })
@@ -118,19 +144,39 @@ function addMessageToChat(sender, text) {
             });
 
           // Visual feedback on button
-          const originalText = copyToClipboardBtn.innerHTML;
-          copyToClipboardBtn.innerHTML = `
+          const originalIcon = this.innerHTML;
+          this.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           `;
+          const btn = this;
           setTimeout(() => {
-            copyToClipboardBtn.innerHTML = originalText;
+            btn.innerHTML = originalIcon;
           }, 2000);
         });
       }
     }, 0);
   }
+  // Memperbaiki masalah tag <p> yang tertangkap dua kali
+  // Menghapus tag <p> yang terbentuk secara otomatis jika sudah ada di dalam teks
+  setTimeout(() => {
+    const messageContent = messageElement.querySelector(".message-content");
+    if (messageContent) {
+      // Jika konten dimulai dengan <p> dan diakhiri dengan </p>, tetapi teks asli tidak mengandung tag ini
+      const originalText = messageElement.getAttribute("data-original-text");
+      if (
+        messageContent.innerHTML.trim().startsWith("<p>") &&
+        messageContent.innerHTML.trim().endsWith("</p>") &&
+        !originalText.includes("<p>")
+      ) {
+        // Hapus tag <p> yang tidak diinginkan
+        messageContent.innerHTML = messageContent.innerHTML
+          .replace(/^<p>/g, "")
+          .replace(/<\/p>$/g, "");
+      }
+    }
+  }, 10);
 
   chatHistory.appendChild(messageElement);
   chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -155,164 +201,6 @@ function showChatNotification(message) {
       notificationElement.remove();
     }, 500);
   }, 2000);
-}
-
-function setupChatbotEventListeners(encodedApiKey) {
-  const chatbotToggle = document.getElementById("geminiChatbotToggle");
-  const chatbot = document.getElementById("geminiChatbot");
-  const closeChatButton = document.getElementById("closeChatButton");
-  const clearChatButton = document.getElementById("clearChatButton");
-  const questionInput = document.getElementById("questionInput");
-  const submitButton = document.getElementById("submitButton");
-  const chatHistory = document.getElementById("chatHistory");
-  const templateButtons = document.querySelectorAll(".template-buttons button");
-  const copyQuestionButton = document.getElementById("copyQuestionButton");
-
-  // Toggle chatbot visibility
-  chatbotToggle.addEventListener("click", () => {
-    chatbot.style.display = chatbot.style.display === "none" ? "flex" : "none";
-  });
-
-  // Close chatbot
-  closeChatButton.addEventListener("click", () => {
-    chatbot.style.display = "none";
-  });
-
-  // Clear chat history
-  clearChatButton.addEventListener("click", () => {
-    if (confirm("Hapus seluruh riwayat chat?")) {
-      chatHistory.innerHTML = "";
-      localStorage.removeItem("gemini_chat_history");
-    }
-  });
-
-  // Copy question from DOM to input
-  // Copy question from DOM to input
-  copyQuestionButton.addEventListener("click", () => {
-    const contentElement = document.querySelector(".ck-content");
-    if (contentElement) {
-      // Get all text content from all child elements
-      const allText = [];
-
-      // Process all child nodes recursively to extract text
-      const extractText = (element) => {
-        Array.from(element.childNodes).forEach((node) => {
-          if (node.nodeType === Node.TEXT_NODE) {
-            // Add text node content if it's not just whitespace
-            const text = node.textContent.trim();
-            if (text) allText.push(text);
-          } else if (node.nodeType === Node.ELEMENT_NODE) {
-            // For element nodes, check if it's a block element
-            // If it is, add a space before adding its text
-            const isBlockElement =
-              window.getComputedStyle(node).display === "block";
-
-            if (isBlockElement && allText.length > 0) {
-              // Add a space between block elements
-              extractText(node);
-            } else {
-              extractText(node);
-            }
-          }
-        });
-      };
-
-      extractText(contentElement);
-
-      // Join all text with proper spacing
-      const questionText = allText.join(" ").trim();
-      questionInput.value = questionText;
-
-      // Show in-chat notification
-      showChatNotification("Pertanyaan berhasil disalin!");
-
-      // Focus on the input
-      questionInput.focus();
-    } else {
-      showChatNotification("Tidak dapat menemukan pertanyaan.");
-    }
-  });
-
-  // Template prompt buttons
-  templateButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const template = button.getAttribute("data-prompt");
-      let currentText = questionInput.value.trim();
-
-      if (currentText) {
-        // Instead of prefixing the text, store the template in a data attribute
-        questionInput.setAttribute("data-template", template);
-        // Keep the original text in the input
-        questionInput.value = currentText;
-      } else {
-        questionInput.value = "";
-        questionInput.setAttribute("data-template", template);
-      }
-
-      questionInput.focus();
-
-      // Show in-chat notification for template selection
-      showChatNotification(`Template "${template}" dipilih`);
-    });
-  });
-
-  // Submit on Enter (but allow Shift+Enter for new lines)
-  questionInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      submitButton.click();
-    }
-  });
-
-  // Submit button click
-  submitButton.addEventListener("click", async () => {
-    const question = questionInput.value.trim();
-    if (!question) return;
-
-    // Get the selected template if any
-    const template = questionInput.getAttribute("data-template") || "";
-
-    // Add user message to chat without showing the template
-    addMessageToChat("user", question);
-
-    // Clear input and template
-    questionInput.value = "";
-    questionInput.removeAttribute("data-template");
-
-    // Add the typing indicator
-    const typingIndicator = addTypingIndicator();
-
-    try {
-      // Decode the API key
-      const apiKey = atob(encodedApiKey);
-
-      // Get answer from Gemini, including template in the actual request
-      let fullPrompt = question;
-      if (template) {
-        fullPrompt = `${template}: ${question}`;
-      }
-
-      const answer = await getAnswerFromGemini(apiKey, fullPrompt);
-
-      // Remove typing indicator
-      typingIndicator.remove();
-
-      // Add bot message to chat
-      addMessageToChat("bot", answer);
-
-      // Save chat history
-      saveChatHistory();
-    } catch (error) {
-      // Remove typing indicator
-      typingIndicator.remove();
-
-      // Add error message
-      addMessageToChat("bot", `Maaf, terjadi kesalahan: ${error.message}`);
-
-      // Save chat history
-      saveChatHistory();
-    }
-  });
 }
 
 function addChatbotStyles() {
@@ -343,7 +231,32 @@ function addChatbotStyles() {
       transform: scale(1.1);
     }
 
+    .bot-message {
+      display: flex;
+      flex-wrap: wrap;
+    }
 
+    .bot-avatar {
+      margin-right: 8px;
+      align-self: flex-start;
+    }
+
+     .user-message {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row-reverse;
+    }
+    
+    .user-avatar {
+      margin-left: 8px;
+      align-self: flex-start;
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+    }
     
     .tooltip {
       position: absolute;
@@ -807,26 +720,262 @@ async function getAnswerFromGemini(apiKey, question) {
   return result.candidates[0].content.parts[0].text;
 }
 
-function monitorForClaudeTextarea() {
-  // This will try to find Claude's textarea every 2 seconds
-  setInterval(() => {
-    const claudeTextarea = document.querySelector(
-      ".MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])"
-    );
-    if (claudeTextarea) {
-      // Store the reference globally so it can be used by the copy buttons
-      window.claudeTextarea = claudeTextarea;
-    }
-  }, 2000);
+console.log("gemini.js loaded");
+
+// Fungsi untuk mendapatkan API key dari localStorage
+function getGeminiApiKey() {
+  const storedKey = localStorage.getItem("geminiApiKey");
+  return storedKey ? atob(storedKey) : null;
 }
 
-function createChatbotInterface() {
+function setupChatbotEventListeners(encodedApiKey) {
+  const chatbotToggle = document.getElementById("geminiChatbotToggle");
+  const chatbot = document.getElementById("geminiChatbot");
+  const closeChatButton = document.getElementById("closeChatButton");
+  const clearChatButton = document.getElementById("clearChatButton");
+  const questionInput = document.getElementById("questionInput");
+  const submitButton = document.getElementById("submitButton");
+  const chatHistory = document.getElementById("chatHistory");
+  const templateButtons = document.querySelectorAll(".template-buttons button");
+  const copyQuestionButton = document.getElementById("copyQuestionButton");
+  const apiKeyButton = document.getElementById("apiKeyButton");
+  if (apiKeyButton) {
+    apiKeyButton.addEventListener("click", () => {
+      // Show the API key popup for updating
+      if (typeof showApiKeyPopup === "function") {
+        showApiKeyPopup();
+      } else {
+        console.error("showApiKeyPopup function not found!");
+      }
+    });
+  }
+
+  // Check if elements exist
+  if (!chatbotToggle || !chatbot) {
+    console.error("Chatbot toggle or container not found!");
+    return;
+  }
+
+  // Toggle chatbot visibility with debugging
+  chatbotToggle.addEventListener("click", () => {
+    chatbot.style.display = chatbot.style.display === "none" ? "flex" : "none";
+  });
+
+  // Close chatbot
+  closeChatButton.addEventListener("click", () => {
+    chatbot.style.display = "none";
+  });
+
+  // Clear chat history
+  clearChatButton.addEventListener("click", () => {
+    if (confirm("Hapus seluruh riwayat chat?")) {
+      chatHistory.innerHTML = "";
+      localStorage.removeItem("gemini_chat_history");
+    }
+  });
+
+  // Copy question from DOM to input
+  // Copy question from DOM to input
+  copyQuestionButton.addEventListener("click", () => {
+    // First try to get content from .ck-content
+    const contentElement = document.querySelector(".ck-content");
+    let questionText = "";
+    let titleText = "";
+
+    // Try to capture the h6 title
+    const titleElement = document.querySelector("h6.MuiTypography-subtitle1");
+    if (titleElement) {
+      titleText = titleElement.textContent.trim();
+    }
+
+    // Try to get content from radio form controls
+    const formLabels = document.querySelectorAll(".MuiFormControlLabel-root");
+    let optionsText = [];
+
+    if (formLabels && formLabels.length > 0) {
+      formLabels.forEach((label) => {
+        // Extract option information more accurately based on the DOM structure
+        const optionStack = label.querySelector(".MuiStack-root");
+
+        if (optionStack) {
+          // Get the option letter (A, B, C, etc.)
+          const optionLetter = optionStack
+            .querySelector("p")
+            .textContent.trim();
+
+          // Get the option content directly from .ck-content
+          const optionContentEl = optionStack.querySelector(".ck-content");
+          const optionContent = optionContentEl
+            ? optionContentEl.textContent.trim()
+            : "";
+
+          // Check if this option is selected/checked
+          const isChecked = label.querySelector(".Mui-checked") !== null;
+
+          if (optionLetter && optionContent) {
+            optionsText.push(`${optionLetter}${optionContent}`);
+          }
+        }
+      });
+    }
+
+    // Process standard content if available
+    if (contentElement) {
+      // Use textContent to get all text without duplicating
+      questionText = contentElement.textContent.trim();
+    }
+
+    // Combine all the captured content
+    let fullText = "";
+
+    if (titleText) {
+      fullText += `${titleText}\n\n`;
+    }
+
+    if (questionText) {
+      fullText += `${questionText}\n\n`;
+    }
+
+    if (optionsText.length > 0) {
+      fullText += optionsText.join("\n");
+    }
+
+    // Set the combined text into the input
+    questionInput.value = fullText.trim();
+
+    // Show in-chat notification
+    showChatNotification("Pertanyaan berhasil disalin!");
+
+    // Focus on the input
+    questionInput.focus();
+
+    if (!contentElement && optionsText.length === 0 && !titleText) {
+      showChatNotification("Tidak dapat menemukan pertanyaan.");
+    }
+  });
+  // Template prompt buttons
+  templateButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const template = button.getAttribute("data-prompt");
+      let currentText = questionInput.value.trim();
+
+      if (currentText) {
+        // Instead of prefixing the text, store the template in a data attribute
+        questionInput.setAttribute("data-template", template);
+        // Keep the original text in the input
+        questionInput.value = currentText;
+      } else {
+        questionInput.value = "";
+        questionInput.setAttribute("data-template", template);
+      }
+
+      questionInput.focus();
+
+      // Show in-chat notification for template selection
+      showChatNotification(`Template "${template}" dipilih`);
+    });
+  });
+
+  // Submit on Enter (but allow Shift+Enter for new lines)
+  questionInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submitButton.click();
+    }
+  });
+
+  // Submit button click
+  submitButton.addEventListener("click", async () => {
+    const question = questionInput.value.trim();
+    if (!question) return;
+
+    // Get the selected template if any
+    const template = questionInput.getAttribute("data-template") || "";
+
+    // Add user message to chat without showing the template
+    addMessageToChat("user", question);
+
+    // Clear input and template
+    questionInput.value = "";
+    questionInput.removeAttribute("data-template");
+
+    // Add the typing indicator
+    const typingIndicator = addTypingIndicator();
+
+    try {
+      // Decode the API key
+      const apiKey = atob(encodedApiKey);
+
+      // Get answer from Gemini, including template in the actual request
+      let fullPrompt = question;
+      if (template) {
+        fullPrompt = `${template}: ${question}`;
+      }
+
+      const answer = await getAnswerFromGemini(apiKey, fullPrompt);
+
+      // Remove typing indicator
+      typingIndicator.remove();
+
+      // Add bot message to chat
+      addMessageToChat("bot", answer);
+
+      // Save chat history
+      saveChatHistory();
+    } catch (error) {
+      // Remove typing indicator
+      typingIndicator.remove();
+
+      // Add error message
+      addMessageToChat(
+        "bot",
+        `Maaf, terjadi kesalahan: <span style="color: red; font-weight: bold;">${error.message}</span>. Untuk mengganti API key klik icon <span style="color: yellow; font-weight: bold;">Kunci</span> yang ada di kanan atas dan masukkan API key yang benar.
+`
+      );
+
+      // Save chat history
+      saveChatHistory();
+    }
+  });
+}
+
+// Modifikasi fungsi createChatbotInterface agar selalu memeriksa apiKey
+function createChatbotInterface(providedApiKey = null) {
+  console.log("Creating chatbot interface...");
   // Check if chatbot already exists
-  if (document.getElementById("geminiChatbot")) return;
+  if (document.getElementById("geminiChatbot")) {
+    console.log("Chatbot already exists");
+    return;
+  }
 
-  // Encode API key (simple base64 encoding)
-  const encodedApiKey = btoa("AIzaSyDmt6Gw6wG0JwwrLvmnCkUSnog4IejHNu0");
+  // Get API key from parameter or manager
+  let apiKey = providedApiKey;
 
+  // If no API key provided, try to get it from manager
+  if (!apiKey) {
+    console.log("No API key provided, checking manager...");
+    if (typeof getGeminiApiKey === "function") {
+      apiKey = getGeminiApiKey();
+    } else {
+      console.error("getGeminiApiKey function not found!");
+    }
+
+    // If still no API key, show popup and return
+    if (!apiKey) {
+      console.log("No API key found, showing popup...");
+      if (typeof showApiKeyPopup === "function") {
+        showApiKeyPopup();
+      } else {
+        console.error("showApiKeyPopup function not found!");
+      }
+      return;
+    }
+  }
+
+  // Encode the API key for setupChatbotEventListeners
+  const encodedApiKey = btoa(apiKey);
+
+  console.log("API key available, continuing with chatbot setup...");
   // Create chatbot elements with enhanced structure
   const chatbotHtml = `
    <div id="geminiChatbotToggle" class="chatbot-toggle">
@@ -834,11 +983,15 @@ function createChatbotInterface() {
     <div class="tooltip" id="geminiTooltip">Hai, aku Gemini Assistant!</div>
   </div>
 
-
     <div id="geminiChatbot" class="chatbot-container" style="display: none;">
       <div class="chatbot-header">
         <h3>Gemini Assistant</h3>
         <div class="chatbot-actions">
+          <button id="apiKeyButton" title="Update API Key">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+            </svg>
+          </button>
           <button id="clearChatButton" title="Clear Chat">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"></path>
@@ -863,9 +1016,10 @@ function createChatbotInterface() {
             <button data-prompt="Jelaskan secara singkat dan jelas">Singkat & Jelas</button>
             <button data-prompt="Buat dalam 1 paragraf tanpa pemisah">1 Paragraf</button>
             <button data-prompt="Buat dalam 2 paragraf tanpa pemisah">2 Paragraf</button>
+            <button data-prompt="Jawab pilihan ganda berikut hanya dengan huruf dan teks misal Jawaban yang benar adalah A. ..., dan beri penjelasan singkat ">Pilihan ganda</button>
             <button data-prompt="Sebutkan 3 poin utama yang perlu diketahui">3 Poin Utama</button>
-            <button data-prompt="Jelaskan dengan cara yang mudah dimengerti anak 10 tahun">Sederhana</button>
-            <button data-prompt="Berikan contoh nyata atau kasus penggunaan">Contoh Nyata</button>
+            <button data-prompt="Jelaskan dengan cara yang mudah dimengerti anak 10 tahun dengan singkat">Sederhana</button>
+            <button data-prompt="Berikan contoh nyata atau kasus penggunaan dengan singkat">Contoh Nyata</button>
             <button data-prompt="Beri langkah-langkah atau panduan praktis">Panduan Langkah</button>
             <button data-prompt="Jelaskan dengan bahasa yang lebih teknis">Teknis</button>
             <button data-prompt="Sederhanakan dalam bentuk analogi yang mudah dibayangkan">Analogi</button>
@@ -902,6 +1056,30 @@ function createChatbotInterface() {
   chatbotElement.innerHTML = chatbotHtml;
   document.body.appendChild(chatbotElement);
 
+  // Add the CSS styles
+  if (typeof addChatbotStyles === "function") {
+    addChatbotStyles();
+  } else {
+    console.error("addChatbotStyles function not found!");
+  }
+
+  // Setup event listeners with the encoded API key
+  setupChatbotEventListeners(encodedApiKey);
+
+  // Load chat history from localStorage
+  if (typeof loadChatHistory === "function") {
+    loadChatHistory();
+  } else {
+    console.error("loadChatHistory function not found!");
+  }
+
+  // Start monitoring for Claude's textarea
+  if (typeof monitorForClaudeTextarea === "function") {
+    monitorForClaudeTextarea();
+  } else {
+    console.error("monitorForClaudeTextarea function not found!");
+  }
+
   // Setup tooltips with controlled display frequency
   const tooltips = [
     "Hai, aku Gemini Assistant!",
@@ -912,65 +1090,70 @@ function createChatbotInterface() {
     "Butuh sesuatu? Aku di sini!",
   ];
 
-  // Function to manage tooltip display with less frequency
-  function initializeTooltips() {
-    const tooltip = document.getElementById("geminiTooltip");
-    const toggle = document.getElementById("geminiChatbotToggle");
+  // Initialize tooltips after a short delay to ensure DOM is ready
+  setTimeout(() => {
+    initializeTooltips(tooltips);
+  }, 500);
+}
 
-    if (!tooltip || !toggle) return;
+// Define the tooltip initialization function
+function initializeTooltips(tooltips) {
+  const tooltip = document.getElementById("geminiTooltip");
+  const toggle = document.getElementById("geminiChatbotToggle");
 
-    // Set tooltip to initially invisible
-    tooltip.style.opacity = "0";
-
-    let tooltipIndex = 0;
-
-    // Main cycle function: show tooltip briefly then hide for longer period
-    function tooltipCycle() {
-      // Show tooltip for 3 seconds
-      tooltipIndex = (tooltipIndex + 1) % tooltips.length;
-      tooltip.textContent = tooltips[tooltipIndex];
-      tooltip.style.opacity = "1";
-
-      // Hide after 3 seconds and wait longer before showing next one
-      setTimeout(() => {
-        // Fade out tooltip
-        tooltip.style.opacity = "0";
-
-        // Wait longer before showing next tooltip (15 seconds hidden)
-        setTimeout(tooltipCycle, 15000);
-      }, 3000);
-    }
-
-    // Start the first cycle after a short delay
-    setTimeout(tooltipCycle, 1000);
-
-    // Also change tooltip on mouse enter and keep visible while hovering
-    toggle.addEventListener("mouseenter", function () {
-      const randomIndex = Math.floor(Math.random() * tooltips.length);
-      tooltip.textContent = tooltips[randomIndex];
-      tooltip.style.opacity = "1";
-    });
-
-    // Hide tooltip when mouse leaves, unless during the 3-second display period
-    toggle.addEventListener("mouseleave", function () {
-      // Let the normal cycle determine visibility
-    });
+  if (!tooltip || !toggle) {
+    console.error("Tooltip or toggle elements not found!");
+    return;
   }
 
-  // Add the CSS styles
-  addChatbotStyles();
+  // Set tooltip to initially invisible
+  tooltip.style.opacity = "0";
 
-  // Setup event listeners
-  setupChatbotEventListeners(encodedApiKey);
+  let tooltipIndex = 0;
 
-  // Load chat history from localStorage
-  loadChatHistory();
+  // Main cycle function: show tooltip briefly then hide for longer period
+  function tooltipCycle() {
+    // Show tooltip for 3 seconds
+    tooltipIndex = (tooltipIndex + 1) % tooltips.length;
+    tooltip.textContent = tooltips[tooltipIndex];
+    tooltip.style.opacity = "1";
 
-  // Start monitoring for Claude's textarea
-  monitorForClaudeTextarea();
+    // Hide after 3 seconds and wait longer before showing next one
+    setTimeout(() => {
+      // Fade out tooltip
+      tooltip.style.opacity = "0";
 
-  // Initialize tooltips after a short delay to ensure DOM is ready
-  setTimeout(initializeTooltips, 500);
+      // Wait longer before showing next tooltip (15 seconds hidden)
+      setTimeout(tooltipCycle, 15000);
+    }, 3000);
+  }
+
+  // Start the first cycle after a short delay
+  setTimeout(tooltipCycle, 1000);
+
+  // Also change tooltip on mouse enter and keep visible while hovering
+  toggle.addEventListener("mouseenter", function () {
+    const randomIndex = Math.floor(Math.random() * tooltips.length);
+    tooltip.textContent = tooltips[randomIndex];
+    tooltip.style.opacity = "1";
+  });
+
+  // Hide tooltip when mouse leaves
+  toggle.addEventListener("mouseleave", function () {
+    // Let the normal cycle determine visibility
+  });
+}
+function monitorForClaudeTextarea() {
+  // This will try to find Claude's textarea every 2 seconds
+  setInterval(() => {
+    const claudeTextarea = document.querySelector(
+      ".MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])"
+    );
+    if (claudeTextarea) {
+      // Store the reference globally so it can be used by the copy buttons
+      window.claudeTextarea = claudeTextarea;
+    }
+  }, 2000);
 }
 
 // Function to add typing indicator

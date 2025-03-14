@@ -1,10 +1,36 @@
 (async () => {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // Replace the hardcoded API key with this function
+  function getGeminiApiKey() {
+    // First try to get the API key from apiKeyManager
+    const storedApiKey = localStorage.getItem("geminiApiKey");
+
+    if (storedApiKey) {
+      return atob(storedApiKey);
+    }
+
+    // If not found in localStorage, show an error
+    const errorMsg = document.createElement("div");
+    errorMsg.style =
+      "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#f44336;color:white;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;";
+    errorMsg.innerHTML = `<div style="display:flex;align-items:center;gap:10px;">
+    <span>❌</span>
+    <span>API Key tidak ditemukan. Pastikan Anda telah mengatur API Key di ApiKeyManager.</span>
+  </div>`;
+    document.body.appendChild(errorMsg);
+
+    setTimeout(() => {
+      errorMsg.style.opacity = "0";
+      errorMsg.style.transition = "opacity 0.5s ease";
+      setTimeout(() => errorMsg.remove(), 500);
+    }, 5000);
+
+    throw new Error("Gemini API Key not found in localStorage");
+  }
+
   try {
-    const GEMINI_API_KEY = atob(
-      "QUl6YVN5RG10Nkd3NndHMEp3d3JMdm1uQ2tVU25vZzRJZWpITnUw"
-    );
+    const GEMINI_API_KEY = getGeminiApiKey();
 
     function createPopup() {
       const popup = document.createElement("div");
@@ -554,12 +580,15 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
       </div>
     `;
 
-        // Add event listener for the "Jawab Semua" button
-        document
-          .getElementById("answer-all-btn")
-          .addEventListener("click", () => {
-            sequentiallyAnswerAllQuestions();
-          });
+        // Add event listener for the "Jawab Semua" button after ensuring it exists
+        setTimeout(() => {
+          const answerAllBtn = document.getElementById("answer-all-btn");
+          if (answerAllBtn) {
+            answerAllBtn.addEventListener("click", () => {
+              sequentiallyAnswerAllQuestions();
+            });
+          }
+        }, 100);
       }
 
       const progressText = document.getElementById("progress-text");
