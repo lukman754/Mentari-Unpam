@@ -60,7 +60,7 @@ console.log("Token.js sedang dijalankan!");
   // Buat popup UI
   // Buat popup UI
   function createPopupUI() {
-    // Cek jika popup sudah ada
+    // Check if popup already exists
     if (document.getElementById("token-runner-popup")) return;
 
     let script = document.createElement("script");
@@ -68,27 +68,24 @@ console.log("Token.js sedang dijalankan!");
     script.crossOrigin = "anonymous";
     document.head.appendChild(script);
 
-    // Buat container utama
+    // Create main container
     const popup = document.createElement("div");
     popup.id = "token-runner-popup";
-    popup.className = "collapsed"; // Tambahkan ini untuk membuatnya collapsed secara default
+    popup.className = "collapsed"; // Default to collapsed state
     popup.innerHTML = `
-    <div class="token-popup-header">
-      <b style="align-items: center;"><img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" height="15" />  <span class="shimmer-text">MENTARI MOD</span></b>
-      <div class="token-popup-actions">
-        
-        <button id="token-reset-btn" title="Reset Cache & Track Ulang" style="z-index: 999999999;"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
-        <button id="token-toggle-btn" title="Toggle"><i class='fa-solid fa-chevron-down fa-fw'></i></button>
-
-        <!-- <button id="token-refresh-btn" title="Refresh Data">↻</button> -->
-        <!-- <button id="token-clear-btn" title="Clear Cache"><i class="fa-solid fa-trash"></i></button> -->
-      </div>
+    <div class="popup-toggle" id="popup-toggle">
+      <img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" />
     </div>
     <div class="token-loading-bar"></div>
-    <div class="token-popup-content">
+    <div class="popup-content">
+      <div class="popup-header">
+        <span class="popup-title">MENTARI MOD</span>
+        <div class="token-popup-actions">
+          <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
+        </div>
+      </div>
       <div class="token-tabs">
         <button class="token-tab active" data-tab="user-info">Info</button>
-        <!-- <button class="token-tab" data-tab="token-data">Token</button> -->
         <button class="token-tab" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
       </div>
@@ -114,101 +111,230 @@ console.log("Token.js sedang dijalankan!");
     </div>
   `;
 
-    // CSS untuk popup - lebih minimalis
+    // CSS for popup - minimalist Vercel-style
     const style = document.createElement("style");
     style.textContent = `
     #token-runner-popup {
       position: fixed;
-      bottom: 20px; /* Increased to avoid covering bottom buttons */
-      left: 20px;
-      margin-right: 20px;
-      max-height: 600px;
-      background: rgba(17, 17, 17, 0.7); /* Semi-transparent background */
-      color: #eee;
-      border-radius: 6px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      bottom: 80px !important;
+      left: 9px !important;
+      background: #1e1e1e;
+      color: #f0f0f0;
+      border-radius: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       z-index: 10001;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      width: 450px;
+      max-width: 95%;
       overflow: hidden;
-      transition: height 0.3s ease;
-      border: 1px solid rgba(51, 51, 51, 0.8);
-      backdrop-filter: blur(8px); /* Add blur effect */
-      -webkit-backdrop-filter: blur(8px); /* For Safari support */
+      cursor: move; /* Indicator for draggable */
     }
-
     
     #token-runner-popup.collapsed {
-      height: 40px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    
+    /* Minimalist Card Styles */
+    .token-card-wrapper {
+      background: #161616;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
     }
 
-    .token-popup-header {
+    .token-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .token-user-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      margin: 0;
+      letter-spacing: 0.2px;
+    }
+
+    .token-role-badge {
+      background: rgba(0, 112, 243, 0.1);
+      color: #0070f3;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .token-data-grid {
+      margin-bottom: 14px;
+    }
+
+    .token-data-item {
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .token-info-section {
+      margin: 0;
+    }
+
+    .token-info-section p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .token-key {
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 400;
+    }
+
+    .token-value {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .token-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 11px;
+      opacity: 0.3;
+    }
+
+    .token-footer a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.2s ease;
+    }
+
+    .token-footer a:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .token-github-link {
+      margin-left: 8px;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .token-github-link:hover {
+      opacity: 1;
+    }
+        
+    .popup-toggle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #1e1e1e;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10002;
+      transition: transform 0.3s ease;
+    }
+    
+    .popup-toggle:hover {
+      transform: scale(1.05);
+    }
+    
+    .popup-toggle img {
+      width: 30px;
+      height: 30px;
+    }
+    
+    .popup-content {
+      padding-top: 12px;
+      max-height: 500px;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    #token-runner-popup:not(.collapsed) .popup-content {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .popup-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
-      background: #1e1e1e;
-      border-bottom: 1px solid #222;
+      padding: 0 16px 12px 60px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-
-    .token-popup-header b {
-      font-size: 15px;
-      color: #f0872d;
-    }
-
-    .shimmer-text {
+    
+    .popup-title {
+      font-size: 14px;
+      font-weight: bold;
       background: linear-gradient(90deg, #f0872d, #fff, #f0872d);
       background-size: 200% 100%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shimmer 3s infinite linear;
     }
-
+    
     @keyframes shimmer {
       0% { background-position: -200% 0; }
       100% { background-position: 200% 0; }
     }
-
-
-    .token-popup-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .token-popup-actions button {
-      background: transparent;
+    
+    #token-reset-btn {
+      background: rgba(46, 204, 113, 0.2);
       border: none;
       cursor: pointer;
-      color: #1e1e1e;
-      background-color: red;
-      font-weight: bold;
-      border-radius: 30px;
-      width: 16px;
-      height: 16px;
-      padding: 2px;
-      font-size: 10px;
+      color: #2ecc71;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.2s ease;
     }
-
-    .token-popup-actions button:hover {
+    
+    #token-reset-btn:hover {
+      background: rgba(46, 204, 113, 0.3);
       transform: rotate(180deg);
-      transition: transform 0.3s ease;
     }
-
+    
     .token-loading-bar {
       position: absolute;
       left: 0;
       height: 2px;
       width: 0%;
       background-color: #2ecc71;
-      top: 40px; /* Position it just below the header */
+      top: 0;
       transition: width 0.3s ease;
       display: none;
+      z-index: 10003;
     }
-
+    
     .token-loading-bar.active {
       display: block;
       animation: loading-progress 1.5s ease infinite;
     }
-
+    
     @keyframes loading-progress {
       0% {
         width: 0%;
@@ -223,176 +349,169 @@ console.log("Token.js sedang dijalankan!");
         left: 100%;
       }
     }
-
-    .token-popup-content {
-      max-height: 500px;
-      overflow: hidden;
-    }
-
+    
     .token-tabs {
       display: flex;
-      border-bottom: 1px solid #222;
-      background: #1a1a1a;
+      padding: 0 12px;
+      margin-top: 8px;
     }
-
+    
     .token-tab {
       padding: 6px 12px;
       background: transparent;
       border: none;
-      color: #777;
+      color: rgba(255, 255, 255, 0.5);
       cursor: pointer;
       font-size: 12px;
-      border-bottom: 2px solid transparent;
+      position: relative;
+      transition: color 0.2s ease;
     }
-
+    
     .token-tab:hover {
-      color: #fff;
+      color: rgba(255, 255, 255, 0.8);
     }
-
+    
     .token-tab.active {
       color: #fff;
-      border-bottom: 2px solid #0070f3;
     }
-
+    
+    .token-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: #0070f3;
+      border-radius: 2px;
+    }
+    
     .token-tab-content {
       display: none;
-      padding: 12px;
-      max-height: 600px;
+      padding: 10px;
+      flex: 1;
       overflow-y: auto;
-      scrollbar-width: none;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
     }
-
+    
     .token-tab-content::-webkit-scrollbar {
-      display: none;
+      width: 4px;
     }
-
+    
+    .token-tab-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .token-tab-content::-webkit-scrollbar-thumb {
+      background-color: #333;
+      border-radius: 4px;
+    }
+    
     .token-tab-content.active {
       display: block;
     }
-
+    
     .token-info-section {
       margin-bottom: 10px;
       font-size: 12px;
-      line-height: 1.4;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.8);
     }
-
-    .token-info-section h4 {
-      margin: 0 0 6px 0;
-      font-size: 12px;
-      color: #777;
-      font-weight: normal;
-    }
-
-    .token-info-section p {
-      margin: 0 0 6px 0;
-    }
-
-    .token-key {
-      color: #777;
-    }
-
-    .token-value {
-      color: #eee;
-      word-break: break-all;
-    }
-
-    .token-copy-btn {
-      background: #333;
-      border: none;
-      color: #eee;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 11px;
-      cursor: pointer;
-      margin-left: 5px;
-    }
-
-    .token-copy-btn:hover {
-      background: #0070f3;
-    }
-
+    
     #forum-list, #student-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-
+    
     .forum-item, .student-item {
-      background: #191919;
-      border-radius: 4px;
-      padding: 8px 10px;
-      border: 1px solid #222;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.2s ease;
     }
-
+    
     .forum-item:hover {
-      background: #222;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
     }
-
+    
     .forum-item-header, .student-item-header {
       display: flex;
       justify-content: space-between;
       margin-bottom: 6px;
     }
-
+    
     .forum-item-title, .student-item-title {
       font-weight: normal;
-      color: #eee;
+      color: rgba(255, 255, 255, 0.95);
       margin: 0;
       font-size: 13px;
     }
-
+    
     .forum-item-code, .student-item-code {
       font-size: 11px;
-      color: #777;
+      color: rgba(255, 255, 255, 0.5);
       margin: 0;
     }
-
+    
     .forum-item-link, .student-item-link {
       display: inline-block;
-      color: white;
+      color: rgba(255, 255, 255, 0.9);
       text-decoration: none;
       border-radius: 3px;
       font-size: 14px;
+      transition: color 0.2s ease;
     }
-
-
+    
+    .forum-item-link:hover {
+      color: #0070f3;
+    }
+    
     .forum-no-data, .student-no-data {
-      color: #777;
+      color: rgba(255, 255, 255, 0.5);
       font-style: italic;
       text-align: center;
       padding: 12px;
     }
-
+    
     .token-badge {
       display: inline-block;
-      background: #222;
-      color: #999;
-      padding: 1px 4px;
-      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.6);
+      padding: 2px 6px;
+      border-radius: 10px;
       font-size: 10px;
       margin-right: 4px;
+      transition: all 0.2s ease;
     }
-
-    .forum-item-link:hover {
-      .token-badge{
-          background: #253949;
-          color: #41a3f2;
-        }
-      }
-
+    
+    .forum-item-link:hover .token-badge {
+      background: rgba(0, 112, 243, 0.1);
+      color: #0070f3;
+    }
+    
     pre {
-      background: #191919; 
-      padding: 8px; 
-      border-radius: 4px; 
-      max-height: 150px; 
-      font-size: 11px; 
-      color: #ccc;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      border-radius: 4px;
+      max-height: 150px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
       overflow: auto;
-      scrollbar-width: none;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
     }
-
+    
     pre::-webkit-scrollbar {
-      display: none;
+      width: 4px;
+    }
+    
+    pre::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
     }
     
     .student-info {
@@ -407,137 +526,22 @@ console.log("Token.js sedang dijalankan!");
     
     .student-contact {
       font-size: 11px;
-      color: #999;
+      color: rgba(255, 255, 255, 0.5);
     }
     
     .course-header {
-      background: #222;
+      background: rgba(255, 255, 255, 0.03);
       padding: 6px 10px;
       border-radius: 4px;
       margin-bottom: 8px;
       font-size: 12px;
       font-weight: bold;
-    }
-
-    /* New card wrapper styles */
-    .token-card-wrapper {
-      background: linear-gradient(145deg, #232323, #1a1a1a);
-      border-radius: 8px;
-      padding: 16px;
-    }
-
-    .token-card-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .token-avatar {
-      width: 36px;
-      height: 36px;
-      background: #41a3f2;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 10px;
-      color: #fff;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .token-user-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: #fff;
-      margin: 0;
-    }
-
-    .token-role-badge {
-      margin-left: auto;
-      background: rgba(65, 163, 242, 0.15);
-      color: #41a3f2;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .token-data-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .token-data-item {
-      padding: 8px;
-      background: rgba(30, 30, 30, 0.5);
-      border-radius: 6px;
-    }
-
-    .token-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      opacity: 0.5;
-      margin-top: 12px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 11px;
-    }
-
-    .token-github-link {
-      display: flex;
-      align-items: center;
-      color: #999;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .token-github-link:hover {
-      color: #41a3f2;
-    }
-
-    .token-github-icon {
-      margin-right: 5px;
-      font-size: 14px;
-    }
-
-    .token-date-info {
-      color: #777;
-    }
-
-    /* Add some subtle hover effects */
-    .token-card-wrapper:hover {
-      border-color: rgba(65, 163, 242, 0.4);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    }
-    .token-popup-actions button#token-reset-btn,
-    .token-popup-actions button#token-clear-btn {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      color: #1e1e1e;
-      background-color: #2ecc71;
-      font-weight: bold;
-      border-radius: 30px;
-      width: 16px;
-      height: 16px;
-      padding: 2px;
-      font-size: 10px;
-    }
-
-    .token-popup-actions button#token-reset-btn:hover,
-    .token-popup-actions button#token-clear-btn:hover {
-      transform: rotate(180deg);
-      transition: transform 0.3s;
+      color: rgba(255, 255, 255, 0.9);
     }
   `;
 
     document.head.appendChild(style);
+
     document.body.appendChild(popup);
 
     // Enhanced refresh function with loading animation
@@ -572,21 +576,52 @@ console.log("Token.js sedang dijalankan!");
       }
     }
 
+    // Toggle popup state
+    function toggleCollapse() {
+      popup.classList.toggle("collapsed");
+    }
+
+    // Make popup draggable vertically
+    let isDragging = false;
+    let offsetY = 0;
+
+    popup.addEventListener("mousedown", (e) => {
+      // Only allow dragging if not clicking on an interactive element
+      if (e.target.closest("button") || e.target.closest("a")) {
+        return;
+      }
+
+      isDragging = true;
+      offsetY = e.clientY - popup.getBoundingClientRect().top;
+
+      // Prevent text selection during drag
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+
+      const y = e.clientY - offsetY;
+
+      // Limit dragging to keep popup on screen
+      if (y > 0 && y < window.innerHeight - 50) {
+        popup.style.top = y + "px";
+        popup.style.bottom = "auto";
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
+
     // Handle event listeners
     document
-      .getElementById("token-toggle-btn")
+      .getElementById("popup-toggle")
       .addEventListener("click", toggleCollapse);
 
     document
       .getElementById("token-reset-btn")
       .addEventListener("click", refreshAndTrackWithLoading);
-    // document
-    //   .getElementById("token-refresh-btn")
-    //   .addEventListener("click", refreshAllData);
-
-    // document
-    //   .getElementById("token-clear-btn")
-    //   .addEventListener("click", clearCacheData);
 
     // Tab switching
     document.querySelectorAll(".token-tab").forEach((tab) => {
@@ -606,7 +641,6 @@ console.log("Token.js sedang dijalankan!");
   }
 
   // Add this function to your existing JavaScript
-  // Add this function to your existing JavaScript
   function addPositionToggleToPopup() {
     // Check if popup exists
     const popup = document.getElementById("token-runner-popup");
@@ -615,14 +649,15 @@ console.log("Token.js sedang dijalankan!");
     // Create position toggle button
     const positionBtn = document.createElement("button");
     positionBtn.id = "token-position-btn";
-    positionBtn.title = "Change Position";
+    positionBtn.display = "none";
     positionBtn.innerHTML =
       '<i class="fa-solid fa-arrows-up-down-left-right fa-fw"></i>';
-    positionBtn.style.backgroundColor = "#41a3f2"; // Blue color to distinguish it
 
     // Add the button to the header actions
     const actionsDiv = document.querySelector(".token-popup-actions");
-    actionsDiv.insertBefore(positionBtn, actionsDiv.firstChild);
+    if (actionsDiv) {
+      actionsDiv.insertBefore(positionBtn, actionsDiv.firstChild);
+    }
 
     // Define possible positions with proper object syntax
     // Note: marginLeft is separate from the positioning properties
@@ -693,9 +728,6 @@ console.log("Token.js sedang dijalankan!");
       // If on left side, add marginRight, otherwise clear it
       popup.style.marginRight = !pos.isRight ? "20px" : "0";
 
-      // Add fancy animation
-      popup.style.transition = "all 0.3s ease";
-
       // Add position indicator to title attribute
       const positionNames = [
         "Bottom Right",
@@ -711,6 +743,7 @@ console.log("Token.js sedang dijalankan!");
     style.textContent = `
     #token-position-btn {
       background-color: #41a3f2 !important;
+      display: none;
     }
     
     #token-position-btn:hover {
@@ -856,7 +889,6 @@ console.log("Token.js sedang dijalankan!");
     userInfoTab.innerHTML = `
       <div class="token-card-wrapper">
         <div class="token-card-header">
-          <div class="token-avatar">${tokenInfo.fullname.charAt(0)}</div>
           <h3 class="token-user-title">${tokenInfo.fullname}</h3>
           <div class="token-role-badge">${tokenInfo.role}</div>
         </div>
@@ -864,19 +896,11 @@ console.log("Token.js sedang dijalankan!");
         <div class="token-data-grid">
           <div class="token-data-item">
             <div class="token-info-section">
-              <p><span class="token-key">NIM :</span> <span class="token-value">${
-                tokenInfo.username
-              }</span></p>
+              <p><span class="token-key">NIM :</span> <span class="token-value">${tokenInfo.username}</span></p>
             </div>
           </div>
           
-          <div class="token-data-item">
-            <div class="token-info-section">
-              <p><span class="token-key">Token Exp:</span> <span class="token-value">${
-                tokenInfo.expires
-              }</span></p>
-            </div>
-          </div>
+          
         </div>
         
         <div class="token-footer">
@@ -2275,8 +2299,6 @@ console.log("Token.js sedang dijalankan!");
       /* Tab styles - added to ensure tabs stay visible */
       .token-tabs {
         display: flex;
-        background: #1a1a1a;
-        border-bottom: 1px solid #333;
         position: sticky;
         top: 0;
         z-index: 100;
