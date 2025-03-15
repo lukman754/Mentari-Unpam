@@ -116,7 +116,6 @@ console.log("Token.js sedang dijalankan!");
     style.textContent = `
     #token-runner-popup {
       position: fixed;
-      bottom: 80px !important;
       left: 9px !important;
       background: #1e1e1e;
       color: #f0f0f0;
@@ -541,7 +540,6 @@ console.log("Token.js sedang dijalankan!");
   `;
 
     document.head.appendChild(style);
-
     document.body.appendChild(popup);
 
     // Enhanced refresh function with loading animation
@@ -581,10 +579,12 @@ console.log("Token.js sedang dijalankan!");
       popup.classList.toggle("collapsed");
     }
 
-    // Make popup draggable vertically
+    // Make popup draggable for both mouse and touch events
     let isDragging = false;
+    let offsetX = 0;
     let offsetY = 0;
 
+    // Mouse events for desktop
     popup.addEventListener("mousedown", (e) => {
       // Only allow dragging if not clicking on an interactive element
       if (e.target.closest("button") || e.target.closest("a")) {
@@ -592,6 +592,7 @@ console.log("Token.js sedang dijalankan!");
       }
 
       isDragging = true;
+      offsetX = e.clientX - popup.getBoundingClientRect().left;
       offsetY = e.clientY - popup.getBoundingClientRect().top;
 
       // Prevent text selection during drag
@@ -601,16 +602,67 @@ console.log("Token.js sedang dijalankan!");
     document.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
+      const x = e.clientX - offsetX;
       const y = e.clientY - offsetY;
 
       // Limit dragging to keep popup on screen
-      if (y > 0 && y < window.innerHeight - 50) {
+      if (
+        x > 0 &&
+        x < window.innerWidth - popup.offsetWidth &&
+        y > 0 &&
+        y < window.innerHeight - popup.offsetHeight
+      ) {
+        popup.style.left = x + "px";
         popup.style.top = y + "px";
+        popup.style.right = "auto";
         popup.style.bottom = "auto";
       }
     });
 
     document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
+
+    // Touch events for mobile
+    popup.addEventListener("touchstart", (e) => {
+      // Only allow dragging if not touching an interactive element
+      if (e.target.closest("button") || e.target.closest("a")) {
+        return;
+      }
+
+      isDragging = true;
+      offsetX = e.touches[0].clientX - popup.getBoundingClientRect().left;
+      offsetY = e.touches[0].clientY - popup.getBoundingClientRect().top;
+    });
+
+    document.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!isDragging) return;
+
+        // Prevent scrolling when dragging
+        e.preventDefault();
+
+        const x = e.touches[0].clientX - offsetX;
+        const y = e.touches[0].clientY - offsetY;
+
+        // Limit dragging to keep popup on screen
+        if (
+          x > 0 &&
+          x < window.innerWidth - popup.offsetWidth &&
+          y > 0 &&
+          y < window.innerHeight - popup.offsetHeight
+        ) {
+          popup.style.left = x + "px";
+          popup.style.top = y + "px";
+          popup.style.right = "auto";
+          popup.style.bottom = "auto";
+        }
+      },
+      { passive: false }
+    );
+
+    document.addEventListener("touchend", () => {
       isDragging = false;
     });
 
@@ -638,18 +690,73 @@ console.log("Token.js sedang dijalankan!");
         document.getElementById(tabId).classList.add("active");
       });
     });
+
+    // Initialize the position for when page loads
+    applyDefaultPosition();
+
+    // Apply default position from localStorage
+    function applyDefaultPosition() {
+      // Define possible positions
+      const positions = [
+        {
+          bottom: "20px",
+          right: "20px",
+          top: "auto",
+          left: "auto",
+          isRight: true,
+        }, // Bottom Right
+        {
+          bottom: "20px",
+          right: "auto",
+          top: "auto",
+          left: "20px",
+          isRight: false,
+        }, // Bottom Left
+        {
+          bottom: "auto",
+          right: "auto",
+          top: "20px",
+          left: "20px",
+          isRight: false,
+        }, // Top Left
+        {
+          bottom: "auto",
+          right: "20px",
+          top: "20px",
+          left: "auto",
+          isRight: true,
+        }, // Top Right
+      ];
+
+      // Get current position or set default (0 for bottom-right)
+      let currentPosition = parseInt(
+        localStorage.getItem("tokenRunnerPosition") || "0"
+      );
+
+      const pos = positions[currentPosition];
+
+      // Apply positioning properties
+      popup.style.bottom = pos.bottom;
+      popup.style.right = pos.right;
+      popup.style.top = pos.top;
+      popup.style.left = pos.left;
+
+      // Apply margin based on position
+      popup.style.marginLeft = pos.isRight ? "20px" : "0";
+      popup.style.marginRight = !pos.isRight ? "20px" : "0";
+    }
   }
 
-  // Add this function to your existing JavaScript
+  // Modified position toggle function that hides the button
   function addPositionToggleToPopup() {
     // Check if popup exists
     const popup = document.getElementById("token-runner-popup");
     if (!popup) return;
 
-    // Create position toggle button
+    // Create position toggle button (hidden)
     const positionBtn = document.createElement("button");
     positionBtn.id = "token-position-btn";
-    positionBtn.display = "none";
+    positionBtn.style.display = "none";
     positionBtn.innerHTML =
       '<i class="fa-solid fa-arrows-up-down-left-right fa-fw"></i>';
 
@@ -660,7 +767,6 @@ console.log("Token.js sedang dijalankan!");
     }
 
     // Define possible positions with proper object syntax
-    // Note: marginLeft is separate from the positioning properties
     const positions = [
       {
         bottom: "20px",
@@ -700,18 +806,6 @@ console.log("Token.js sedang dijalankan!");
     // Apply the stored position when the page loads
     applyPosition(currentPosition);
 
-    // Add click event listener to cycle through positions
-    positionBtn.addEventListener("click", function () {
-      // Move to next position
-      currentPosition = (currentPosition + 1) % positions.length;
-
-      // Apply position
-      applyPosition(currentPosition);
-
-      // Save position to localStorage
-      localStorage.setItem("tokenRunnerPosition", currentPosition.toString());
-    });
-
     // Function to apply position
     function applyPosition(posIndex) {
       const pos = positions[posIndex];
@@ -738,27 +832,11 @@ console.log("Token.js sedang dijalankan!");
       positionBtn.title = `Position: ${positionNames[posIndex]} (Click to change)`;
     }
 
-    // Add CSS for the position button
+    // Add CSS for the hidden position button
     const style = document.createElement("style");
     style.textContent = `
     #token-position-btn {
-      background-color: #41a3f2 !important;
-      display: none;
-    }
-    
-    #token-position-btn:hover {
-      transform: scale(1.2) !important;
-      transition: transform 0.3s ease !important;
-    }
-    
-    @keyframes pulse-position-btn {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    
-    #token-position-btn i {
-      animation: pulse-position-btn 2s infinite;
+      display: none !important;
     }
   `;
 
