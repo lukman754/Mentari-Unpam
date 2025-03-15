@@ -210,11 +210,12 @@ function addChatbotStyles() {
     /* Toggle Button */
     .chatbot-toggle {
       position: fixed;
+      padding-right: 10px;
       bottom: 70px;
-      right: 20px;
-      width: 60px;
+      right: 0;
+      width: 85px;
       height: 60px;
-      border-radius: 50%;
+      border-radius: 50px 0 0 50px; /* Hanya buat sisi kiri membulat */
       background-color: rgba(48, 48, 48, 0.7);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -226,6 +227,7 @@ function addChatbotStyles() {
       z-index: 99998;
       transition: all 0.3s ease;
     }
+
 
     .chatbot-toggle:hover {
       transform: scale(1.1);
@@ -260,14 +262,14 @@ function addChatbotStyles() {
     
     .tooltip {
       position: absolute;
-      top: -25px;
-      right: 50px;
+      top: -10px;
+      right: 70px;
       background-color: rgba(226, 226, 226, 0.82);
       backdrop-filter: blur(8px);
       color: black;
       padding: 5px 10px;
       border-radius: 20px 20px 0 20px;
-      font-size: 14px;
+      font-size: 9px;
       white-space: nowrap;
       opacity: 0;
       transition: opacity 0.3s;
@@ -739,6 +741,7 @@ function setupChatbotEventListeners(encodedApiKey) {
   const templateButtons = document.querySelectorAll(".template-buttons button");
   const copyQuestionButton = document.getElementById("copyQuestionButton");
   const apiKeyButton = document.getElementById("apiKeyButton");
+
   if (apiKeyButton) {
     apiKeyButton.addEventListener("click", () => {
       // Show the API key popup for updating
@@ -756,9 +759,31 @@ function setupChatbotEventListeners(encodedApiKey) {
     return;
   }
 
+  // Make the toggle button draggable vertically
+  makeDraggableVertically(chatbotToggle);
+
   // Toggle chatbot visibility with debugging
-  chatbotToggle.addEventListener("click", () => {
+  chatbotToggle.addEventListener("click", (e) => {
+    // Prevent click event if we're dragging
+    if (chatbotToggle.getAttribute("data-dragging") === "true") {
+      return;
+    }
     chatbot.style.display = chatbot.style.display === "none" ? "flex" : "none";
+  });
+
+  // Close chatbot when clicking outside
+  document.addEventListener("click", (e) => {
+    const isClickInsideToggle = chatbotToggle.contains(e.target);
+    const isClickInsideChatbot = chatbot.contains(e.target);
+
+    // If chatbot is visible and user clicks outside both the toggle and chatbot
+    if (
+      chatbot.style.display !== "none" &&
+      !isClickInsideToggle &&
+      !isClickInsideChatbot
+    ) {
+      chatbot.style.display = "none";
+    }
   });
 
   // Close chatbot
@@ -774,7 +799,6 @@ function setupChatbotEventListeners(encodedApiKey) {
     }
   });
 
-  // Copy question from DOM to input
   // Copy question from DOM to input
   copyQuestionButton.addEventListener("click", () => {
     // First try to get content from .ck-content
@@ -853,6 +877,7 @@ function setupChatbotEventListeners(encodedApiKey) {
       showChatNotification("Tidak dapat menemukan pertanyaan.");
     }
   });
+
   // Template prompt buttons
   templateButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -939,7 +964,116 @@ function setupChatbotEventListeners(encodedApiKey) {
   });
 }
 
-// Modifikasi fungsi createChatbotInterface agar selalu memeriksa apiKey
+// Function to make an element draggable vertically
+function makeDraggableVertically(element) {
+  let pos1 = 0,
+    pos3 = 0;
+  let isDragging = false;
+  let dragTimeout;
+
+  element.onmousedown = dragMouseDown;
+  element.ontouchstart = dragTouchStart;
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+
+    // Get the mouse cursor position at startup
+    pos3 = e.clientY;
+
+    // Set dragging flag
+    isDragging = false;
+    element.setAttribute("data-dragging", "false");
+
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function dragTouchStart(e) {
+    e = e || window.event;
+    if (e.touches && e.touches[0]) {
+      // Get the touch position at startup
+      pos3 = e.touches[0].clientY;
+
+      // Set dragging flag
+      isDragging = false;
+      element.setAttribute("data-dragging", "false");
+
+      document.ontouchend = closeDragElement;
+      document.ontouchmove = elementTouchDrag;
+    }
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+
+    // FIXED: Instead of calculating movement, set position directly based on cursor
+    const newY = e.clientY - element.offsetHeight / 2;
+
+    // Ensure toggle stays within viewport bounds
+    const maxTop = window.innerHeight - element.offsetHeight;
+    const boundedTop = Math.max(0, Math.min(newY, maxTop));
+
+    // Apply position directly
+    element.style.top = boundedTop + "px";
+
+    // Set dragging state
+    isDragging = true;
+    element.setAttribute("data-dragging", "true");
+
+    // Clear any previous timeout
+    if (dragTimeout) clearTimeout(dragTimeout);
+
+    // Set timeout to reset dragging flag after dragging stops
+    dragTimeout = setTimeout(() => {
+      element.setAttribute("data-dragging", "false");
+    }, 200);
+  }
+
+  function elementTouchDrag(e) {
+    e = e || window.event;
+
+    if (e.touches && e.touches[0]) {
+      // FIXED: Instead of calculating movement, set position directly based on touch point
+      const newY = e.touches[0].clientY - element.offsetHeight / 2;
+
+      // Ensure toggle stays within viewport bounds
+      const maxTop = window.innerHeight - element.offsetHeight;
+      const boundedTop = Math.max(0, Math.min(newY, maxTop));
+
+      // Apply position directly
+      element.style.top = boundedTop + "px";
+
+      // Set dragging state
+      isDragging = true;
+      element.setAttribute("data-dragging", "true");
+
+      // Clear any previous timeout
+      if (dragTimeout) clearTimeout(dragTimeout);
+
+      // Set timeout to reset dragging flag after dragging stops
+      dragTimeout = setTimeout(() => {
+        element.setAttribute("data-dragging", "false");
+      }, 200);
+    }
+  }
+
+  function closeDragElement() {
+    // Stop moving when mouse/touch is released
+    document.onmouseup = null;
+    document.onmousemove = null;
+    document.ontouchend = null;
+    document.ontouchmove = null;
+
+    // Reset dragging flag immediately on release
+    setTimeout(() => {
+      element.setAttribute("data-dragging", "false");
+      isDragging = false;
+    }, 10);
+  }
+}
+
 function createChatbotInterface(providedApiKey = null) {
   console.log("Creating chatbot interface...");
   // Check if chatbot already exists
@@ -979,6 +1113,7 @@ function createChatbotInterface(providedApiKey = null) {
   // Create chatbot elements with enhanced structure
   const chatbotHtml = `
    <div id="geminiChatbotToggle" class="chatbot-toggle">
+    <div class="drag-handle"></div>
     <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Robot" width="50" height="50" />
     <div class="tooltip" id="geminiTooltip">Hai, aku Gemini Assistant!</div>
   </div>
@@ -998,7 +1133,7 @@ function createChatbotInterface(providedApiKey = null) {
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
             </svg>
-          </button>
+            </button>
           <button id="closeChatButton" title="Close">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1056,6 +1191,9 @@ function createChatbotInterface(providedApiKey = null) {
   chatbotElement.innerHTML = chatbotHtml;
   document.body.appendChild(chatbotElement);
 
+  // Add additional CSS styles
+  addDraggableStyles();
+
   // Add the CSS styles
   if (typeof addChatbotStyles === "function") {
     addChatbotStyles();
@@ -1094,6 +1232,56 @@ function createChatbotInterface(providedApiKey = null) {
   setTimeout(() => {
     initializeTooltips(tooltips);
   }, 500);
+}
+
+// Function to add styles for the draggable toggle
+function addDraggableStyles() {
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+    .chatbot-toggle {
+      cursor: move;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9998;
+      transition: none; /* Remove transition for smoother dragging */
+      user-select: none; /* Prevent text selection during drag */
+      touch-action: none; /* Improve touch handling */
+    }
+    
+    .drag-handle {
+      display: none;
+      position: absolute;
+      top: -5px;
+      left: 90%;
+      transform: translateX(-50%);
+      width: 25px;
+      height: 25px;
+      background-color: #333;
+      border-radius: 30px;
+      cursor: move;
+    }
+    
+    .chatbot-toggle:hover .drag-handle {
+      background-color: rgb(255 0 0 / 31%);
+    }
+    
+    /* Make sure chatbot container isn't affected by pointer events when hidden */
+    #geminiChatbot[style*="display: none"] {
+      pointer-events: none;
+    }
+    
+    /* Cursor styles for different states */
+    .chatbot-toggle[data-dragging="true"] {
+      cursor: move;
+    }
+    
+    .chatbot-toggle[data-dragging="false"] {
+      cursor: pointer;
+    }
+  `;
+
+  document.head.appendChild(styleElement);
 }
 
 // Define the tooltip initialization function
