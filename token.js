@@ -699,10 +699,6 @@ console.log("Token.js sedang dijalankan!");
       // Define possible positions
       const positions = [
         {
-          bottom: "20px",
-          right: "20px",
-          top: "auto",
-          left: "auto",
           isRight: true,
         }, // Bottom Right
         {
@@ -712,10 +708,6 @@ console.log("Token.js sedang dijalankan!");
           isRight: false,
         }, // Top Left
         {
-          bottom: "auto",
-          right: "20px",
-          top: "20px",
-          left: "auto",
           isRight: true,
         }, // Top Right
       ];
@@ -757,31 +749,15 @@ console.log("Token.js sedang dijalankan!");
     // Define possible positions with proper object syntax
     const positions = [
       {
-        bottom: "20px",
-        right: "20px",
-        top: "auto",
-        left: "auto",
         isRight: true,
       }, // Bottom Right
       {
-        bottom: "20px",
-        right: "auto",
-        top: "auto",
-        left: "20px",
         isRight: false,
       }, // Bottom Left
       {
-        bottom: "auto",
-        right: "auto",
-        top: "20px",
-        left: "20px",
         isRight: false,
       }, // Top Left
       {
-        bottom: "auto",
-        right: "20px",
-        top: "20px",
-        left: "auto",
         isRight: true,
       }, // Top Right
     ];
