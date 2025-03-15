@@ -579,14 +579,13 @@ console.log("Token.js sedang dijalankan!");
       popup.classList.toggle("collapsed");
     }
 
-    // Make popup draggable for both mouse and touch events
+    // Make popup draggable with touch/mouse
     let isDragging = false;
     let offsetX = 0;
     let offsetY = 0;
 
-    // Mouse events for desktop
-    popup.addEventListener("mousedown", (e) => {
-      // Only allow dragging if not clicking on an interactive element
+    // Mouse drag initialization
+    popup.querySelector(".popup-header").addEventListener("mousedown", (e) => {
       if (e.target.closest("button") || e.target.closest("a")) {
         return;
       }
@@ -594,11 +593,10 @@ console.log("Token.js sedang dijalankan!");
       isDragging = true;
       offsetX = e.clientX - popup.getBoundingClientRect().left;
       offsetY = e.clientY - popup.getBoundingClientRect().top;
-
-      // Prevent text selection during drag
       e.preventDefault();
     });
 
+    // Mouse drag movement
     document.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
@@ -619,28 +617,40 @@ console.log("Token.js sedang dijalankan!");
       }
     });
 
+    // Mouse drag end
     document.addEventListener("mouseup", () => {
       isDragging = false;
     });
 
-    // Touch events for mobile
-    popup.addEventListener("touchstart", (e) => {
-      // Only allow dragging if not touching an interactive element
-      if (e.target.closest("button") || e.target.closest("a")) {
-        return;
-      }
+    // Touch drag initialization - only on header and toggle
+    const dragHandles = [
+      popup.querySelector(".popup-header"),
+      popup.querySelector(".popup-toggle"),
+    ];
 
-      isDragging = true;
-      offsetX = e.touches[0].clientX - popup.getBoundingClientRect().left;
-      offsetY = e.touches[0].clientY - popup.getBoundingClientRect().top;
+    dragHandles.forEach((handle) => {
+      handle.addEventListener(
+        "touchstart",
+        (e) => {
+          if (e.target.closest("button") || e.target.closest("a")) {
+            return;
+          }
+
+          isDragging = true;
+          offsetX = e.touches[0].clientX - popup.getBoundingClientRect().left;
+          offsetY = e.touches[0].clientY - popup.getBoundingClientRect().top;
+        },
+        { passive: true }
+      );
     });
 
+    // Touch drag movement - applied globally but only acts when dragging
     document.addEventListener(
       "touchmove",
       (e) => {
         if (!isDragging) return;
 
-        // Prevent scrolling when dragging
+        // Only prevent default if actually dragging the popup
         e.preventDefault();
 
         const x = e.touches[0].clientX - offsetX;
@@ -662,15 +672,35 @@ console.log("Token.js sedang dijalankan!");
       { passive: false }
     );
 
+    // Touch drag end
     document.addEventListener("touchend", () => {
       isDragging = false;
     });
 
-    // Handle event listeners
-    document
-      .getElementById("popup-toggle")
-      .addEventListener("click", toggleCollapse);
+    // Special handling for toggle which is always draggable
+    const toggle = popup.querySelector(".popup-toggle");
 
+    toggle.addEventListener(
+      "touchstart",
+      (e) => {
+        if (popup.classList.contains("collapsed")) {
+          isDragging = true;
+          offsetX = e.touches[0].clientX - popup.getBoundingClientRect().left;
+          offsetY = e.touches[0].clientY - popup.getBoundingClientRect().top;
+        }
+      },
+      { passive: true }
+    );
+
+    toggle.addEventListener("click", (e) => {
+      if (!isDragging || popup.classList.contains("collapsed")) {
+        toggleCollapse();
+      }
+      // Reset dragging to avoid unwanted behavior
+      isDragging = false;
+    });
+
+    // Handle event listeners
     document
       .getElementById("token-reset-btn")
       .addEventListener("click", refreshAndTrackWithLoading);
@@ -699,15 +729,31 @@ console.log("Token.js sedang dijalankan!");
       // Define possible positions
       const positions = [
         {
+          bottom: "20px",
+          right: "20px",
+          top: "auto",
+          left: "auto",
           isRight: true,
         }, // Bottom Right
         {
+          bottom: "20px",
+          right: "auto",
+          top: "auto",
+          left: "20px",
           isRight: false,
         }, // Bottom Left
         {
+          bottom: "auto",
+          right: "auto",
+          top: "20px",
+          left: "20px",
           isRight: false,
         }, // Top Left
         {
+          bottom: "auto",
+          right: "20px",
+          top: "20px",
+          left: "auto",
           isRight: true,
         }, // Top Right
       ];
@@ -759,14 +805,14 @@ console.log("Token.js sedang dijalankan!");
         bottom: "20px",
         right: "auto",
         top: "auto",
-        left: "0px",
+        left: "20px",
         isRight: false,
       }, // Bottom Left
       {
         bottom: "auto",
         right: "auto",
         top: "20px",
-        left: "0px",
+        left: "20px",
         isRight: false,
       }, // Top Left
       {
@@ -795,26 +841,7 @@ console.log("Token.js sedang dijalankan!");
       popup.style.right = pos.right;
       popup.style.top = pos.top;
       popup.style.left = pos.left;
-
-      // Add position indicator to title attribute
-      const positionNames = [
-        "Bottom Right",
-        "Bottom Left",
-        "Top Left",
-        "Top Right",
-      ];
-      positionBtn.title = `Position: ${positionNames[posIndex]} (Click to change)`;
     }
-
-    // Add CSS for the hidden position button
-    const style = document.createElement("style");
-    style.textContent = `
-    #token-position-btn {
-      display: none !important;
-    }
-  `;
-
-    document.head.appendChild(style);
   }
 
   // Modify the original createPopupUI function to call our new function
