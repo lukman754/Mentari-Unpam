@@ -28,36 +28,47 @@ function addMessageToChat(sender, text) {
     `;
 
     // Add edit functionality to user messages
+    // Edit functionality for user messages
     setTimeout(() => {
       const editBtn = messageElement.querySelector(".edit-message");
       if (editBtn) {
-        editBtn.addEventListener("click", () => {
+        editBtn.addEventListener("click", function (event) {
+          // Prevent any default actions or event bubbling
+          event.preventDefault();
+          event.stopPropagation();
+
+          // Get the text input field
           const questionInput = document.getElementById("questionInput");
-          // Use original text (with line breaks) from data attribute
-          questionInput.value =
+
+          // Set the value to the original message text
+          const originalText =
             messageElement.getAttribute("data-original-text");
+          questionInput.value = originalText;
+
+          // Focus the input field
           questionInput.focus();
 
           // Find and remove this message and all messages after it
-          let currentElement = messageElement;
-          let elementsToRemove = [];
+          let currentMessage = messageElement;
+          let messagesToRemove = [];
 
-          while (currentElement.nextElementSibling) {
-            elementsToRemove.push(currentElement.nextElementSibling);
-            currentElement = currentElement.nextElementSibling;
+          // Add the current message to the removal list
+          messagesToRemove.push(currentMessage);
+
+          // Add all subsequent messages to the removal list
+          while (currentMessage.nextElementSibling) {
+            messagesToRemove.push(currentMessage.nextElementSibling);
+            currentMessage = currentMessage.nextElementSibling;
           }
 
-          // Also add the current message to remove
-          elementsToRemove.push(messageElement);
+          // Remove all messages in the list
+          messagesToRemove.forEach((msg) => msg.remove());
 
-          // Remove all marked elements
-          elementsToRemove.forEach((el) => el.remove());
-
-          // Save updated chat history
+          // Save the updated chat history
           saveChatHistory();
         });
       }
-    }, 0);
+    }, 10);
   } else {
     // Bot message with robot icon and distinct copy buttons
     messageElement.innerHTML = `
@@ -83,80 +94,108 @@ function addMessageToChat(sender, text) {
     `;
 
     // Add functionality to bot message buttons
+
+    // Copy functionality for bot messages
     setTimeout(() => {
-      // Copy to textarea functionality
+      // Copy to textarea button
       const copyToTextareaBtn =
         messageElement.querySelector(".copy-to-textarea");
       if (copyToTextareaBtn) {
-        copyToTextareaBtn.addEventListener("click", function () {
+        copyToTextareaBtn.addEventListener("click", function (event) {
+          // Prevent any default actions or event bubbling
+          event.preventDefault();
+          event.stopPropagation();
+
           // Get the original text with line breaks
           const originalText =
             messageElement.getAttribute("data-original-text");
 
-          // Find and put text to the external textarea
+          // Find the external textarea
           const externalTextarea = document.querySelector(
             ".MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])"
           );
 
           if (externalTextarea) {
+            // Set the value and trigger input event
             externalTextarea.value = originalText;
             externalTextarea.dispatchEvent(
               new Event("input", { bubbles: true })
             );
 
-            // Show in-chat notification
+            // Show success notification
             showChatNotification("Teks berhasil disalin ke textarea!");
+
+            // Show visual feedback
+            this.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+
+            // Store reference to button for timeout
+            const btn = this;
+
+            // Reset icon after 2 seconds
+            setTimeout(() => {
+              btn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3"></path>
+              <path d="M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3"></path>
+              <rect x="9" y="9" width="6" height="6"></rect>
+            </svg>
+          `;
+            }, 2000);
           } else {
             showChatNotification("Textarea tidak ditemukan!");
           }
-
-          // Visual feedback on button
-          const originalIcon = this.innerHTML;
-          this.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          `;
-          const btn = this;
-          setTimeout(() => {
-            btn.innerHTML = originalIcon;
-          }, 2000);
         });
       }
 
-      // Copy to clipboard functionality
+      // Copy to clipboard button
       const copyToClipboardBtn =
         messageElement.querySelector(".copy-to-clipboard");
       if (copyToClipboardBtn) {
-        copyToClipboardBtn.addEventListener("click", function () {
+        copyToClipboardBtn.addEventListener("click", function (event) {
+          // Prevent any default actions or event bubbling
+          event.preventDefault();
+          event.stopPropagation();
+
           // Get the original text with line breaks
           const originalText =
             messageElement.getAttribute("data-original-text");
 
-          // Copy text directly to clipboard
+          // Use clipboard API to copy text
           navigator.clipboard
             .writeText(originalText)
             .then(() => {
               showChatNotification("Teks berhasil disalin ke clipboard!");
-            })
-            .catch((err) => {
-              showChatNotification("Gagal menyalin teks: " + err);
-            });
 
-          // Visual feedback on button
-          const originalIcon = this.innerHTML;
-          this.innerHTML = `
+              // Show visual feedback
+              this.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           `;
-          const btn = this;
-          setTimeout(() => {
-            btn.innerHTML = originalIcon;
-          }, 2000);
+
+              // Store reference to button for timeout
+              const btn = this;
+
+              // Reset icon after 2 seconds
+              setTimeout(() => {
+                btn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            `;
+              }, 2000);
+            })
+            .catch((err) => {
+              showChatNotification("Gagal menyalin teks: " + err);
+            });
         });
       }
-    }, 0);
+    }, 10);
   }
   // Memperbaiki masalah tag <p> yang tertangkap dua kali
   // Menghapus tag <p> yang terbentuk secara otomatis jika sudah ada di dalam teks
@@ -906,9 +945,7 @@ function setupChatbotEventListeners(encodedApiKey) {
       }
     } catch (error) {
       console.error("Error:", error);
-      showChatNotification(
-        "Terjadi kesalahan saat mengambil soal quiz: " + error.message
-      );
+      showChatNotification("Tidak ditemukan Soal Quiz");
 
       // Fall back to original functionality if API fetch fails
       try {
