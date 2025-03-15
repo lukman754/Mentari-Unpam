@@ -116,7 +116,7 @@ console.log("Token.js sedang dijalankan!");
     style.textContent = `
     #token-runner-popup {
       position: fixed;
-      left: 9px !important;
+      left: 15px !important;
       background: #1e1e1e;
       color: #f0f0f0;
       border-radius: 12px;
