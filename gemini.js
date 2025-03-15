@@ -800,81 +800,200 @@ function setupChatbotEventListeners(encodedApiKey) {
   });
 
   // Copy question from DOM to input
-  copyQuestionButton.addEventListener("click", () => {
-    // First try to get content from .ck-content
-    const contentElement = document.querySelector(".ck-content");
-    let questionText = "";
-    let titleText = "";
+  // Copy question from DOM to input
+  // Copy question from DOM to input
+  copyQuestionButton.addEventListener("click", async () => {
+    try {
+      // Get token from localStorage for API access
+      const localStorageData = localStorage.getItem("access");
+      if (!localStorageData) {
+        showChatNotification("Tidak dapat menemukan token akses.");
+        return;
+      }
 
-    // Try to capture the h6 title
-    const titleElement = document.querySelector("h6.MuiTypography-subtitle1");
-    if (titleElement) {
-      titleText = titleElement.textContent.trim();
-    }
+      const accessData = JSON.parse(localStorageData);
+      if (
+        !Array.isArray(accessData) ||
+        accessData.length === 0 ||
+        !accessData[0].token
+      ) {
+        showChatNotification("Token tidak valid.");
+        return;
+      }
 
-    // Try to get content from radio form controls
-    const formLabels = document.querySelectorAll(".MuiFormControlLabel-root");
-    let optionsText = [];
+      const token = accessData[0].token;
 
-    if (formLabels && formLabels.length > 0) {
-      formLabels.forEach((label) => {
-        // Extract option information more accurately based on the DOM structure
-        const optionStack = label.querySelector(".MuiStack-root");
+      // Get the quiz ID from the URL
+      const quizId = window.location.href.split("/").pop();
+      const apiUrl = `https://mentari.unpam.ac.id/api/quiz/soal/${quizId}`;
 
-        if (optionStack) {
-          // Get the option letter (A, B, C, etc.)
-          const optionLetter = optionStack
-            .querySelector("p")
-            .textContent.trim();
+      // Show loading notification
+      showChatNotification("Sedang mengambil semua soal quiz...");
 
-          // Get the option content directly from .ck-content
-          const optionContentEl = optionStack.querySelector(".ck-content");
-          const optionContent = optionContentEl
-            ? optionContentEl.textContent.trim()
-            : "";
-
-          // Check if this option is selected/checked
-          const isChecked = label.querySelector(".Mui-checked") !== null;
-
-          if (optionLetter && optionContent) {
-            optionsText.push(`${optionLetter}${optionContent}`);
-          }
-        }
+      // Fetch all quiz data
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-    }
 
-    // Process standard content if available
-    if (contentElement) {
-      // Use textContent to get all text without duplicating
-      questionText = contentElement.textContent.trim();
-    }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    // Combine all the captured content
-    let fullText = "";
+      const data = await response.json();
 
-    if (titleText) {
-      fullText += `${titleText}\n\n`;
-    }
+      // Format quiz data
+      function formatQuiz(quizData) {
+        if (!quizData || !quizData.data) {
+          return "Data kuis tidak tersedia.";
+        }
 
-    if (questionText) {
-      fullText += `${questionText}\n\n`;
-    }
+        let result = `Judul Kuis: ${quizData.judul}\nDurasi: ${quizData.duration} detik\n\n`;
 
-    if (optionsText.length > 0) {
-      fullText += optionsText.join("\n");
-    }
+        quizData.data.forEach((soal, index) => {
+          // Include both title and description as they may contain question information
+          result += `${index + 1}. ${soal.judul.replace(/<[^>]*>/g, "")}\n`;
 
-    // Set the combined text into the input
-    questionInput.value = fullText.trim();
+          // Add description if it's different from the title
+          const cleanDescription = soal.deskripsi
+            .replace(/<[^>]*>/g, "")
+            .trim();
+          if (
+            cleanDescription &&
+            cleanDescription !== "Kerjakan soal dg baik ?"
+          ) {
+            result += `   ${cleanDescription}\n`;
+          }
 
-    // Show in-chat notification
-    showChatNotification("Pertanyaan berhasil disalin!");
+          result += "\n";
 
-    // Focus on the input
-    questionInput.focus();
+          if (soal.list_jawaban) {
+            const pilihan = "abcdefghijklmnopqrstuvwxyz";
+            soal.list_jawaban.forEach((jawaban, i) => {
+              result += `${pilihan[i]}. ${jawaban.jawaban.replace(
+                /<[^>]*>/g,
+                ""
+              )}\n`;
+            });
+          }
 
-    if (!contentElement && optionsText.length === 0 && !titleText) {
-      showChatNotification("Tidak dapat menemukan pertanyaan.");
+          result += "\n";
+        });
+
+        return result;
+      }
+
+      const formattedQuiz = formatQuiz(data);
+
+      // Set the formatted quiz text directly into the input
+      questionInput.value = formattedQuiz;
+
+      // Show notification
+      showChatNotification("Semua soal quiz berhasil disalin!");
+
+      // Focus on the input
+      questionInput.focus();
+
+      // Copy to clipboard if supported
+      try {
+        await navigator.clipboard.writeText(formattedQuiz);
+        showChatNotification("Semua soal juga disalin ke clipboard!");
+      } catch (err) {
+        console.error("Tidak dapat menyalin ke clipboard:", err);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showChatNotification(
+        "Terjadi kesalahan saat mengambil soal quiz: " + error.message
+      );
+
+      // Fall back to original functionality if API fetch fails
+      try {
+        const contentElement = document.querySelector(".ck-content");
+        let questionText = "";
+        let titleText = "";
+
+        // Try to capture the h6 title
+        const titleElement = document.querySelector(
+          "h6.MuiTypography-subtitle1"
+        );
+        if (titleElement) {
+          titleText = titleElement.textContent.trim();
+        }
+
+        // Try to get content from radio form controls
+        const formLabels = document.querySelectorAll(
+          ".MuiFormControlLabel-root"
+        );
+        let optionsText = [];
+
+        if (formLabels && formLabels.length > 0) {
+          formLabels.forEach((label) => {
+            // Extract option information more accurately based on the DOM structure
+            const optionStack = label.querySelector(".MuiStack-root");
+
+            if (optionStack) {
+              // Get the option letter (A, B, C, etc.)
+              const optionLetter = optionStack
+                .querySelector("p")
+                .textContent.trim();
+
+              // Get the option content directly from .ck-content
+              const optionContentEl = optionStack.querySelector(".ck-content");
+              const optionContent = optionContentEl
+                ? optionContentEl.textContent.trim()
+                : "";
+
+              // Check if this option is selected/checked
+              const isChecked = label.querySelector(".Mui-checked") !== null;
+
+              if (optionLetter && optionContent) {
+                optionsText.push(`${optionLetter}${optionContent}`);
+              }
+            }
+          });
+        }
+
+        // Process standard content if available
+        if (contentElement) {
+          // Use textContent to get all text without duplicating
+          questionText = contentElement.textContent.trim();
+        }
+
+        // Combine all the captured content
+        let fullText = "";
+
+        if (titleText) {
+          fullText += `${titleText}\n\n`;
+        }
+
+        if (questionText) {
+          fullText += `${questionText}\n\n`;
+        }
+
+        if (optionsText.length > 0) {
+          fullText += optionsText.join("\n");
+        }
+
+        // Set the combined text into the input
+        questionInput.value = fullText.trim();
+
+        // Show in-chat notification
+        showChatNotification("Pertanyaan berhasil disalin!");
+
+        // Focus on the input
+        questionInput.focus();
+
+        if (!contentElement && optionsText.length === 0 && !titleText) {
+          showChatNotification("Tidak dapat menemukan pertanyaan.");
+        }
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError);
+        showChatNotification("Tidak dapat menyalin pertanyaan.");
+      }
     }
   });
 
