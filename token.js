@@ -706,17 +706,9 @@ console.log("Token.js sedang dijalankan!");
           isRight: true,
         }, // Bottom Right
         {
-          bottom: "20px",
-          right: "auto",
-          top: "auto",
-          left: "20px",
           isRight: false,
         }, // Bottom Left
         {
-          bottom: "auto",
-          right: "auto",
-          top: "20px",
-          left: "20px",
           isRight: false,
         }, // Top Left
         {
@@ -740,10 +732,6 @@ console.log("Token.js sedang dijalankan!");
       popup.style.right = pos.right;
       popup.style.top = pos.top;
       popup.style.left = pos.left;
-
-      // Apply margin based on position
-      popup.style.marginLeft = pos.isRight ? "20px" : "0";
-      popup.style.marginRight = !pos.isRight ? "20px" : "0";
     }
   }
 
