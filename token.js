@@ -796,12 +796,6 @@ console.log("Token.js sedang dijalankan!");
       popup.style.top = pos.top;
       popup.style.left = pos.left;
 
-      // Apply margin based on position
-      // If on right side, add marginLeft, otherwise clear it
-      popup.style.marginLeft = pos.isRight ? "20px" : "0";
-      // If on left side, add marginRight, otherwise clear it
-      popup.style.marginRight = !pos.isRight ? "20px" : "0";
-
       // Add position indicator to title attribute
       const positionNames = [
         "Bottom Right",
