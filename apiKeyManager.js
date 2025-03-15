@@ -1,5 +1,4 @@
 // apiKeyManager.js
-// apiKeyManager.js
 function initializeApiKeyManager() {
   console.log("API Key Manager initializing...");
   // Check if API key already exists in localStorage
@@ -48,7 +47,7 @@ function initializeApiKeyManager() {
 function showApiKeyPopup() {
   console.log("Showing API Key popup...");
   // Check if popup already exists
-  if (document.getElementById("apiKeyPopup")) {
+  if (document.getElementById("gemini_apiKeyPopup")) {
     console.log("Popup already exists");
     return;
   }
@@ -59,16 +58,16 @@ function showApiKeyPopup() {
 
   // Create popup HTML
   const popupHtml = `
-    <div id="apiKeyOverlay" class="api-key-overlay">
-      <div id="apiKeyPopup" class="api-key-popup">
-        <div class="popup-header">
+    <div id="gemini_apiKeyOverlay" class="gemini_api-key-overlay">
+      <div id="gemini_apiKeyPopup" class="gemini_api-key-popup">
+        <div class="gemini_popup-header">
           <h2>Gemini API Key Setup</h2>
         </div>
         
-        <div class="popup-content">
+        <div class="gemini_popup-content">
           <p>Untuk menggunakan Gemini Assistant, Anda perlu memasukkan API key dari Google AI Studio.</p>
           
-          <div class="tutorial-section">
+          <div class="gemini_tutorial-section">
             <h3>Tutorial Mendapatkan API Key:</h3>
             <ol>
                 <li>Kunjungi <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
@@ -80,14 +79,12 @@ function showApiKeyPopup() {
                 </li>
                 <li>Paste API key tersebut di form di bawah ini</li>
             </ol>
-
-
           </div>
           
-          <div class="input-section">
-            <label for="apiKeyInput">API Key Gemini:</label>
-            <input type="password" id="apiKeyInput" placeholder="Masukkan API key Anda di sini..." value="${decodedApiKey}">
-            <button id="toggleApiKeyVisibility" title="Tampilkan/Sembunyikan API Key">
+          <div class="gemini_input-section">
+            <label for="gemini_apiKeyInput">API Key Gemini:</label>
+            <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan API key Anda di sini..." value="${decodedApiKey}">
+            <button id="gemini_toggleApiKeyVisibility" title="Tampilkan/Sembunyikan API Key">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
@@ -95,10 +92,10 @@ function showApiKeyPopup() {
             </button>
           </div>
           
-          <p class="security-note">API key Anda akan disimpan secara lokal dan dienkripsi (base64) di browser Anda.</p>
+          <p class="gemini_security-note">API key Anda akan disimpan secara lokal dan dienkripsi (base64) di browser Anda.</p>
           
-          <div class="popup-buttons">
-            <button id="saveApiKeyButton" class="primary-button">Simpan API Key</button>
+          <div class="gemini_popup-buttons">
+            <button id="gemini_saveApiKeyButton" class="gemini_primary-button">Simpan API Key</button>
           </div>
         </div>
       </div>
@@ -120,13 +117,14 @@ function showApiKeyPopup() {
     console.error("Document body not found!");
   }
 }
+
 function addApiKeyPopupStyles() {
   // Create a style element
   const styleElement = document.createElement("style");
 
-  // Add CSS for the popup
+  // Add CSS for the popup with unique class names
   styleElement.textContent = `
-    .api-key-overlay {
+    .gemini_api-key-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -139,7 +137,7 @@ function addApiKeyPopupStyles() {
       z-index: 1000000;
     }
     
-    .api-key-popup {
+    .gemini_api-key-popup {
       background-color: #292a2d;
       color: #e8eaed;
       border-radius: 8px;
@@ -148,72 +146,72 @@ function addApiKeyPopupStyles() {
       max-width: 500px;
       max-height: 90vh;
       overflow-y: auto;
-      animation: fadeIn 0.3s ease-out;
+      animation: gemini_fadeIn 0.3s ease-out;
     }
     
-    @keyframes fadeIn {
+    @keyframes gemini_fadeIn {
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
-    .popup-header {
+    .gemini_popup-header {
       padding: 16px 20px;
       border-bottom: 1px solid #3c4043;
     }
     
-    .popup-header h2 {
+    .gemini_popup-header h2 {
       margin: 0;
       font-size: 18px;
       color: #8ab4f8;
     }
     
-    .popup-content {
+    .gemini_popup-content {
       padding: 20px;
     }
     
-    .tutorial-section {
+    .gemini_tutorial-section {
       background-color: #202124;
       border-radius: 6px;
       padding: 15px;
       margin: 15px 0;
     }
     
-    .tutorial-section h3 {
+    .gemini_tutorial-section h3 {
       margin-top: 0;
       color: #8ab4f8;
       font-size: 16px;
     }
     
-    .tutorial-section ol {
+    .gemini_tutorial-section ol {
       padding-left: 20px;
       margin-bottom: 0;
     }
     
-    .tutorial-section li {
+    .gemini_tutorial-section li {
       margin-bottom: 8px;
     }
     
-    .tutorial-section a {
+    .gemini_tutorial-section a {
       color: #8ab4f8;
       text-decoration: none;
     }
     
-    .tutorial-section a:hover {
+    .gemini_tutorial-section a:hover {
       text-decoration: underline;
     }
     
-    .input-section {
+    .gemini_input-section {
       display: flex;
       align-items: center;
       margin: 20px 0;
     }
     
-    .input-section label {
+    .gemini_input-section label {
       margin-right: 10px;
       white-space: nowrap;
     }
     
-    .input-section input {
+    .gemini_input-section input {
       flex: 1;
       background-color: #202124;
       border: 1px solid #5f6368;
@@ -223,12 +221,12 @@ function addApiKeyPopupStyles() {
       font-size: 14px;
     }
     
-    .input-section input:focus {
+    .gemini_input-section input:focus {
       outline: none;
       border-color: #8ab4f8;
     }
     
-    .input-section button {
+    .gemini_input-section button {
       background: none;
       border: none;
       color: #9aa0a6;
@@ -236,23 +234,23 @@ function addApiKeyPopupStyles() {
       padding: 8px;
     }
     
-    .input-section button:hover {
+    .gemini_input-section button:hover {
       color: #e8eaed;
     }
     
-    .security-note {
+    .gemini_security-note {
       font-size: 12px;
       color: #9aa0a6;
       margin: 10px 0;
     }
     
-    .popup-buttons {
+    .gemini_popup-buttons {
       display: flex;
       justify-content: flex-end;
       margin-top: 20px;
     }
     
-    .primary-button {
+    .gemini_primary-button {
       background-color: #8ab4f8;
       color: #202124;
       border: none;
@@ -263,7 +261,7 @@ function addApiKeyPopupStyles() {
       transition: background-color 0.2s;
     }
     
-    .primary-button:hover {
+    .gemini_primary-button:hover {
       background-color: #aecbfa;
     }
   `;
@@ -274,16 +272,16 @@ function addApiKeyPopupStyles() {
 
 function setupApiKeyPopupEventListeners() {
   // Get elements
-  const saveButton = document.getElementById("saveApiKeyButton");
-  const apiKeyInput = document.getElementById("apiKeyInput");
+  const saveButton = document.getElementById("gemini_saveApiKeyButton");
+  const apiKeyInput = document.getElementById("gemini_apiKeyInput");
   const toggleVisibilityButton = document.getElementById(
-    "toggleApiKeyVisibility"
+    "gemini_toggleApiKeyVisibility"
   );
 
   // Toggle API key visibility
   if (toggleVisibilityButton) {
     toggleVisibilityButton.addEventListener("click", function () {
-      const input = document.getElementById("apiKeyInput");
+      const input = document.getElementById("gemini_apiKeyInput");
       if (input.type === "password") {
         input.type = "text";
       } else {
@@ -302,7 +300,7 @@ function setupApiKeyPopupEventListeners() {
         localStorage.setItem("geminiApiKey", btoa(apiKey));
 
         // Remove popup
-        const overlay = document.getElementById("apiKeyOverlay");
+        const overlay = document.getElementById("gemini_apiKeyOverlay");
         if (overlay) {
           overlay.remove();
         }
