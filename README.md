@@ -1,81 +1,156 @@
-# MENTARI-Unpam
-
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/bc206a62-4b37-4064-a1af-872e7a157463" width="150">
-  <h2>MENTARI (Manajemen Terpadu Pembelajaran Daring)</h2>
+  <img src="https://github.com/user-attachments/assets/bc206a62-4b37-4064-a1af-872e7a157463" width="200" alt="MENTARI Logo">
+  
+  # ✨ MENTARI ✨
+  ### *Manajemen Terpadu Pembelajaran Daring*
+  
+  [![GitHub issues](https://img.shields.io/github/issues/Lukman754/mentari-unpam?color=green&style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/issues)
+  [![GitHub stars](https://img.shields.io/github/stars/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/stargazers)
+  [![GitHub license](https://img.shields.io/github/license/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam)
 </div>
 
-## 📑 Daftar Isi
-- [Tentang MENTARI](#tentang-mentari)
-- [Fitur Utama](#fitur-utama)
-- [Tampilan Aplikasi](#tampilan-aplikasi)
-  - [Login Page](#login-page)
-  - [User Page](#user-page)
-- [Cara Instalasi Ekstensi](#cara-instalasi-ekstensi)
-  - [Windows](#windows)
-  - [Mises Browser (iOS/Android)](#mises-browser-iosandroid)
+## 🚀 Tentang MENTARI
 
-## 🌞 Tentang MENTARI
+**MENTARI** (*Manajemen Terpadu Pembelajaran Daring*) adalah platform pembelajaran digital modern yang dirancang untuk menggantikan [e-learning.unpam.ac.id](https://e-learning.unpam.ac.id). Platform ini menawarkan pengalaman belajar yang lebih intuitif, efisien, dan menyenangkan bagi civitas akademika Universitas Pamulang.
 
-**MENTARI** (Manajemen Terpadu Pembelajaran Daring) adalah platform pembelajaran digital yang dirancang khusus untuk menggantikan [e-learning.unpam.ac.id](https://e-learning.unpam.ac.id). Platform ini menyediakan lingkungan belajar yang lebih efisien dan mudah digunakan bagi mahasiswa dan dosen.
+**MENTARI MOD** hadir sebagai ekstensi browser yang memperkaya platform ini dengan berbagai fitur tambahan untuk memaksimalkan produktivitas dalam pembelajaran daring.
 
-**MENTARI MOD** adalah ekstensi browser yang dikembangkan untuk meningkatkan pengalaman pengguna di platform MENTARI dengan menambahkan fitur-fitur yang memudahkan mahasiswa dalam menemukan forum diskusi yang sedang aktif tanpa perlu membuka setiap pertemuan satu per satu.
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/13180860-d3fd-4a38-8043-9171dc8d4a17" width="85%" alt="Mentari Mod Preview">
+</div>
 
-## ✨ Fitur Utama
+## 💫 Mengapa MENTARI?
 
-- **Akses Forum Diskusi Terpadu**: Lihat semua forum diskusi aktif dalam satu tampilan
-- **Pelacakan Tugas**: Menyembunyikan course yang sudah diselesaikan secara otomatis
-- **Menyalin semua link**: menyalin semua url course yang sedang aktif
-- **Info Profil**: Menampilkan nama dan NIM mahasiswa
-- **Pengelolaan Kelas**: Melihat daftar mahasiswa dalam kelas
-- **Pembagian Kelompok**: Fitur untuk mengelompokkan mahasiswa dengan jumlah yang dapat disesuaikan
+| Keunggulan | Deskripsi |
+|------------|-----------|
+| 🎨 **Desain Modern** | Antarmuka yang intuitif dengan tampilan yang segar dan kontemporer |
+| 🔍 **Akses Cepat** | Forum diskusi dapat diakses tanpa perlu membuka setiap pertemuan |
+| 🤖 **Bantuan AI** | Asisten berbasis kecerdasan buatan untuk meningkatkan produktivitas |
+| 🎯 **Efisiensi** | Menghemat waktu dengan fitur otomatisasi tugas yang repetitif |
 
-## 📱 Tampilan Aplikasi
+## 💎 Fitur Utama
 
-### Login Page
-![Login Page](https://github.com/user-attachments/assets/b19f5120-c127-4003-9d58-5f7d1b3d9fac)
+### 🧩 Mentari Mod
 
-### User Page
+- **📊 Info Profil** — Menampilkan nama dan NIM mahasiswa secara jelas dan transparan
+- **💬 Pelacakan Forum** — Melihat forum aktif dan opsi menyembunyikan course yang telah selesai
+- **👥 Pengelolaan Kelas** — Akses cepat ke daftar mahasiswa dalam kelas untuk kolaborasi
+- **🔄 Pembagian Kelompok** — Fitur untuk mengelompokkan mahasiswa dengan jumlah yang dapat disesuaikan
 
-#### Info
-Menu ini menampilkan Nama dan NIM Mahasiswa:
+### 📝 Quiz Helper
 
-![Info Page](https://github.com/user-attachments/assets/9dff4fd7-ceb1-4b22-b822-2a93cd9d4bc6)
+- **✅ Jawaban Otomatis** — Menjawab semua soal quiz secara otomatis tanpa intervensi manual
+- **⏱️ Penghematan Waktu** — Fokus pada pemahaman materi, bukan pada mekanisme pengisian kuis
 
-#### Forum Diskusi
-Menu ini menampilkan course dengan pertemuan yang berisi forum diskusi aktif dan seluruh materi yang diberikan dosen. Course yang sudah diselesaikan akan otomatis disembunyikan:
+### 🤖 Gemini Assistant
 
-![Forum Diskusi 1](https://github.com/user-attachments/assets/82181c45-e0d9-4e16-b982-012760ec0900)
-![Forum Diskusi 2](https://github.com/user-attachments/assets/8970695b-0bcf-4de0-a75b-1eb93384c561)
+- **💬 Chatbot AI** — Asisten berbasis AI menggunakan model gemini-2.0-flash-thinking
+- **📋 Format Prompt** — Berbagai pilihan format respons untuk kebutuhan yang berbeda
+- **📥 Paste Questions** — Ekstraksi otomatis pertanyaan dari dosen atau soal kuis
+- **📤 Copy To Textarea** — Transfer jawaban AI langsung ke kotak teks respons
 
-#### Mahasiswa
-Menu ini menampilkan seluruh data mahasiswa dalam kelas dan menyediakan fitur pembagian kelompok:
+## 📱 Demo & Tampilan
 
-![Mahasiswa 1](https://github.com/user-attachments/assets/311253a2-00d8-48b6-802e-a6bacb6acb06)
-![Mahasiswa 2](https://github.com/user-attachments/assets/c81ec8fc-3a8f-48fd-a0d7-83f6532c8005)
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%">
+        <img src="https://github.com/user-attachments/assets/b19f5120-c127-4003-9d58-5f7d1b3d9fac" width="100%" alt="Login Page">
+        <p align="center"><b>Halaman Login</b></p>
+      </td>
+      <td width="50%">
+        <img src="https://github.com/user-attachments/assets/13180860-d3fd-4a38-8043-9171dc8d4a17" width="100%" alt="Mentari Mod">
+        <p align="center"><b>Dashboard dengan Mod</b></p>
+      </td>
+    </tr>
+  </table>
+</div>
 
-## 🔧 Cara Instalasi Ekstensi
+## 📥 Cara Instalasi
 
-https://youtu.be/4CDs7ZwEq0c
+### 📺 Video Tutorial
 
-### Windows
-1. Unduh file ekstensi [mentari-mod.zip](https://github.com/lukman754/Mentari-Unpam/releases/tag/v1.0)
-2. Ekstrak file zip ke folder di komputer Anda
-3. Buka Chrome atau browser lain dan ketik `chrome://extensions/` di address bar
-4. Aktifkan "Mode Pengembang" (toggle di pojok kanan atas)
-5. Klik "Load unpacked" dan pilih folder hasil ekstraksi
-6. Ekstensi telah terpasang dan siap digunakan
+<div align="center">
+  <a href="https://youtu.be/4CDs7ZwEq0c" target="_blank">
+    <img src="https://img.youtube.com/vi/4CDs7ZwEq0c/0.jpg" width="60%" alt="Tutorial Video">
+    <p>Klik untuk menonton tutorial instalasi lengkap</p>
+  </a>
+</div>
 
-### Mises Browser (iOS/Android)
-1. Download Mises Browser di [AppStore](https://apps.apple.com/us/app/mises-browser/id6451129542) atau [PlayStore](https://play.google.com/store/apps/details?id=site.mises.browser)
-2. Buka Mises Browser di perangkat iOS/Android Anda
-3. Ketuk ikon menu ekstensi atau (tiga titik) di pojok kanan atas
-4. Klik tombol "Extensions"
-5. Aktifkan "Developer Mode" di kanan atas
-6. Klik tombol "+ (from .zip/.crx/.user.js)"
-7. Pilih file file mentari-unpam-main.zip
-8. Ekstensi telah terpasang dan siap digunakan, refresh halaman mentari untuk menampilkan perubahan
+### 💻 Windows/macOS (Chrome, Edge, Brave)
+
+```
+1️⃣ Unduh file ekstensi mentari-mod.zip
+2️⃣ Ekstrak file zip ke folder di komputer Anda
+3️⃣ Buka browser Chromium (Chrome/Edge/Brave)
+4️⃣ Ketik chrome://extensions/ di address bar
+5️⃣ Aktifkan "Mode Pengembang" (toggle di pojok kanan)
+6️⃣ Klik "Load unpacked" dan pilih folder hasil ekstraksi
+7️⃣ Ekstensi siap digunakan! ✨
+```
+
+### 📱 Mises Browser (iOS/Android)
+
+```
+1️⃣ Download Mises Browser (AppStore/PlayStore)
+2️⃣ Buka Mises Browser di perangkat Anda
+3️⃣ Ketuk menu (tiga titik) di pojok kanan atas
+4️⃣ Pilih "Extensions"
+5️⃣ Aktifkan "Developer Mode"
+6️⃣ Klik "+ (from .zip/.crx/.user.js)"
+7️⃣ Pilih file mentari-unpam-main.zip
+8️⃣ Refresh halaman MENTARI ✨
+```
+
+## ❓ FAQ
+
+<details>
+<summary><b>🔒 Apakah ekstensi ini aman digunakan?</b></summary>
+<div style="padding: 10px;">
+  Ya, ekstensi ini dikembangkan khusus untuk membantu mahasiswa UNPAM dalam pembelajaran daring. Kami tidak mengumpulkan data pribadi pengguna. Semua fitur berjalan di sisi klien dan tidak mengirimkan data ke server eksternal.
+</div>
+</details>
+
+<details>
+<summary><b>🔄 Bagaimana cara update ke versi terbaru?</b></summary>
+<div style="padding: 10px;">
+  Kunjungi halaman GitHub kami secara berkala untuk mendapatkan informasi pembaruan. Untuk update, cukup hapus ekstensi lama dan instal versi terbaru dengan mengikuti langkah instalasi di atas.
+</div>
+</details>
+
+<details>
+<summary><b>🔮 Fitur apa yang akan datang?</b></summary>
+<div style="padding: 10px;">
+  Kami terus mengembangkan MENTARI dengan fitur-fitur baru seperti:
+  <ul>
+    <li>Integrasi kalender dengan pengingat tugas</li>
+    <li>Sistem notifikasi untuk deadline dan pengumuman</li>
+    <li>Peningkatan kemampuan AI asisten</li>
+    <li>Mode hemat data untuk koneksi lambat</li>
+  </ul>
+  
+  <b>Punya ide untuk fitur baru?</b> Buka <a href="https://github.com/Lukman754/mentari-unpam/issues">issue baru</a> dan bagikan ide Anda!
+</div>
+</details>
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE untuk detail lebih lanjut.
 
 ---
 
-[Laporkan Masalah](https://github.com/Lukman754/mentari-unpam/issues)
+<div align="center">
+  <p>Dibuat dengan <img src="https://github.com/Lukman754/mentari-unpam/raw/main/assets/heart.svg" width="20" height="20" alt="love"> untuk mahasiswa UNPAM</p>
+  
+  <div>
+    <a href="https://github.com/Lukman754/mentari-unpam/issues" style="margin-right: 15px">
+      <img src="https://img.shields.io/badge/Laporkan_Masalah-FF5252?style=for-the-badge&logo=github&logoColor=white" alt="Laporkan Masalah">
+    </a>
+    <a href="https://github.com/Lukman754/mentari-unpam/discussions">
+      <img src="https://img.shields.io/badge/Diskusi-7289DA?style=for-the-badge&logo=discord&logoColor=white" alt="Diskusi">
+    </a>
+  </div>
+  
+  <br>
+  <p>MENTARI © 2023-2025</p>
+</div>
