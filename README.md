@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://github.com/user-attachments/assets/bc206a62-4b37-4064-a1af-872e7a157463" width="200" alt="MENTARI Logo">
   
-  # ✨ MENTARI ✨
+  # MENTARI MOD
   ### *Manajemen Terpadu Pembelajaran Daring*
   
   [![GitHub issues](https://img.shields.io/github/issues/Lukman754/mentari-unpam?color=green&style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/issues)
@@ -121,14 +121,6 @@
 <details>
 <summary><b>🔮 Fitur apa yang akan datang?</b></summary>
 <div style="padding: 10px;">
-  Kami terus mengembangkan MENTARI dengan fitur-fitur baru seperti:
-  <ul>
-    <li>Integrasi kalender dengan pengingat tugas</li>
-    <li>Sistem notifikasi untuk deadline dan pengumuman</li>
-    <li>Peningkatan kemampuan AI asisten</li>
-    <li>Mode hemat data untuk koneksi lambat</li>
-  </ul>
-  
   <b>Punya ide untuk fitur baru?</b> Buka <a href="https://github.com/Lukman754/mentari-unpam/issues">issue baru</a> dan bagikan ide Anda!
 </div>
 </details>
@@ -140,14 +132,11 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 ---
 
 <div align="center">
-  <p>Dibuat dengan <img src="https://github.com/Lukman754/mentari-unpam/raw/main/assets/heart.svg" width="20" height="20" alt="love"> untuk mahasiswa UNPAM</p>
+  <p>Dibuat dengan ❤️ untuk mahasiswa UNPAM</p>
   
   <div>
-    <a href="https://github.com/Lukman754/mentari-unpam/issues" style="margin-right: 15px">
+    <a href="https://github.com/Lukman754/mentari-unpam/issues">
       <img src="https://img.shields.io/badge/Laporkan_Masalah-FF5252?style=for-the-badge&logo=github&logoColor=white" alt="Laporkan Masalah">
-    </a>
-    <a href="https://github.com/Lukman754/mentari-unpam/discussions">
-      <img src="https://img.shields.io/badge/Diskusi-7289DA?style=for-the-badge&logo=discord&logoColor=white" alt="Diskusi">
     </a>
   </div>
   
