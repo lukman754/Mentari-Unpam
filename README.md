@@ -19,7 +19,7 @@
   <img src="https://github.com/user-attachments/assets/13180860-d3fd-4a38-8043-9171dc8d4a17" width="85%" alt="Mentari Mod Preview">
 </div>
 
-## 💫 Mengapa MENTARI?
+## 💫 Mengapa MENTARI MOD?
 
 | Keunggulan | Deskripsi |
 |------------|-----------|
