@@ -121,7 +121,7 @@
 <details>
 <summary><b>🔮 Fitur apa yang akan datang?</b></summary>
 <div style="padding: 10px;">
-  <b>Punya ide untuk fitur baru?</b> Buka <a href="https://github.com/Lukman754/mentari-unpam/issues">issue baru</a> dan bagikan ide Anda!
+  <b>Punya ide untuk fitur baru?</b> Buka <a href="https://github.com/Lukman754/mentari-unpam/issues">issue baru</a> dan bagikan ide Anda!.
 </div>
 </details>
 
