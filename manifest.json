@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod v1.0",
-  "version": "1.0",
+  "name": "Mentari Mod v1.3",
+  "version": "1.3",
   "description": "Melacak Forum Diskusi.",
   "permissions": ["scripting", "activeTab"],
   "host_permissions": ["https://mentari.unpam.ac.id/*"],
