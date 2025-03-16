@@ -569,7 +569,7 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
         </div>
       </div>
       <div id="answers-container" style="max-height:350px;overflow-y:auto;padding-right:5px;"></div>
-      <div style="display:flex;justify-content:space-between;margin-top:10px;">
+      <div style="display:none;justify-content:space-between;margin-top:10px;">
         <label style="display:flex;align-items:center;font-size:12px;">
           <input type="checkbox" id="auto-answer" checked style="margin-right:5px;"> Auto-jawab
         </label>
@@ -740,7 +740,7 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
                 40
               )}${answerText.length > 40 ? "..." : ""}</span>
             </div>
-            <div style="display:flex;align-items:center;">
+            <div style="display:none;align-items:center;">
               <button class="apply-answer" data-index="${
                 data.index
               }" data-letter="${answer}" style="margin-right:5px;padding:2px 5px;background:#4CAF50;border:none;border-radius:3px;color:white;font-size:10px;cursor:pointer;">Pilih</button>
