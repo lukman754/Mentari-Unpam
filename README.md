@@ -72,7 +72,7 @@
         <img src="https://img.shields.io/badge/Download-Extension%20ZIP-FFA000?style=for-the-badge&logo=googlechrome" style="width: 50%;">
     </a>
     <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.3/Mentari.Mod.apk" style="display: block; width: 50%;">
-        <img src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android" style="width: 50%;">
+        <img src="https://img.shields.io/badge/Download-Android%20APK%20Beta-3DDC84?style=for-the-badge&logo=android" style="width: 50%;">
     </a>
 </div>
 
