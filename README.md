@@ -134,12 +134,13 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 <div align="center">
   <p>Dibuat dengan ❤️ untuk mahasiswa UNPAM</p>
   
+  [![Support Me](https://img.shields.io/badge/Support_with_Coffee-FF813F?style=for-the-badge&logo=buymeacoffee&logoColor=white)](https://saweria.co/chopin)
+
   <div>
     <a href="https://github.com/Lukman754/mentari-unpam/issues">
       <img src="https://img.shields.io/badge/Laporkan_Masalah-FF5252?style=for-the-badge&logo=github&logoColor=white" alt="Laporkan Masalah">
     </a>
   </div>
+<p>© 2025 <a href="https://instagram.com/_.chopin">Lukman Muludin</a>. All Rights Reserved.</p>
   
-  <br>
-  <p>MENTARI © 2023-2025</p>
 </div>
