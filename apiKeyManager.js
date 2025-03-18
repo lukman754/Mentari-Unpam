@@ -72,8 +72,7 @@ function showApiKeyPopup() {
             <ol>
                 <li>Kunjungi <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
                 <li>Login dengan akun Google Anda</li>
-                <li>Klik <strong>"Get API key"</strong> di pojok kiri atas</li>
-                <li>Buat project baru atau pilih project yang sudah ada</li>
+                <li>Klik <strong>"Create API Key"</strong></li>
                 <li>Copy API key yang diberikan, contohnya:  
                     <pre>AIzaSyD-..............defgHIJKLM</pre>
                 </li>
@@ -115,6 +114,366 @@ function showApiKeyPopup() {
     setupApiKeyPopupEventListeners();
   } else {
     console.error("Document body not found!");
+  }
+}
+
+function setupApiKeyPopupEventListeners() {
+  // Get elements
+  const saveButton = document.getElementById("gemini_saveApiKeyButton");
+  const apiKeyInput = document.getElementById("gemini_apiKeyInput");
+  const toggleVisibilityButton = document.getElementById(
+    "gemini_toggleApiKeyVisibility"
+  );
+
+  // Toggle API key visibility
+  if (toggleVisibilityButton) {
+    toggleVisibilityButton.addEventListener("click", function () {
+      const input = document.getElementById("gemini_apiKeyInput");
+      if (input.type === "password") {
+        input.type = "text";
+      } else {
+        input.type = "password";
+      }
+    });
+  }
+
+  // Save API key
+  if (saveButton && apiKeyInput) {
+    saveButton.addEventListener("click", function () {
+      const apiKey = apiKeyInput.value.trim();
+
+      if (apiKey) {
+        // Encode and save API key to localStorage
+        localStorage.setItem("geminiApiKey", btoa(apiKey));
+
+        // Remove popup
+        const overlay = document.getElementById("gemini_apiKeyOverlay");
+        if (overlay) {
+          overlay.remove();
+        }
+
+        // Reinitialize chatbot with new API key
+        loadChatbotWithApiKey(apiKey);
+      } else {
+        alert("Silakan masukkan API key yang valid");
+      }
+    });
+  }
+}
+
+function validateApiKey(apiKey) {
+  // Langkah 1: Mengecek format API key menggunakan regex
+  const apiKeyRegex = /^AIza[a-zA-Z0-9_-]{30,}$/;
+
+  if (!apiKeyRegex.test(apiKey)) {
+    return {
+      valid: false,
+      message:
+        "Format API key tidak valid. API key harus dimulai dengan 'AIza' diikuti minimal 30 karakter",
+    };
+  }
+
+  // Periksa panjang minimal 30 karakter
+  if (apiKey.length < 35) {
+    // AIza + minimal 31 karakter
+    return {
+      valid: false,
+      message: "API key harus minimal 35 karakter",
+    };
+  }
+
+  // Periksa mengandung huruf besar
+  if (!/[A-Z]/.test(apiKey)) {
+    return {
+      valid: false,
+      message: "API key harus mengandung minimal 1 huruf besar",
+    };
+  }
+
+  // Periksa mengandung huruf kecil
+  if (!/[a-z]/.test(apiKey)) {
+    return {
+      valid: false,
+      message: "API key harus mengandung minimal 1 huruf kecil",
+    };
+  }
+
+  // Periksa mengandung angka
+  if (!/[0-9]/.test(apiKey)) {
+    return {
+      valid: false,
+      message: "API key harus mengandung minimal 1 angka",
+    };
+  }
+
+  return {
+    valid: true,
+    message: "Format API key valid",
+  };
+}
+
+// Langkah 2: Melakukan request ke Google AI API untuk memverifikasi API key
+
+function showApiKeyPopup() {
+  console.log("Showing API Key popup...");
+  // Check if popup already exists
+  if (document.getElementById("gemini_apiKeyPopup")) {
+    console.log("Popup already exists");
+    return;
+  }
+
+  // Retrieve saved API key from local storage
+  const savedApiKey = localStorage.getItem("geminiApiKey");
+  const decodedApiKey = savedApiKey ? atob(savedApiKey) : "";
+
+  // Create popup HTML
+  const popupHtml = `
+    <div id="gemini_apiKeyOverlay" class="gemini_api-key-overlay">
+      <div id="gemini_apiKeyPopup" class="gemini_api-key-popup">
+        <div class="gemini_popup-header">
+          <h2>Gemini API Key Setup</h2>
+        </div>
+        
+        <div class="gemini_popup-content">
+          <p>Untuk menggunakan Gemini Assistant, Anda perlu memasukkan API key dari Google AI Studio.</p>
+          
+          <div class="gemini_tutorial-section">
+            <h3>Tutorial Mendapatkan API Key:</h3>
+            <ol>
+                <li>Kunjungi <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
+                <li>Login dengan akun Google Anda</li>
+                <li>Klik <strong>"Get API key"</strong> di pojok kiri atas</li>
+                <li>Buat project baru atau pilih project yang sudah ada</li>
+                <li>Copy API key yang diberikan, contohnya:  
+                    <pre>AIzaSyD-..............defgHIJKLM</pre>
+                </li>
+                <li>Paste API key tersebut di form di bawah ini</li>
+            </ol>
+          </div>
+          
+          <div class="gemini_input-section">
+            <label for="gemini_apiKeyInput">API Key Gemini:</label>
+            <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan API key Anda di sini..." value="${decodedApiKey}">
+            <button id="gemini_toggleApiKeyVisibility" title="Tampilkan/Sembunyikan API Key">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          
+          <div id="gemini_validationMessage" class="gemini_validation-message"></div>
+          
+          
+          <p class="gemini_security-note">API key Anda akan disimpan secara lokal dan dienkripsi (base64) di browser Anda.</p>
+          
+          <div class="gemini_popup-buttons">
+            <button id="gemini_saveApiKeyButton" class="gemini_primary-button">Simpan API Key</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const popupElement = document.createElement("div");
+  popupElement.innerHTML = popupHtml;
+
+  // Pastikan elemen popup ditambahkan dengan benar
+  if (document.body) {
+    document.body.appendChild(popupElement);
+    console.log("Popup element appended to body");
+
+    // Tambahkan styles dan event listeners
+    addApiKeyPopupStyles();
+    setupApiKeyPopupEventListeners();
+  } else {
+    console.error("Document body not found!");
+  }
+}
+async function verifyApiKeyWithGoogle(apiKey) {
+  try {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey
+    );
+
+    if (response.ok) {
+      return {
+        valid: true,
+        message: "API key valid dan aktif",
+      };
+    } else {
+      const errorData = await response.json();
+      return {
+        valid: false,
+        message: `API key tidak valid atau expired: ${
+          errorData.error?.message || "Unknown error"
+        }`,
+      };
+    }
+  } catch (error) {
+    return {
+      valid: false,
+      message: `Tidak dapat memverifikasi API key: ${error.message}`,
+    };
+  }
+}
+
+function setupApiKeyPopupEventListeners() {
+  // Get elements
+  const saveButton = document.getElementById("gemini_saveApiKeyButton");
+  const apiKeyInput = document.getElementById("gemini_apiKeyInput");
+  const toggleVisibilityButton = document.getElementById(
+    "gemini_toggleApiKeyVisibility"
+  );
+  const validationMessageElement = document.getElementById(
+    "gemini_validationMessage"
+  );
+
+  // Tambahkan styling untuk tampilan pesan validasi yang lebih profesional
+  if (validationMessageElement) {
+    validationMessageElement.style.padding = "10px 15px";
+    validationMessageElement.style.borderRadius = "2px";
+    validationMessageElement.style.margin = "10px 0";
+    validationMessageElement.style.fontSize = "12px";
+    validationMessageElement.style.fontWeight = "500";
+    validationMessageElement.style.display = "none";
+    validationMessageElement.style.transition = "all 0.3s ease";
+  }
+
+  // Toggle API key visibility
+  if (toggleVisibilityButton) {
+    toggleVisibilityButton.addEventListener("click", function () {
+      const input = document.getElementById("gemini_apiKeyInput");
+      if (input.type === "password") {
+        input.type = "text";
+        toggleVisibilityButton.innerHTML = '<i class="fas fa-eye-slash"></i>';
+      } else {
+        input.type = "password";
+        toggleVisibilityButton.innerHTML = '<i class="fas fa-eye"></i>';
+      }
+    });
+  }
+
+  // Save API key
+  if (saveButton && apiKeyInput) {
+    saveButton.addEventListener("click", async function () {
+      saveButton.disabled = true;
+      saveButton.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Verifikasi...';
+
+      const apiKey = apiKeyInput.value.trim();
+
+      // Tampilkan pesan validasi dengan animasi
+      showValidationMessage("Memverifikasi API key...", "info");
+
+      // Validasi format API key
+      const formatValidation = validateApiKey(apiKey);
+      if (!formatValidation.valid) {
+        showValidationMessage(formatValidation.message, "error");
+        resetSaveButton();
+        return;
+      }
+
+      // Verifikasi API key dengan Google AI API
+      const apiValidation = await verifyApiKeyWithGoogle(apiKey);
+      if (apiValidation.valid) {
+        showValidationMessage(apiValidation.message, "success");
+
+        // Encode and save API key to localStorage
+        localStorage.setItem("geminiApiKey", btoa(apiKey));
+
+        // Tampilkan pesan sukses dan tutup popup setelah 2 detik
+        setTimeout(() => {
+          // Remove popup
+          const overlay = document.getElementById("gemini_apiKeyOverlay");
+          if (overlay) {
+            overlay.remove();
+          }
+
+          // Reinitialize chatbot with new API key
+          loadChatbotWithApiKey(apiKey);
+        }, 2000);
+      } else {
+        showValidationMessage(apiValidation.message, "error");
+        resetSaveButton();
+      }
+    });
+
+    // Validasi real-time format saat input berubah
+    apiKeyInput.addEventListener("input", function () {
+      const apiKey = apiKeyInput.value.trim();
+
+      if (apiKey.length === 0) {
+        hideValidationMessage();
+        return;
+      }
+
+      const formatValidation = validateApiKey(apiKey);
+
+      if (formatValidation.valid) {
+        showValidationMessage(
+          formatValidation.message +
+            " (akan diverifikasi saat tombol Simpan ditekan)",
+          "info"
+        );
+      } else {
+        showValidationMessage(formatValidation.message, "error");
+      }
+    });
+  }
+
+  // Fungsi untuk menampilkan pesan validasi dengan styling yang lebih profesional
+  function showValidationMessage(message, type) {
+    if (!validationMessageElement) return;
+
+    validationMessageElement.style.display = "block";
+    validationMessageElement.style.opacity = "0";
+
+    // Set warna dan ikon berdasarkan tipe pesan
+    switch (type) {
+      case "success":
+        validationMessageElement.style.backgroundColor = "#e6f7e6";
+        validationMessageElement.style.color = "#2e7d32";
+        validationMessageElement.style.border = "1px solid #b4e6b4";
+        message = '<i class="fas fa-check-circle"></i> ' + message;
+        break;
+      case "error":
+        validationMessageElement.style.backgroundColor = "#fdeded";
+        validationMessageElement.style.color = "#d32f2f";
+        validationMessageElement.style.border = "1px solid #f5c6cb";
+        message = '<i class="fas fa-exclamation-circle"></i> ' + message;
+        break;
+      case "info":
+      default:
+        validationMessageElement.style.backgroundColor = "#e6f0fd";
+        validationMessageElement.style.color = "#1565c0";
+        validationMessageElement.style.border = "1px solid #b3d7ff";
+        message = '<i class="fas fa-info-circle"></i> ' + message;
+        break;
+    }
+
+    validationMessageElement.innerHTML = message;
+
+    // Animasi fade in
+    setTimeout(() => {
+      validationMessageElement.style.opacity = "1";
+    }, 10);
+  }
+
+  // Fungsi untuk menyembunyikan pesan validasi
+  function hideValidationMessage() {
+    if (!validationMessageElement) return;
+    validationMessageElement.style.opacity = "0";
+    setTimeout(() => {
+      validationMessageElement.style.display = "none";
+    }, 300);
+  }
+
+  // Reset tombol simpan ke kondisi awal
+  function resetSaveButton() {
+    if (!saveButton) return;
+    saveButton.disabled = false;
+    saveButton.innerHTML = "Simpan";
   }
 }
 
@@ -268,50 +627,6 @@ function addApiKeyPopupStyles() {
 
   // Append the style element to head
   document.head.appendChild(styleElement);
-}
-
-function setupApiKeyPopupEventListeners() {
-  // Get elements
-  const saveButton = document.getElementById("gemini_saveApiKeyButton");
-  const apiKeyInput = document.getElementById("gemini_apiKeyInput");
-  const toggleVisibilityButton = document.getElementById(
-    "gemini_toggleApiKeyVisibility"
-  );
-
-  // Toggle API key visibility
-  if (toggleVisibilityButton) {
-    toggleVisibilityButton.addEventListener("click", function () {
-      const input = document.getElementById("gemini_apiKeyInput");
-      if (input.type === "password") {
-        input.type = "text";
-      } else {
-        input.type = "password";
-      }
-    });
-  }
-
-  // Save API key
-  if (saveButton && apiKeyInput) {
-    saveButton.addEventListener("click", function () {
-      const apiKey = apiKeyInput.value.trim();
-
-      if (apiKey) {
-        // Encode and save API key to localStorage
-        localStorage.setItem("geminiApiKey", btoa(apiKey));
-
-        // Remove popup
-        const overlay = document.getElementById("gemini_apiKeyOverlay");
-        if (overlay) {
-          overlay.remove();
-        }
-
-        // Reinitialize chatbot with new API key
-        loadChatbotWithApiKey(apiKey);
-      } else {
-        alert("Silakan masukkan API key yang valid");
-      }
-    });
-  }
 }
 
 function loadChatbotWithApiKey(apiKey) {
