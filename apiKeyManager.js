@@ -44,79 +44,6 @@ function initializeApiKeyManager() {
   }
 })();
 
-function showApiKeyPopup() {
-  console.log("Showing API Key popup...");
-  // Check if popup already exists
-  if (document.getElementById("gemini_apiKeyPopup")) {
-    console.log("Popup already exists");
-    return;
-  }
-
-  // Retrieve saved API key from local storage
-  const savedApiKey = localStorage.getItem("geminiApiKey");
-  const decodedApiKey = savedApiKey ? atob(savedApiKey) : "";
-
-  // Create popup HTML
-  const popupHtml = `
-    <div id="gemini_apiKeyOverlay" class="gemini_api-key-overlay">
-      <div id="gemini_apiKeyPopup" class="gemini_api-key-popup">
-        <div class="gemini_popup-header">
-          <h2>Gemini API Key Setup</h2>
-        </div>
-        
-        <div class="gemini_popup-content">
-          <p>Untuk menggunakan Gemini Assistant, Anda perlu memasukkan API key dari Google AI Studio.</p>
-          
-          <div class="gemini_tutorial-section">
-            <h3>Tutorial Mendapatkan API Key:</h3>
-            <ol>
-                <li>Kunjungi <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
-                <li>Login dengan akun Google Anda</li>
-                <li>Klik <strong>"Create API Key"</strong></li>
-                <li>Copy API key yang diberikan, contohnya:  
-                    <pre>AIzaSyD-..............defgHIJKLM</pre>
-                </li>
-                <li>Paste API key tersebut di form di bawah ini</li>
-            </ol>
-          </div>
-          
-          <div class="gemini_input-section">
-            <label for="gemini_apiKeyInput">API Key Gemini:</label>
-            <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan API key Anda di sini..." value="${decodedApiKey}">
-            <button id="gemini_toggleApiKeyVisibility" title="Tampilkan/Sembunyikan API Key">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-          </div>
-          
-          <p class="gemini_security-note">API key Anda akan disimpan secara lokal dan dienkripsi (base64) di browser Anda.</p>
-          
-          <div class="gemini_popup-buttons">
-            <button id="gemini_saveApiKeyButton" class="gemini_primary-button">Simpan API Key</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const popupElement = document.createElement("div");
-  popupElement.innerHTML = popupHtml;
-
-  // Pastikan elemen popup ditambahkan dengan benar
-  if (document.body) {
-    document.body.appendChild(popupElement);
-    console.log("Popup element appended to body");
-
-    // Tambahkan styles dan event listeners
-    addApiKeyPopupStyles();
-    setupApiKeyPopupEventListeners();
-  } else {
-    console.error("Document body not found!");
-  }
-}
-
 function setupApiKeyPopupEventListeners() {
   // Get elements
   const saveButton = document.getElementById("gemini_saveApiKeyButton");
@@ -242,8 +169,7 @@ function showApiKeyPopup() {
             <ol>
                 <li>Kunjungi <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
                 <li>Login dengan akun Google Anda</li>
-                <li>Klik <strong>"Get API key"</strong> di pojok kiri atas</li>
-                <li>Buat project baru atau pilih project yang sudah ada</li>
+                <li>Klik <strong>"Create API Key"</strong></li>
                 <li>Copy API key yang diberikan, contohnya:  
                     <pre>AIzaSyD-..............defgHIJKLM</pre>
                 </li>
