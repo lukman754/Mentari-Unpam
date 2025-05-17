@@ -85,11 +85,11 @@ console.log("Token.js sedang dijalankan!");
         </div>
       </div>
       <div class="token-tabs">
-        <button class="token-tab active" data-tab="user-info">Info</button>
-        <button class="token-tab" data-tab="forum-data">Forum</button>
+        <button class="token-tab active" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
+        <button class="token-tab" data-tab="user-info">Info</button>
       </div>
-      <div class="token-tab-content active" id="user-info-tab">
+      <div class="token-tab-content" id="user-info-tab">
         <div class="token-info-section">
           <p>Klik Dashboard atau buka salah satu Course</p>
         </div>
@@ -99,7 +99,7 @@ console.log("Token.js sedang dijalankan!");
           <p>Menunggu token...</p>
         </div>
       </div>
-      <div class="token-tab-content" id="forum-data-tab">
+      <div class="token-tab-content active" id="forum-data-tab">
         <div class="token-info-section">
           <p>Forum Diskusi yang belum dikerjakan</p>
         </div>
@@ -1096,6 +1096,11 @@ console.log("Token.js sedang dijalankan!");
 
         // HIDE CRITERIA 2: FORUM_DISKUSI with ID is completed (true) and POST_TEST exists but has no ID
         if (forumWithId.completion === true && postTest && !postTest.id) {
+          return false;
+        }
+
+        // HIDE CRITERIA 3: FORUM_DISKUSI has a warningAlert about unavailable forum discussions
+        if (forumWithId.warningAlert && forumWithId.warningAlert.includes("Soal forum diskusi belum tersedia")) {
           return false;
         }
 

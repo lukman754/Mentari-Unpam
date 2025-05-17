@@ -250,7 +250,7 @@ function addChatbotStyles() {
     .chatbot-toggle {
       position: fixed;
       padding-right: 10px;
-      bottom: 70px;
+      
       right: 0;
       width: 85px;
       height: 60px;
