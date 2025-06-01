@@ -728,11 +728,11 @@ async function getAnswerFromGemini(apiKey, question) {
   const prompt = `
     ${question}
 
-    jawab pertanyaan diatas dengan jelas, jangan menggunakan huruf tebal ataupun miring dan jangan gunakan karakter khusus seperti (*) pada jawabannya
+    jawab pertanyaan diatas, jangan menggunakan huruf tebal ataupun miring dan jangan gunakan karakter khusus seperti (*) pada jawabannya
   `;
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1268,28 +1268,23 @@ function createChatbotInterface(providedApiKey = null) {
   console.log("API key available, continuing with chatbot setup...");
   // Create chatbot elements with enhanced structure
   const chatbotHtml = `
-   <div id="geminiChatbotToggle" class="chatbot-toggle">
-    <div class="drag-handle"></div>
-    <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Robot" width="50" height="50" />
-    <div class="tooltip" id="geminiTooltip">Hai, aku Gemini Assistant!</div>
-  </div>
+    <div id="geminiChatbotToggle" class="chatbot-toggle" style="display: none;">
+      <div class="drag-handle"></div>
+      <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Robot" width="50" height="50" />
+      <div class="tooltip" id="geminiTooltip">Hai, aku Gemini Assistant!</div>
+    </div>
 
     <div id="geminiChatbot" class="chatbot-container" style="display: none;">
       <div class="chatbot-header">
         <h3>Gemini Assistant</h3>
         <div class="chatbot-actions">
-          <button id="apiKeyButton" title="Update API Key">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
-            </svg>
-          </button>
           <button id="clearChatButton" title="Clear Chat">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"></path>
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
             </svg>
-            </button>
+          </button>
           <button id="closeChatButton" title="Close">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1305,11 +1300,11 @@ function createChatbotInterface(providedApiKey = null) {
         <div class="template-label">Template Prompts:</div>
         <div class="template-buttons">
             <button data-prompt="Jelaskan secara singkat dan jelas">Singkat & Jelas</button>
-            <button data-prompt="Buat dalam 1 paragraf tanpa pemisah">1 Paragraf</button>
-            <button data-prompt="Buat dalam 2 paragraf tanpa pemisah">2 Paragraf</button>
+            <button data-prompt="Jelaskan dalam 1 paragraf">1 Paragraf</button>
+            <button data-prompt="Jelaskan dalam 2 paragraf">2 Paragraf</button>
             <button data-prompt="Jawab pilihan ganda berikut hanya dengan huruf dan teks misal Jawaban yang benar adalah A. ..., dan beri penjelasan singkat ">Pilihan ganda</button>
-            <button data-prompt="Sebutkan 3 poin utama yang perlu diketahui">3 Poin Utama</button>
-            <button data-prompt="Jelaskan dengan cara yang mudah dimengerti anak 10 tahun dengan singkat">Sederhana</button>
+            <button data-prompt="Sebutkan 3 poin utama yang perlu diketahui secara singkat">3 Poin Utama</button>
+            <button data-prompt="Jelaskan dengan cara yang mudah dimengerti dengan singkat">Sederhana</button>
             <button data-prompt="Berikan contoh nyata atau kasus penggunaan dengan singkat">Contoh Nyata</button>
             <button data-prompt="Beri langkah-langkah atau panduan praktis">Panduan Langkah</button>
             <button data-prompt="Jelaskan dengan bahasa yang lebih teknis">Teknis</button>
@@ -1527,4 +1522,75 @@ function saveChatHistory() {
 }
 
 // Initialize the chatbot
-createChatbotInterface();
+function initChatbot() {
+  // Check if Gemini is enabled in settings
+  const isGeminiEnabled = localStorage.getItem("gemini_enabled") === "true";
+  if (!isGeminiEnabled) {
+    console.log("Gemini is disabled in settings");
+    return;
+  }
+
+  // Create chatbot interface if it doesn't exist
+  if (!document.getElementById("geminiChatbot")) {
+    createChatbotInterface();
+  }
+
+  // Set up event listeners
+  setupChatbotEventListeners();
+
+  // Show only the toggle button if Gemini is enabled
+  const toggle = document.getElementById("geminiChatbotToggle");
+  const chatInterface = document.getElementById("geminiChatbot");
+
+  // Always show toggle button if Gemini is enabled in settings
+  if (toggle && isGeminiEnabled) {
+    toggle.style.display = "flex";
+  }
+
+  // Always hide chat interface initially
+  if (chatInterface) {
+    chatInterface.style.display = "none";
+  }
+
+  // Add click event to toggle button to show chat interface
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      if (chatInterface) {
+        chatInterface.style.display = "flex";
+      }
+    });
+  }
+}
+
+// Call initChatbot immediately and also on DOMContentLoaded
+(function initializeGemini() {
+  // Check if Gemini is enabled in settings
+  const isGeminiEnabled = localStorage.getItem("gemini_enabled") === "true";
+  if (isGeminiEnabled) {
+    // Try to initialize immediately
+    initChatbot();
+
+    // Also try again when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initChatbot);
+    } else {
+      // If DOM is already loaded, try one more time
+      setTimeout(initChatbot, 100);
+    }
+  }
+})();
+
+// Also call initChatbot when the toggle state changes
+window.addEventListener("storage", function (e) {
+  if (e.key === "gemini_enabled") {
+    if (e.newValue === "true") {
+      initChatbot();
+    } else {
+      // Hide both toggle and chat interface if disabled
+      const toggle = document.getElementById("geminiChatbotToggle");
+      const chatInterface = document.getElementById("geminiChatbot");
+      if (toggle) toggle.style.display = "none";
+      if (chatInterface) chatInterface.style.display = "none";
+    }
+  }
+});

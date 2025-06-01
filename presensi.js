@@ -123,6 +123,7 @@ function showAttendanceDetails(pertemuan, mataKuliah) {
     align-items: center;
     margin-bottom: 16px;
     border-bottom: 1px solid #eaeaea;
+    color: black;
     padding-bottom: 16px;
   `;
 
@@ -137,6 +138,7 @@ function showAttendanceDetails(pertemuan, mataKuliah) {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    color: black;
   `;
 
   table.innerHTML = `
@@ -275,7 +277,7 @@ function showPresensiTable(presensiData) {
     max-height: 90vh;
     overflow-y: auto;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    color: #111;
+    color: black;
   `;
 
   // Create header with student info
@@ -591,7 +593,7 @@ function addFloatingButton() {
   button.style.cssText = `
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      left: 20px;
       padding: 12px 18px;
       background-color: #0070f3;
       color: white;
@@ -783,11 +785,6 @@ function monitorNetworkRequests() {
     }
     return originalFetch.apply(this, args);
   };
-
-  showPopupMessage(
-    "Monitoring aktif. Refresh halaman untuk mendapatkan token.",
-    "info"
-  );
 }
 
 // Fungsi untuk fetch data jadwal kuliah

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod v1.6",
-  "version": "1.6",
-  "description": "Melacak Forum Diskusi.",
+  "name": "Mentari Mod v1.7",
+  "version": "1.7",
+  "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
   "permissions": ["scripting", "activeTab"],
   "host_permissions": ["https://mentari.unpam.ac.id/*"],
   "content_scripts": [
@@ -24,13 +24,22 @@
       "js": ["kuisioner.js"]
     },
     {
-      "matches": ["https://my.unpam.ac.id/presensi/*"],
+      "matches": ["https://my.unpam.ac.id/*"],
       "js": ["presensi.js"]
+    },
+    {
+      "matches": ["https://my.unpam.ac.id/data-akademik/khs"],
+      "js": ["QuickSurvey.js"]
+    },
+
+    {
+      "matches": ["https://my.unpam.ac.id/login"],
+      "js": ["pw.js"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["token.js"],
+      "resources": ["token.js", "apiKeyManager.js"],
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"]
     }

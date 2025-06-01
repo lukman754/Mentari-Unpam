@@ -43,15 +43,22 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
       if (window.toggleTokenPopup) {
         window.toggleTokenPopup();
       } else {
-        let script = document.createElement("script");
-        script.src = chrome.runtime.getURL("token.js");
-        script.onload = function () {
-          // Call the toggle function after script loads
-          if (window.toggleTokenPopup) {
-            window.toggleTokenPopup();
-          }
+        // First load apiKeyManager.js
+        let apiKeyManagerScript = document.createElement("script");
+        apiKeyManagerScript.src = chrome.runtime.getURL("apiKeyManager.js");
+        apiKeyManagerScript.onload = function () {
+          // Then load token.js after apiKeyManager.js is loaded
+          let tokenScript = document.createElement("script");
+          tokenScript.src = chrome.runtime.getURL("token.js");
+          tokenScript.onload = function () {
+            // Call the toggle function after script loads
+            if (window.toggleTokenPopup) {
+              window.toggleTokenPopup();
+            }
+          };
+          document.body.appendChild(tokenScript);
         };
-        document.body.appendChild(script);
+        document.body.appendChild(apiKeyManagerScript);
       }
     }
 

@@ -87,7 +87,7 @@ console.log("Token.js sedang dijalankan!");
       <div class="token-tabs">
         <button class="token-tab active" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
-        <button class="token-tab" data-tab="user-info">Info</button>
+        <button class="token-tab" data-tab="user-info">Setting</button>
       </div>
       <div class="token-tab-content" id="user-info-tab">
         <div class="token-info-section">
@@ -181,6 +181,7 @@ console.log("Token.js sedang dijalankan!");
 
     .token-data-item {
       padding: 8px 10px;
+      margin-bottom: 8px;
       background: rgba(255, 255, 255, 0.02);
       border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.03);
@@ -975,11 +976,35 @@ console.log("Token.js sedang dijalankan!");
         <div class="token-data-grid">
           <div class="token-data-item">
             <div class="token-info-section">
-              <p><span class="token-key">NIM :</span> <span class="token-value">${tokenInfo.username}</span></p>
+              <p><span class="token-key">NIM :</span> <span class="token-value">${
+                tokenInfo.username
+              }</span></p>
             </div>
           </div>
           
-          
+          <div class="token-data-item">
+            <div class="token-info-section">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <p><span class="token-key">Gemini AI :</span></p>
+                <label class="switch">
+                  <input type="checkbox" id="gemini-toggle" ${
+                    localStorage.getItem("gemini_enabled") === "true"
+                      ? "checked"
+                      : ""
+                  }>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="token-data-item">
+            <div class="token-info-section">
+              <button id="update-api-key" class="token-button" style="width: 100%;">
+                <i class="fas fa-key"></i> Update API Key
+              </button>
+            </div>
+          </div>
         </div>
         
         <div class="token-footer">
@@ -1003,8 +1028,81 @@ console.log("Token.js sedang dijalankan!");
         </div>
       </div>
     `;
+
+    // Add event listeners for new buttons
+    const geminiToggle = document.getElementById("gemini-toggle");
+    if (geminiToggle) {
+      // Load initial state from localStorage
+      const savedGeminiState =
+        localStorage.getItem("gemini_enabled") === "true";
+      geminiToggle.checked = savedGeminiState;
+
+      // Set initial visibility based on saved state
+      const geminiPopup = document.getElementById("geminiChatbot");
+      const geminiToggleBtn = document.getElementById("geminiChatbotToggle");
+
+      if (savedGeminiState) {
+        // If Gemini was enabled, show only the toggle button
+        if (geminiToggleBtn) {
+          geminiToggleBtn.style.display = "flex";
+        }
+        if (geminiPopup) {
+          geminiPopup.style.display = "none";
+        }
+      } else {
+        // If Gemini was disabled, hide both
+        if (geminiToggleBtn) {
+          geminiToggleBtn.style.display = "none";
+        }
+        if (geminiPopup) {
+          geminiPopup.style.display = "none";
+        }
+      }
+
+      geminiToggle.addEventListener("change", function () {
+        const isEnabled = this.checked;
+        localStorage.setItem("gemini_enabled", isEnabled);
+
+        // When toggle is enabled, only show the toggle button
+        const geminiToggleBtn = document.getElementById("geminiChatbotToggle");
+        if (geminiToggleBtn) {
+          geminiToggleBtn.style.display = isEnabled ? "flex" : "none";
+        }
+
+        // Always keep the chat interface hidden when toggle state changes
+        const geminiPopup = document.getElementById("geminiChatbot");
+        if (geminiPopup) {
+          geminiPopup.style.display = "none";
+        }
+      });
+    }
+
+    // Add click event to toggle button to show chat interface
+    const geminiToggleBtn = document.getElementById("geminiChatbotToggle");
+    if (geminiToggleBtn) {
+      geminiToggleBtn.addEventListener("click", function () {
+        const geminiPopup = document.getElementById("geminiChatbot");
+        if (geminiPopup) {
+          geminiPopup.style.display = "flex";
+        }
+      });
+    }
+
+    const updateApiKeyBtn = document.getElementById("update-api-key");
+    if (updateApiKeyBtn) {
+      updateApiKeyBtn.addEventListener("click", function () {
+        // Call showApiKeyPopup from apiKeyManager.js
+        if (typeof showApiKeyPopup === "function") {
+          showApiKeyPopup();
+        } else {
+          console.error(
+            "showApiKeyPopup function not found. Make sure apiKeyManager.js is loaded."
+          );
+        }
+      });
+    }
   }
-  // Update forum data UI
+
   // Update forum data UI
   function updateForumUI(courseDataList) {
     const forumTab = document.getElementById("forum-data-tab");
@@ -1015,12 +1113,9 @@ console.log("Token.js sedang dijalankan!");
 
     let html = "";
 
-    // Add copy all links button at the top
+    // Add presensi button at the top
     html += `
   <div class="copy-links-container">
-    <button id="copy-all-links" class="copy-links-button">
-      <i class="fas fa-copy"></i> Copy All Links
-    </button>
     <a href="https://my.unpam.ac.id/presensi/" target="_blank" id="presensi" class="presensi-button">
       <i class="fas fa-clipboard-list"></i> Lihat Presensi
     </a>
@@ -1100,7 +1195,10 @@ console.log("Token.js sedang dijalankan!");
         }
 
         // HIDE CRITERIA 3: FORUM_DISKUSI has a warningAlert about unavailable forum discussions
-        if (forumWithId.warningAlert && forumWithId.warningAlert.includes("Soal forum diskusi belum tersedia")) {
+        if (
+          forumWithId.warningAlert &&
+          forumWithId.warningAlert.includes("Soal forum diskusi belum tersedia")
+        ) {
           return false;
         }
 
@@ -1320,7 +1418,14 @@ console.log("Token.js sedang dijalankan!");
           validUrl && !warningMessage
             ? `
           <div class="item-action">
-            <a href="${url}" class="action-button">
+            <a href="${url}" class="action-button" ${
+                item.kode_template === "PRE_TEST" ||
+                item.kode_template === "POST_TEST"
+                  ? ""
+                  : item.completion
+                  ? "disabled"
+                  : ""
+              }>
               ${getActionText(item.kode_template)}
             </a>
           </div>
@@ -1328,7 +1433,12 @@ console.log("Token.js sedang dijalankan!");
             : validUrl && warningMessage
             ? `
           <div class="item-action">
-            <a href="${url}" class="action-button disabled" disabled>
+            <a href="${url}" class="action-button" ${
+                item.kode_template === "PRE_TEST" ||
+                item.kode_template === "POST_TEST"
+                  ? ""
+                  : "disabled"
+              }>
               ${getActionText(item.kode_template)}
             </a>
           </div>
@@ -1510,7 +1620,7 @@ console.log("Token.js sedang dijalankan!");
       switch (templateType) {
         case "PRE_TEST":
         case "POST_TEST":
-          return "Mulai Quiz";
+          return "Mulai Quiz"; // Always show "Mulai Quiz" for PRE_TEST and POST_TEST
         case "FORUM_DISKUSI":
           return "Buka Forum";
         case "PENUGASAN_TERSTRUKTUR":
@@ -1958,6 +2068,78 @@ console.log("Token.js sedang dijalankan!");
           padding: 6px 12px;
           font-size: 12px;
         }
+      }
+
+      /* Switch styles */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+      }
+
+      input:checked + .slider {
+        background-color: #0070f3;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
+      .slider.round {
+        border-radius: 24px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      }
+
+      .token-button {
+        background: #0070f3;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+      }
+
+      .token-button:hover {
+        background: #0060df;
+        transform: translateY(-1px);
       }
     `;
 
