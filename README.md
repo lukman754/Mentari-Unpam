@@ -15,10 +15,6 @@
 
 **MENTARI MOD** hadir sebagai ekstensi browser yang memperkaya platform ini dengan berbagai fitur tambahan untuk memaksimalkan produktivitas dalam pembelajaran daring.
 
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/13180860-d3fd-4a38-8043-9171dc8d4a17" width="85%" alt="Mentari Mod Preview">
-</div>
-
 ## 💫 Mengapa MENTARI MOD?
 
 | Keunggulan | Deskripsi |
@@ -54,13 +50,80 @@
 <div align="center">
   <table>
     <tr>
-      <td width="50%">
+      <td width="100%" colspan="2">
         <img src="https://github.com/user-attachments/assets/b19f5120-c127-4003-9d58-5f7d1b3d9fac" width="100%" alt="Login Page">
-        <p align="center"><b>Halaman Login</b></p>
       </td>
-      <td width="50%">
-        <img src="https://github.com/user-attachments/assets/13180860-d3fd-4a38-8043-9171dc8d4a17" width="100%" alt="Mentari Mod">
-        <p align="center"><b>Dashboard dengan Mod</b></p>
+    </tr>
+    <tr>
+      <td width="100%" colspan="2">
+        <img src="https://github.com/user-attachments/assets/c2581edf-affb-49e4-86d1-a11ac36a0770" width="100%" alt="Mentari Mod">
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/6a11d7cf-b335-47cc-b482-1eda72fba581" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Menu Forum</h3>
+        <p>Menu ini akan menampilkan Pertemuan yang berisi forum diskusi yang aktif dan harus dikerjakan mulai dari Pre Test hingga Kuisioner</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/dc78042b-e3c6-4c61-ae5a-aa55b3419b63" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Menu Mahasiswa</h3>
+        <p>Menu Mahasiswa menampilkan daftar mahasiswa yang ada di kelas kita, dan terdapat fitur pengelompokan secara acak ataupun berurutan</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/2c4350f0-8b28-4d35-a91e-373d14c4f104" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Menu Setting</h3>
+        <p>Di menu setting terdapat fungsi untuk menampilkan dan meyembunyikan Chat Bot Gemini Assistant, Update Api Key dan Info Mahasiswa yang login</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/b339efe3-7534-43c6-ad4c-8f41849edb1b" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Quiz Helper</h3>
+        <p>Saat memulai Pre/Post Test silakan refresh halaman maka Quiz Helper akan menyelesaikan Quiz dengan cepat secara otomatis.</p>
+        <p>Perlu diingat, jawaban yang dihasilkan AI belum tentu sempurna</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/9ac8d553-8ff8-400c-97b7-89fb23ab843d" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Gemini Assistant</h3>
+        <p>Gemini Assistant membantu menjawab soal yang diberikan dosen dengan tombol "Salin Soal" yang terdapat diatas tombol "kirim" yang akan menempelkan soal secara otomatis ke textbox pada chatbot.</p>
+        <p>Arahkan cursor ke jawaban yang dihasilkan AI, maka akan tampil 2 tombol, tombol pertama berfungsi untuk Copy Paste jawaban yang dihasilkan ke textarea mentari, tombol kedua untuk copy jawaban seperti biasa.</p>
+        <p>Terdapat beberapa pilihan perintah untuk filter jawaban sesuai keinginan.</p>
+        <p>Perlu diingat, jawaban yang dihasilkan AI belum tentu sempurna</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/56e9aa4b-dd1b-45c8-9aba-8e560304b9cc" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Presensi My Unpam</h3>
+        <p>Di halaman Presensi My Unpam terdapat tombol "Lihat presensi" untuk melihat ringkasan presensi dalam 1 layar dan juga menampilkan statistiknya, kalian tidak perlu membuka mata kuliah satu per satu hanya untuk melihat presensi</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="40%">
+        <img src="https://github.com/user-attachments/assets/b77777b1-7e08-450d-bb54-6db8b62f4dd2" width="100%" alt="Mentari Mod">
+      </td>
+      <td width="60%" align="left" valign="middle">
+        <h3>Quick Survey Kuisioner</h3>
+        <p>QuickSurvey Membantu kalian menyelesaikan kuisioner di halaman KHS untuk melihat nilai 10x lebih cepat dari cara manual dengan berbagai pilihan rating yang tersedia</p>
       </td>
     </tr>
   </table>
