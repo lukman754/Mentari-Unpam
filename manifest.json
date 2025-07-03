@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "Mentari Mod v1.8",
+  "version": "1.8",
+  "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["https://mentari.unpam.ac.id/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["apiKeyManager.js", "content.js", "gemini.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "js": ["home.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/exam/*"],
+      "js": ["quiz.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/kuesioner/*"],
+      "js": ["kuisioner.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/forum/*/topics/*"],
+      "js": ["discus.js"]
+    },
+    {
+      "matches": ["https://my.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["presensi.js"]
+    },
+    {
+      "matches": ["https://my.unpam.ac.id/data-akademik/khs"],
+      "js": ["QuickSurvey.js"]
+    },
+
+    {
+      "matches": ["https://my.unpam.ac.id/login"],
+      "js": ["pw.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["token.js", "apiKeyManager.js"],
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"]
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
