@@ -602,56 +602,67 @@ function hideLoadingSpinner() {
 
 // Modifikasi tombol floating
 function addFloatingButton() {
-  const button = document.createElement("button");
-  button.textContent = "Lihat Presensi";
-  button.style.cssText = `
+  // Cek apakah sudah ada container
+  let container = document.getElementById("floatingButtonContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "floatingButtonContainer";
+    container.style.cssText = `
       position: fixed;
       bottom: 20px;
       left: 20px;
-      padding: 12px 18px;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      z-index: 9999;
+    `;
+    document.body.appendChild(container);
+  }
+
+  // Tambahkan tombol presensi
+  let button = document.getElementById("presensiButton");
+  if (!button) {
+    button = document.createElement("button");
+    button.id = "presensiButton";
+    button.textContent = "Lihat Presensi";
+    button.style.cssText = `
+      padding: 10px 16px;
       background-color: #0070f3;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       cursor: pointer;
-      z-index: 9999;
-      box-shadow: 0 4px 14px rgba(0, 112, 243, 0.4);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       font-weight: 500;
       font-size: 14px;
-      transition: all 0.2s ease;
+      transition: background 0.2s;
+      box-shadow: none;
     `;
-
-  button.onmouseover = function () {
-    this.style.backgroundColor = "#0060df";
-    this.style.boxShadow = "0 6px 20px rgba(0, 112, 243, 0.5)";
-  };
-
-  button.onmouseout = function () {
-    this.style.backgroundColor = "#0070f3";
-    this.style.boxShadow = "0 4px 14px rgba(0, 112, 243, 0.4)";
-  };
-
-  button.onclick = function () {
-    this.disabled = true;
-    this.textContent = "Memuat...";
-    const spinner = showLoadingSpinner();
-
-    fetchAllPresensiData()
-      .then(() => {
-        this.disabled = false;
-        this.textContent = "Lihat Presensi";
-        hideLoadingSpinner();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        this.disabled = false;
-        this.textContent = "Lihat Presensi";
-        hideLoadingSpinner();
-      });
-  };
-
-  document.body.appendChild(button);
+    button.onmouseover = function () {
+      this.style.backgroundColor = "#0059b2";
+    };
+    button.onmouseout = function () {
+      this.style.backgroundColor = "#0070f3";
+    };
+    button.onclick = function () {
+      this.disabled = true;
+      this.textContent = "Memuat...";
+      const spinner = showLoadingSpinner();
+      fetchAllPresensiData()
+        .then(() => {
+          this.disabled = false;
+          this.textContent = "Lihat Presensi";
+          hideLoadingSpinner();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          this.disabled = false;
+          this.textContent = "Lihat Presensi";
+          hideLoadingSpinner();
+        });
+    };
+    container.appendChild(button);
+  }
 }
 
 // Fungsi untuk menampilkan pesan popup

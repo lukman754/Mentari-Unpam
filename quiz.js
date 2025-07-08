@@ -452,6 +452,12 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
         'button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeSmall.MuiButton-containedSizeSmall:has(span:contains("Selesai Quiz"))',
       ];
 
+      // Cek toggle auto_finish_quiz sebelum klik otomatis tombol Selesai Quiz
+      if (localStorage.getItem("auto_finish_quiz") !== "true") {
+        // Jika toggle tidak aktif, jangan klik otomatis tombol Selesai Quiz
+        return false;
+      }
+
       for (const selector of selesaiButtons) {
         try {
           const buttons = document.querySelectorAll(selector);

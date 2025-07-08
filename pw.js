@@ -1,81 +1,78 @@
-// Script untuk auto-generate password "unpam#" + 6 digit terakhir username
+// Auto generate password untuk login MUI/Quasar/React di Mentari UNPAM
+function generatePasswordFromUsername(username) {
+  const lastSix = username.slice(-6);
+  return lastSix.length > 0 ? `unpam#${lastSix}` : "unpam#";
+}
 
-// Fungsi untuk auto-fill password berdasarkan username
-function updatePassword() {
-  // Ambil input username dan password menggunakan querySelector untuk MUI/Quasar
+function tryAttachAutoPassword() {
+  // Cari input username dan password
   const usernameInput =
-    document.querySelector('input[aria-label="Username *"]') ||
-    document.querySelector('.q-field input[type="text"]:first-of-type') ||
-    document.querySelector("label:first-of-type input");
+    document.querySelector('input[name="username"]') ||
+    document.querySelector('input[id$=":r2:"]') ||
+    document.querySelector('input[aria-label="Username *"]');
 
   const passwordInput =
-    document.querySelector('input[aria-label="Password *"]') ||
-    document.querySelector('.q-field input[type="text"]:nth-of-type(2)') ||
-    document.querySelector("label:nth-of-type(2) input");
+    document.querySelector('input[name="password"]') ||
+    document.querySelector('input[id$=":r3:"]') ||
+    document.querySelector('input[aria-label="Password *"]');
 
   if (usernameInput && passwordInput) {
-    const username = usernameInput.value;
-
-    // Ambil 6 digit/karakter terakhir
-    const lastSix = username.slice(-6);
-
-    // Format password: unpam# + 6 digit terakhir
-    const generatedPassword =
-      lastSix.length > 0 ? `unpam#${lastSix}` : "unpam#";
-
-    // Auto-fill password field
-    passwordInput.value = generatedPassword;
-
-    // Trigger input event untuk memastikan MUI/Quasar mendeteksi perubahan
-    const inputEvent = new Event("input", { bubbles: true });
-    passwordInput.dispatchEvent(inputEvent);
-
-    // Console log untuk debugging
-    console.log(`Username: ${username} → Password: ${generatedPassword}`);
+    // Cegah double event
+    if (!usernameInput._autoPwAttached) {
+      usernameInput.addEventListener("input", function () {
+        passwordInput.value = generatePasswordFromUsername(usernameInput.value);
+        passwordInput.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      // Inisialisasi sekali
+      passwordInput.value = generatePasswordFromUsername(usernameInput.value);
+      passwordInput.dispatchEvent(new Event("input", { bubbles: true }));
+      usernameInput._autoPwAttached = true;
+      console.log("[MUI] Auto password generator attached!");
+    }
   }
 }
 
-// Tunggu sampai DOM loaded
-document.addEventListener("DOMContentLoaded", function () {
-  const usernameInput =
-    document.querySelector('input[aria-label="Username *"]') ||
-    document.querySelector('.q-field input[type="text"]:first-of-type') ||
-    document.querySelector("label:first-of-type input");
+// Jalankan sekali saat load
+tryAttachAutoPassword();
 
-  if (usernameInput) {
-    // Event listener untuk auto-generate password realtime
-    usernameInput.addEventListener("input", updatePassword);
-
-    // Panggil sekali untuk inisialisasi
-    updatePassword();
-
-    console.log("Auto password generator loaded successfully!");
-    console.log(
-      'Ketik username untuk auto-generate password format "unpam#" + 6 digit terakhir'
-    );
-  } else {
-    console.error("Username input field not found!");
-  }
+// Pantau perubahan DOM (jika input di-render ulang oleh React/MUI)
+const observer = new MutationObserver(() => {
+  tryAttachAutoPassword();
 });
+observer.observe(document.body, { childList: true, subtree: true });
 
-// Jika DOM sudah loaded, jalankan langsung
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", arguments.callee);
-} else {
-  // DOM sudah ready, jalankan script
-  const usernameInput =
-    document.querySelector('input[aria-label="Username *"]') ||
-    document.querySelector('.q-field input[type="text"]:first-of-type') ||
-    document.querySelector("label:first-of-type input");
-
-  if (usernameInput) {
-    usernameInput.addEventListener("input", updatePassword);
-    updatePassword();
-    console.log("Auto password generator loaded successfully!");
-    console.log(
-      'Ketik username untuk auto-generate password format "unpam#" + 6 digit terakhir'
-    );
-  } else {
-    console.error("Username input field not found!");
-  }
+// Fungsi untuk mengganti background pada elemen dengan class 'fullscreen'
+function setFullscreenBackground() {
+  const fullscreenEls = document.querySelectorAll(".fullscreen");
+  fullscreenEls.forEach((el) => {
+    el.style.background =
+      "url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2JvcThjbTQ1YjcxejBlOXBwdXRrMm41MTE3c2J5c3c2cG03aDVmaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pFxzSbokDeV5mnytFi/giphy.gif) no-repeat 50%";
+    el.style.backgroundSize = "cover";
+  });
 }
+
+// Jalankan sekali saat load
+setFullscreenBackground();
+
+// Pantau perubahan DOM agar background tetap diganti jika .fullscreen muncul/diganti
+const fullscreenObserver = new MutationObserver(() => {
+  setFullscreenBackground();
+});
+fullscreenObserver.observe(document.body, { childList: true, subtree: true });
+
+// Fungsi untuk mengubah background opacity pada elemen dengan class 'bg-1'
+function setBg1Opacity() {
+  const bg1Els = document.querySelectorAll(".bg-1");
+  bg1Els.forEach((el) => {
+    el.style.background = "rgba(13, 56, 247, 0)";
+  });
+}
+
+// Jalankan sekali saat load
+setBg1Opacity();
+
+// Pantau perubahan DOM agar background tetap diubah jika .bg-1 muncul/diganti
+const bg1Observer = new MutationObserver(() => {
+  setBg1Opacity();
+});
+bg1Observer.observe(document.body, { childList: true, subtree: true });

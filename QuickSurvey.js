@@ -124,49 +124,48 @@ function automateFlow(mode) {
 function createQuickSurveyToggle() {
   // Remove existing elements first
   const existingToggle = document.getElementById("quickSurveyToggle");
-  if (existingToggle) {
-    existingToggle.remove();
+  if (existingToggle) existingToggle.remove();
+
+  // Gunakan container yang sama dengan presensi jika ada
+  let container = document.getElementById("floatingButtonContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "floatingButtonContainer";
+    container.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      z-index: 9999;
+    `;
+    document.body.appendChild(container);
   }
 
-  const existingStyles = document.querySelector(
-    "style[data-quick-survey-toggle]"
-  );
-  if (existingStyles) {
-    existingStyles.remove();
-  }
-
-  // Create toggle button
+  // Buat tombol Quick Survey
   const toggleButton = document.createElement("button");
   toggleButton.id = "quickSurveyToggle";
   toggleButton.textContent = "Quick Survey";
   toggleButton.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 18px;
-    background-color: #0070f3;
+    padding: 10px 16px;
+    background-color: #10b981;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 7px;
     cursor: pointer;
-    z-index: 9999;
-    box-shadow: 0 4px 14px rgba(0, 112, 243, 0.4);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-weight: 500;
     font-size: 14px;
-    transition: all 0.2s ease;
+    transition: background 0.2s;
+    box-shadow: none;
   `;
-
   toggleButton.onmouseover = function () {
-    this.style.backgroundColor = "#0060df";
-    this.style.boxShadow = "0 6px 20px rgba(0, 112, 243, 0.5)";
+    this.style.backgroundColor = "#059669";
   };
-
   toggleButton.onmouseout = function () {
-    this.style.backgroundColor = "#0070f3";
-    this.style.boxShadow = "0 4px 14px rgba(0, 112, 243, 0.4)";
+    this.style.backgroundColor = "#10b981";
   };
-
   // Add click handler
   toggleButton.addEventListener("click", (e) => {
     e.preventDefault();
@@ -181,11 +180,11 @@ function createQuickSurveyToggle() {
       if (isVisible) {
         popup.style.display = "none";
         overlay.style.display = "none";
-        toggleButton.style.backgroundColor = "#0070f3";
+        toggleButton.style.backgroundColor = "#10b981";
       } else {
         popup.style.display = "block";
         overlay.style.display = "block";
-        toggleButton.style.backgroundColor = "#0060df";
+        toggleButton.style.backgroundColor = "#059669";
       }
     } else {
       console.log("Popup or overlay not found, creating new ones...");
@@ -197,13 +196,13 @@ function createQuickSurveyToggle() {
         if (newPopup && newOverlay) {
           newPopup.style.display = "block";
           newOverlay.style.display = "block";
-          toggleButton.style.backgroundColor = "#0060df";
+          toggleButton.style.backgroundColor = "#059669";
         }
       }, 100);
     }
   });
 
-  document.body.appendChild(toggleButton);
+  container.appendChild(toggleButton);
 }
 
 function createQuickSurveyPopup() {
@@ -415,26 +414,22 @@ function setupQuickSurveyEventListeners() {
 // Fungsi untuk mengecek URL dan menampilkan popup jika sesuai
 function checkUrlAndInitialize() {
   const currentUrl = window.location.href;
-  const targetUrl = "https://my.unpam.ac.id/data-akademik/khs";
-
-  if (currentUrl === targetUrl) {
-    console.log("URL matches target, initializing QuickSurvey...");
+  // Toleran: abaikan query string/hash
+  const targetPrefix = "https://my.unpam.ac.id/data-akademik/khs";
+  if (currentUrl.startsWith(targetPrefix)) {
+    console.log(
+      "URL matches target (with tolerance), initializing QuickSurvey..."
+    );
     initializeQuickSurvey();
   } else {
     console.log("URL does not match target, removing QuickSurvey if exists...");
     // Remove existing elements if they exist
     const existingToggle = document.getElementById("quickSurveyToggle");
-    if (existingToggle) {
-      existingToggle.remove();
-    }
+    if (existingToggle) existingToggle.remove();
     const existingPopup = document.getElementById("quickSurveyPopup");
-    if (existingPopup) {
-      existingPopup.remove();
-    }
+    if (existingPopup) existingPopup.remove();
     const existingOverlay = document.getElementById("quickSurveyPopupOverlay");
-    if (existingOverlay) {
-      existingOverlay.remove();
-    }
+    if (existingOverlay) existingOverlay.remove();
   }
 }
 
@@ -511,3 +506,6 @@ function initializeQuickSurvey() {
 console.log("=== SCRIPT UNTUK QUICK SURVEY UNPAM ===");
 console.log("Memulai observasi perubahan URL...");
 observeUrlChanges();
+
+// Pastikan tombol langsung muncul jika URL cocok saat script pertama kali dijalankan
+checkUrlAndInitialize();

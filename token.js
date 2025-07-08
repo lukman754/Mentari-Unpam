@@ -1000,6 +1000,22 @@ console.log("Token.js sedang dijalankan!");
 
           <div class="token-data-item">
             <div class="token-info-section">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <p><span class="token-key">Auto Selesai Quiz :</span></p>
+                <label class="switch">
+                  <input type="checkbox" id="auto-finish-quiz-toggle" ${
+                    localStorage.getItem("auto_finish_quiz") === "true"
+                      ? "checked"
+                      : ""
+                  }>
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="token-data-item">
+            <div class="token-info-section">
               <button id="update-api-key" class="token-button" style="width: 100%;">
                 <i class="fas fa-key"></i> Update API Key
               </button>
@@ -1074,6 +1090,18 @@ console.log("Token.js sedang dijalankan!");
         if (geminiPopup) {
           geminiPopup.style.display = "none";
         }
+      });
+    }
+
+    // Toggle Auto Selesai Quiz
+    const autoFinishQuizToggle = document.getElementById(
+      "auto-finish-quiz-toggle"
+    );
+    if (autoFinishQuizToggle) {
+      autoFinishQuizToggle.checked =
+        localStorage.getItem("auto_finish_quiz") === "true";
+      autoFinishQuizToggle.addEventListener("change", function () {
+        localStorage.setItem("auto_finish_quiz", this.checked);
       });
     }
 
