@@ -1,49 +1,52 @@
-// Buat interval yang terus memeriksa dan mengganti kedua gambar
+console.log("Interval aktif - kedua gambar akan terus diganti secara otomatis");
+
 const intervalId = setInterval(() => {
-  // Ganti gambar PersonLearn dengan holo-tail gif
+  // Ganti gambar PersonLearn dengan gif
   const personLearnImage = document.querySelector(
     'img[src*="PersonLearn-DbY26Ht3.png"]'
   );
-  if (personLearnImage) {
-    personLearnImage.src =
-      "https://github.com/tonybaloney/vscode-pets/blob/main/media/fox/red_idle_8fps.gif?raw=true";
-    personLearnImage.style.width = "auto"; // Menambahkan inline style width: auto
-    personLearnImage.style.top = "45%";
-    personLearnImage.style.left = "25%";
-  }
+  // if (personLearnImage) {
+  //   personLearnImage.src =
+  //     "https://github.com/tonybaloney/vscode-pets/blob/main/media/fox/red_idle_8fps.gif?raw=true";
+  //   personLearnImage.style.width = "auto";
+  //   personLearnImage.style.top = "45%";
+  //   personLearnImage.style.left = "25%";
+  // }
 
-  // Ganti logo Mentari dengan gambar dari GitHub
+  // Ganti logo Mentari
   const mentariLogo = document.querySelector(
     'img[src*="MentariLogo-DfuWb4z9.png"]'
   );
   if (mentariLogo) {
     mentariLogo.src =
       "https://github.com/user-attachments/assets/bc206a62-4b37-4064-a1af-872e7a157463";
-    mentariLogo.style.width = "auto"; // Menambahkan inline style width: auto untuk logo juga
+    mentariLogo.style.width = "auto";
   }
 
-  // Ganti pengaturan background image
-  const bgImage = document.querySelector('img[src*="Background-Dt75uuh7.jpg"]');
+  // Ganti background image
+  const bgImage = document.querySelector(
+    'img[src*="Background-Dt75uuh7.jpg"]'
+  );
   if (bgImage) {
-    bgImage.src = "https://images7.alphacoders.com/112/thumb-1920-1121331.png";
+    const newSrc = chrome.runtime.getURL("img/crDroid-logo.png");
+    bgImage.src = newSrc;
 
-    // Menggunakan object-fit alih-alih background properties untuk <img>
+    // Styling gambar
     bgImage.style.width = "100%";
     bgImage.style.height = "100%";
-    bgImage.style.objectFit = "cover"; // Mempertahankan rasio aspek dan menutupi area
+    bgImage.style.objectFit = "cover";
     bgImage.style.objectPosition = "center";
+
+    console.log("✅ Background diganti:", newSrc);
+  } else {
+    console.warn("⏳ Menunggu gambar background muncul...");
   }
 
-  // Tambahkan style untuk MuiTypography-root MuiTypography-h5
+  // Atur style teks judul
   const h5Element = document.querySelector(
     ".MuiTypography-root.MuiTypography-h5"
   );
   if (h5Element) {
     h5Element.style.lineHeight = "0.334";
   }
-}); // Periksa setiap 100ms
-
-console.log("Interval aktif - kedua gambar akan terus diganti secara otomatis");
-
-// Jika ingin menghentikan interval nanti:
-// clearInterval(intervalId);
+}, 500); // periksa setiap 500ms
