@@ -1027,7 +1027,7 @@ console.log("Token.js sedang dijalankan!");
           <a href="https://github.com/lukman754/Mentari-Unpam" style="display: flex; align-items: center; text-decoration: none; color: #fff;">
             <span class="token-value">Made with </span>
             <img src="https://img.icons8.com/?size=100&id=H5H0mqCCr5AV&format=png&color=000000" style="width: 15px; margin: 0 3px;" >
-            <span>by Lukman Muludin</span>
+            <span>by  Ananda Anugrah H & Lukman Muludin</span>
           </a>
 
           <div style="display: flex; align-items: center;">
