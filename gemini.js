@@ -1562,22 +1562,21 @@ function initChatbot() {
   }
 }
 
-// Call initChatbot immediately and also on DOMContentLoaded
-(function initializeGemini() {
-  // Check if Gemini is enabled in settings
-  const isGeminiEnabled = localStorage.getItem("gemini_enabled") === "true";
-  if (isGeminiEnabled) {
-    // Try to initialize immediately
-    initChatbot();
+// Untuk mendukung WebView Android dan browser
+try {
+  localStorage.setItem("gemini_enabled", "true");
+} catch (e) {
+  console.warn("localStorage mungkin tidak tersedia di WebView");
+}
 
-    // Also try again when DOM is ready
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initChatbot);
-    } else {
-      // If DOM is already loaded, try one more time
-      setTimeout(initChatbot, 100);
-    }
-  }
+(function initializeGemini() {
+  initChatbot();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initChatbot);
+  } else {
+    setTimeout(initChatbot, 100);
+  }
 })();
 
 // Also call initChatbot when the toggle state changes
