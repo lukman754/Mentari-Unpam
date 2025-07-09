@@ -77,7 +77,6 @@
     <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.5/Mentari.Mod.Setup.1.0.0.exe" style="display: block; width: 60%;">
         <img src="https://custom-icon-badges.demolab.com/badge/Download-Windows%20Setup-0078D6?style=for-the-badge&logo=windows11" style="width: 60%;">
     </a>
-  
 </div>
 
 ## 📥 Cara Instalasi
@@ -115,6 +114,14 @@
 7️⃣ Pilih file mentari-unpam-main.zip
 8️⃣ Refresh halaman MENTARI ✨
 ```
+
+# 📝 CHANGELOG
+
+## Versi: mentari_unpam-mod
+Tanggal: 2025-07-09
+
+### ✨ Penambahan
+- Menambahkan file gambar `img/crDroid-logo.png` untuk penggantian tampilan background di halaman web.
 
 ## ❓ FAQ
 
@@ -154,4 +161,3 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
   <p>© 2025 <a href="https://instagram.com/_.chopin">Lukman Muludin</a>. All Rights Reserved.</p>
 </div>
-
