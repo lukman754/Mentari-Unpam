@@ -41,11 +41,12 @@
     }
   ],
   "web_accessible_resources": [
-  {
-    "resources": ["img/crDroid-logo.png"],
-    "matches": ["<all_urls>"]
-  }
-],
+    {
+      "resources": ["token.js", "apiKeyManager.js", "img/crDroid-logo.png"],
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"]
+    }
+  ],
   "icons": {
     "16": "icon.png",
     "48": "icon.png",

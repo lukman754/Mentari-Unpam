@@ -1,18 +1,6 @@
 console.log("Interval aktif - kedua gambar akan terus diganti secara otomatis");
 
 const intervalId = setInterval(() => {
-  // Ganti gambar PersonLearn dengan gif
-  const personLearnImage = document.querySelector(
-    'img[src*="PersonLearn-DbY26Ht3.png"]'
-  );
-  // if (personLearnImage) {
-  //   personLearnImage.src =
-  //     "https://github.com/tonybaloney/vscode-pets/blob/main/media/fox/red_idle_8fps.gif?raw=true";
-  //   personLearnImage.style.width = "auto";
-  //   personLearnImage.style.top = "45%";
-  //   personLearnImage.style.left = "25%";
-  // }
-
   // Ganti logo Mentari
   const mentariLogo = document.querySelector(
     'img[src*="MentariLogo-DfuWb4z9.png"]'
@@ -38,8 +26,6 @@ const intervalId = setInterval(() => {
     bgImage.style.objectPosition = "center";
 
     console.log("✅ Background diganti:", newSrc);
-  } else {
-    console.warn("⏳ Menunggu gambar background muncul...");
   }
 
   // Atur style teks judul
@@ -49,4 +35,4 @@ const intervalId = setInterval(() => {
   if (h5Element) {
     h5Element.style.lineHeight = "0.334";
   }
-}, 500); // periksa setiap 500ms
+}, 500);
