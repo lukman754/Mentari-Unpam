@@ -273,6 +273,74 @@ function showChatNotification(message) {
 }
 
 function addChatbotStyles() {
+function handleKeyboardOverlap() {
+  const chatbot = document.getElementById("geminiChatbot");
+  const input = document.getElementById("questionInput");
+  const chatContainer = document.getElementById("chatContainer");
+
+  if (!chatbot || !input || !chatContainer) return;
+
+  const initialBottom = "20px";
+  const keyboardBuffer = 60; // Jarak buffer antara input dan keyboard
+  const chatContainerPadding = 60; // Jarak buffer tambahan pada container saat keyboard muncul
+
+  // Mengatur scroll percakapan agar tetap bisa digulir
+  const scrollChat = () => {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  };
+
+  // Ketika input fokus, geser chatbot ke atas dan pastikan input terlihat
+  input.addEventListener("focus", () => {
+    chatbot.style.bottom = `${window.innerHeight - input.getBoundingClientRect().bottom + keyboardBuffer}px`;
+
+    // Geser chatContainer agar tidak terhalang keyboard
+    chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`;
+
+    // Scroll percakapan ke bawah saat input fokus
+    setTimeout(scrollChat, 200);
+    setTimeout(() => {
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  });
+
+  // Ketika input kehilangan fokus, kembalikan posisi chatbot dan kontainer
+  input.addEventListener("blur", () => {
+    setTimeout(() => {
+      chatbot.style.bottom = initialBottom;
+      chatContainer.style.transform = "translateY(0)";
+    }, 200);
+  });
+
+  // Deteksi perubahan ukuran viewport untuk menangani keyboard pada perangkat Android
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      const windowHeight = window.innerHeight;
+      const viewportHeight = window.visualViewport.height;
+
+      // Jika keyboard muncul (viewport menyusut)
+      if (viewportHeight < windowHeight) {
+        chatbot.style.bottom = `${windowHeight - viewportHeight + keyboardBuffer}px`;
+        chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`; // Geser kontainer ke atas
+      } else {
+        chatbot.style.bottom = initialBottom; // Kembalikan chatbot jika keyboard hilang
+        chatContainer.style.transform = "translateY(0)"; // Kembalikan posisi chatContainer
+      }
+    });
+  }
+
+  // Event listener untuk percakapan baru
+  const chatForm = document.getElementById("chatForm");
+  if (chatForm) {
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      // Tambahkan percakapan baru ke kontainer
+      setTimeout(scrollChat, 200);
+    });
+  }
+}
+
+handleKeyboardOverlap();
+
   const styleElement = document.createElement("style");
   styleElement.textContent = `
     /* Toggle Button */
@@ -296,6 +364,26 @@ function addChatbotStyles() {
       z-index: 99998;
       transition: all 0.3s ease;
     }
+
+  #chatContainer {
+  max-height: calc(100vh - 120px);  /* Menyesuaikan dengan ruang keyboard dan input */
+  overflow-y: auto;  /* Agar percakapan bisa digulir */
+  padding-right: 10px;
+}
+
+  #geminiChatbot {
+  position: fixed;
+  bottom: 20px;  /* Posisi default chatbot */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  background-color: rgba(48, 48, 48, 0.9);
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 99999;
+  }
 
 
     .chatbot-toggle:hover {
