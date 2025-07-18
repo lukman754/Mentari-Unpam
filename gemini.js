@@ -9,7 +9,23 @@ function addMessageToChat(sender, text) {
 
   // Format for display while preserving line breaks
   // Handle text content properly to avoid double parsing of <p> tags
-  const formattedText = text.replace(/\n/g, "<br>");
+const formattedText = text
+  .split("\n")
+  .map(line => {
+    if (/^[-*•]/.test(line.trim())) {
+      return `<li>${line.replace(/^[-*•]\s*/, "")}</li>`;
+    } else {
+      return `<p>${line}</p>`;
+    }
+  })
+  .join("")
+  .replace(/<\/p><p>/g, "<br>");
+
+  let finalFormattedText = formattedText;
+  if (formattedText.includes("<li>")) {
+  finalFormattedText = `<ul style="padding-left: 20px; margin-top: 5px;">${formattedText}</ul>`;
+}
+
 
   if (sender === "user") {
     messageElement.innerHTML = `
@@ -24,7 +40,7 @@ function addMessageToChat(sender, text) {
       <div class="user-avatar">
         <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Fox.webp" alt="User" width="24" height="24">
       </div>
-      <div class="message-content">${formattedText}</div>
+      <div class="message-content">${finalFormattedText}</div>
     `;
 
     // Add edit functionality to user messages
@@ -66,6 +82,20 @@ function addMessageToChat(sender, text) {
 
           // Save the updated chat history
           saveChatHistory();
+          function getPreviousMessages(limit = 6) {
+            const chatHistory = document.getElementById("chatHistory");
+            const messages = chatHistory.querySelectorAll(".message");
+            const history = [];
+
+            for (let i = Math.max(0, messages.length - limit); i < messages.length; i++) {
+              const el = messages[i];
+              const role = el.classList.contains("user-message") ? "user" : "bot";
+              const content = el.getAttribute("data-original-text") || el.textContent.trim();
+
+              history.push({ role, content });
+              }
+              return history;
+            }
         });
       }
     }, 10);
@@ -723,13 +753,35 @@ function loadChatHistory() {
   }
 }
 
-async function getAnswerFromGemini(apiKey, question) {
-  // Create a simple prompt
-  const prompt = `
-    ${question}
+function getPreviousMessages(limit = 6) {
+  const chatHistory = document.getElementById("chatHistory");
+  const messages = chatHistory.querySelectorAll(".message");
+  const history = [];
 
-    jawab pertanyaan diatas, jangan menggunakan huruf tebal ataupun miring dan jangan gunakan karakter khusus seperti (*) pada jawabannya
-  `;
+  for (let i = Math.max(0, messages.length - limit); i < messages.length; i++) {
+    const el = messages[i];
+    const role = el.classList.contains("user-message") ? "user" : "model";
+    const content = el.getAttribute("data-original-text") || el.textContent.trim();
+    history.push({ role, content });
+  }
+
+  return history;
+}
+
+async function getAnswerFromGemini(apiKey, question) {
+  const history = getPreviousMessages();
+
+  const parts = history.map(entry => {
+    return {
+      role: entry.role === "user" ? "user" : "model",
+      parts: [{ text: entry.content }]
+    };
+  });
+
+  parts.push({
+    role: "user",
+    parts: [{ text: question }]
+  });
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
@@ -737,14 +789,14 @@ async function getAnswerFromGemini(apiKey, question) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: parts,
         generationConfig: {
           temperature: 0.9,
           maxOutputTokens: 4536,
           topP: 0.95,
-          topK: 40,
-        },
-      }),
+          topK: 40
+        }
+      })
     }
   );
 
@@ -752,10 +804,9 @@ async function getAnswerFromGemini(apiKey, question) {
 
   if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
     if (result.error) {
-      console.error("API error:", result.error);
       throw new Error(`API error: ${result.error.message || "Unknown error"}`);
     }
-    throw new Error("Failed to generate answer");
+    throw new Error("Gagal mendapatkan jawaban");
   }
 
   return result.candidates[0].content.parts[0].text;
