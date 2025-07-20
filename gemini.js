@@ -971,14 +971,36 @@ function setupChatbotEventListeners(encodedApiKey) {
 
   // Clear chat history
   clearChatButton.addEventListener("click", () => {
-    if (confirm("Hapus seluruh riwayat chat?")) {
-      chatHistory.innerHTML = "";
-      localStorage.removeItem("gemini_chat_history");
-    }
+    const modal = document.getElementById("customConfirmModal");
+  if (!modal) {
+    console.error("Modal konfirmasi tidak ditemukan!");
+    return;
+  }
+
+  modal.classList.remove("hidden");
+
+  const cancelBtn = document.getElementById("cancelClearChat");
+  const confirmBtn = document.getElementById("confirmClearChat");
+
+  cancelBtn.onclick = () => modal.classList.add("hidden");
+
+confirmBtn.onclick = () => {
+   const messages = chatHistory.querySelectorAll(".message");
+
+  messages.forEach((msg, i) => {
+    msg.classList.add("fade-out-chat");
   });
 
-  // Copy question from DOM to input
-  // Copy question from DOM to input
+  setTimeout(() => {
+    chatHistory.innerHTML = "";
+    localStorage.removeItem("gemini_chat_history");
+    chatHistory.scrollTop = 0;
+    showChatNotification("Riwayat chat dihapus!");
+  }, 800);
+  modal.classList.add("hidden");
+};
+});
+
   // Copy question from DOM to input
   copyQuestionButton.addEventListener("click", async () => {
     try {
@@ -1703,19 +1725,19 @@ function initChatbot() {
 
 // Untuk mendukung WebView Android dan browser
 try {
-  localStorage.setItem("gemini_enabled", "true");
+  localStorage.setItem("gemini_enabled", "true");
 } catch (e) {
-  console.warn("localStorage mungkin tidak tersedia di WebView");
+  console.warn("localStorage mungkin tidak tersedia di WebView");
 }
 
 (function initializeGemini() {
-  initChatbot();
+  initChatbot();
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initChatbot);
-  } else {
-    setTimeout(initChatbot, 100);
-  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initChatbot);
+  } else {
+    setTimeout(initChatbot, 100);
+  }
 })();
 
 // Also call initChatbot when the toggle state changes
@@ -1732,3 +1754,105 @@ window.addEventListener("storage", function (e) {
     }
   }
 });
+
+const confirmModalHTML = `
+  <div id="customConfirmModal" class="custom-modal hidden">
+    <div class="modal-content">
+      <h3>Konfirmasi</h3>
+      <p>Apakah kamu yakin ingin <strong>menghapus semua riwayat chat?</strong></p>
+      <div class="modal-actions">
+        <button id="cancelClearChat">Batal</button>
+        <button id="confirmClearChat">Hapus</button>
+      </div>
+    </div>
+  </div>
+`;
+
+document.body.insertAdjacentHTML("beforeend", confirmModalHTML);
+
+(function extendChatbotStylesWithModal() {
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+    .custom-modal {
+      position: fixed;
+      z-index: 100000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 15, 15, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .custom-modal.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      background: #2a2a2a;
+      color: #fff;
+      padding: 20px 24px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+    }
+
+    .modal-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .modal-actions button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #cancelClearChat {
+      background-color: #444;
+      color: #ccc;
+    }
+
+    #confirmClearChat {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    #cancelClearChat:hover {
+      background-color: #555;
+    }
+
+    #confirmClearChat:hover {
+      background-color: #c0392b;
+    }
+      .fade-out-chat {
+      animation: fadeOutChat 0.5s ease forwards;
+    }
+
+    @keyframes fadeOutChat {
+      from {
+        opacity: 1;
+        transform: scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+  `;
+  document.head.appendChild(styleElement);
+})();
