@@ -221,9 +221,8 @@ async function verifyApiKeyWithGoogle(apiKey) {
       const errorData = await response.json();
       return {
         valid: false,
-        message: `API key tidak valid atau expired: ${
-          errorData.error?.message || "Unknown error"
-        }`,
+        message: `API key tidak valid atau expired: ${errorData.error?.message || "Unknown error"
+          }`,
       };
     }
   } catch (error) {
@@ -329,7 +328,7 @@ function setupApiKeyPopupEventListeners() {
       if (formatValidation.valid) {
         showValidationMessage(
           formatValidation.message +
-            " (akan diverifikasi saat tombol Simpan ditekan)",
+          " (akan diverifikasi saat tombol Simpan ditekan)",
           "info"
         );
       } else {

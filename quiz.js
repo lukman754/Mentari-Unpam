@@ -348,27 +348,21 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
 
       // Expanded list of selectors to find radio buttons across different quiz platforms
       const radioSelectors = [
-        `.MuiStack-root.css-1kic1uf .MuiFormControlLabel-root:nth-child(${
-          answerIndex + 1
+        `.MuiStack-root.css-1kic1uf .MuiFormControlLabel-root:nth-child(${answerIndex + 1
         }) .MuiRadio-root`,
         `input[type="radio"][name="jawaban[${questionIndex}]"][value="${answerIndex}"]`,
-        `input[type="radio"][name="soal_${
-          questionIndex + 1
+        `input[type="radio"][name="soal_${questionIndex + 1
         }"][value="${answerIndex}"]`,
-        `input[type="radio"][value="${answerIndex}"][data-question-id="${
-          questionIndex + 1
+        `input[type="radio"][value="${answerIndex}"][data-question-id="${questionIndex + 1
         }"]`,
         // More generic selectors
-        `.question-container:nth-child(${
-          questionIndex + 1
+        `.question-container:nth-child(${questionIndex + 1
         }) input[type="radio"]:nth-child(${answerIndex + 1})`,
-        `#question-${
-          questionIndex + 1
+        `#question-${questionIndex + 1
         } input[type="radio"][value="${answerIndex}"]`,
         // Additional selectors for better compatibility
         `form .MuiRadio-root:nth-of-type(${answerIndex + 1})`,
-        `.css-1675apn .MuiFormControlLabel-root:nth-child(${
-          answerIndex + 1
+        `.css-1675apn .MuiFormControlLabel-root:nth-child(${answerIndex + 1
         }) input`,
         `[name^="jawaban"][value="${answerIndex}"]`,
       ];
@@ -820,17 +814,15 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
 
         const progress = Math.round(((i + 1) / quizData.data.length) * 100);
         progressBar.style.width = `${progress}%`;
-        progressText.textContent = `Mencari jawaban ${i + 1} dari ${
-          quizData.data.length
-        }`;
+        progressText.textContent = `Mencari jawaban ${i + 1} dari ${quizData.data.length
+          }`;
 
         const questionItem = document.createElement("div");
         questionItem.dataset.questionId = question.id;
         questionItem.style =
           "padding:8px 12px;margin-bottom:8px;border-radius:6px;background-color:#2a2a2a;position:relative;border-left:3px solid #333;transition:all 0.2s ease;";
-        questionItem.innerHTML = `<small>${
-          i + 1
-        }. <span style="color:#ffcc5c;">Mencari jawaban...</span></small>`;
+        questionItem.innerHTML = `<small>${i + 1
+          }. <span style="color:#ffcc5c;">Mencari jawaban...</span></small>`;
         answersContainer.appendChild(questionItem);
 
         const title = cleanText(question.judul || "");
@@ -843,9 +835,8 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
         );
 
         if (options.length === 0) {
-          questionItem.innerHTML = `<small>${
-            i + 1
-          }. <span style="color:#ff6b6b;">Tidak ada pilihan</span></small>`;
+          questionItem.innerHTML = `<small>${i + 1
+            }. <span style="color:#ff6b6b;">Tidak ada pilihan</span></small>`;
           continue;
         }
 
@@ -946,18 +937,16 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
         element.innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="flex-grow:1;overflow:hidden;">
-              <span style="font-weight:500;color:#fff;">${
-                data.number
-              }. <span style="color:#4CAF50;font-weight:bold;">${answer.toUpperCase()}</span></span>
+              <span style="font-weight:500;color:#fff;">${data.number
+          }. <span style="color:#4CAF50;font-weight:bold;">${answer.toUpperCase()}</span></span>
               <span style="color:#999;margin-left:6px;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:inline-block;vertical-align:middle;">${answerText.substring(
-                0,
-                40
-              )}${answerText.length > 40 ? "..." : ""}</span>
+            0,
+            40
+          )}${answerText.length > 40 ? "..." : ""}</span>
             </div>
             <div style="display:none;align-items:center;">
-              <button class="apply-answer" data-index="${
-                data.index
-              }" data-letter="${answer}" style="margin-right:5px;padding:2px 5px;background:#4CAF50;border:none;border-radius:3px;color:white;font-size:10px;cursor:pointer;">Pilih</button>
+              <button class="apply-answer" data-index="${data.index
+          }" data-letter="${answer}" style="margin-right:5px;padding:2px 5px;background:#4CAF50;border:none;border-radius:3px;color:white;font-size:10px;cursor:pointer;">Pilih</button>
               <div class="info-button" style="width:18px;height:18px;border-radius:50%;background:#333;color:#999;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:all 0.2s;">i</div>
             </div>
           </div>
@@ -993,21 +982,20 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
             <div style="margin-bottom:8px;font-weight:500;color:#4CAF50;">Pilihan:</div>
             <div style="margin-bottom:10px;color:#fff;">
               ${data.options
-                .map(
-                  (opt, idx) =>
-                    `<div style="${
-                      answer === String.fromCharCode(97 + idx)
-                        ? "color:#4CAF50;font-weight:500;"
-                        : "color:#999;"
-                    }">${String.fromCharCode(97 + idx)}. ${opt}</div>`
-                )
-                .join("")}
+              .map(
+                (opt, idx) =>
+                  `<div style="${answer === String.fromCharCode(97 + idx)
+                    ? "color:#4CAF50;font-weight:500;"
+                    : "color:#999;"
+                  }">${String.fromCharCode(97 + idx)}. ${opt}</div>`
+              )
+              .join("")}
             </div>
             <div style="margin-bottom:8px;font-weight:500;color:#4CAF50;">Penjelasan:</div>
             <div style="color:#999;">${data.explanation.replace(
-              /\n/g,
-              "<br>"
-            )}</div>
+                /\n/g,
+                "<br>"
+              )}</div>
           `;
 
           document.body.appendChild(tooltip);

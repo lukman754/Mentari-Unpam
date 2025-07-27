@@ -9,22 +9,22 @@ function addMessageToChat(sender, text) {
 
   // Format for display while preserving line breaks
   // Handle text content properly to avoid double parsing of <p> tags
-const formattedText = text
-  .split("\n")
-  .map(line => {
-    if (/^[-*•]/.test(line.trim())) {
-      return `<li>${line.replace(/^[-*•]\s*/, "")}</li>`;
-    } else {
-      return `<p>${line}</p>`;
-    }
-  })
-  .join("")
-  .replace(/<\/p><p>/g, "<br>");
+  const formattedText = text
+    .split("\n")
+    .map(line => {
+      if (/^[-*•]/.test(line.trim())) {
+        return `<li>${line.replace(/^[-*•]\s*/, "")}</li>`;
+      } else {
+        return `<p>${line}</p>`;
+      }
+    })
+    .join("")
+    .replace(/<\/p><p>/g, "<br>");
 
   let finalFormattedText = formattedText;
   if (formattedText.includes("<li>")) {
-  finalFormattedText = `<ul style="padding-left: 20px; margin-top: 5px;">${formattedText}</ul>`;
-}
+    finalFormattedText = `<ul style="padding-left: 20px; margin-top: 5px;">${formattedText}</ul>`;
+  }
 
 
   if (sender === "user") {
@@ -93,9 +93,9 @@ const formattedText = text
               const content = el.getAttribute("data-original-text") || el.textContent.trim();
 
               history.push({ role, content });
-              }
-              return history;
             }
+            return history;
+          }
         });
       }
     }, 10);
@@ -273,73 +273,73 @@ function showChatNotification(message) {
 }
 
 function addChatbotStyles() {
-function handleKeyboardOverlap() {
-  const chatbot = document.getElementById("geminiChatbot");
-  const input = document.getElementById("questionInput");
-  const chatContainer = document.getElementById("chatContainer");
+  function handleKeyboardOverlap() {
+    const chatbot = document.getElementById("geminiChatbot");
+    const input = document.getElementById("questionInput");
+    const chatContainer = document.getElementById("chatContainer");
 
-  if (!chatbot || !input || !chatContainer) return;
+    if (!chatbot || !input || !chatContainer) return;
 
-  const initialBottom = "20px";
-  const keyboardBuffer = 60; // Jarak buffer antara input dan keyboard
-  const chatContainerPadding = 60; // Jarak buffer tambahan pada container saat keyboard muncul
+    const initialBottom = "20px";
+    const keyboardBuffer = 60; // Jarak buffer antara input dan keyboard
+    const chatContainerPadding = 60; // Jarak buffer tambahan pada container saat keyboard muncul
 
-  // Mengatur scroll percakapan agar tetap bisa digulir
-  const scrollChat = () => {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  };
+    // Mengatur scroll percakapan agar tetap bisa digulir
+    const scrollChat = () => {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    };
 
-  // Ketika input fokus, geser chatbot ke atas dan pastikan input terlihat
-  input.addEventListener("focus", () => {
-    chatbot.style.bottom = `${window.innerHeight - input.getBoundingClientRect().bottom + keyboardBuffer}px`;
+    // Ketika input fokus, geser chatbot ke atas dan pastikan input terlihat
+    input.addEventListener("focus", () => {
+      chatbot.style.bottom = `${window.innerHeight - input.getBoundingClientRect().bottom + keyboardBuffer}px`;
 
-    // Geser chatContainer agar tidak terhalang keyboard
-    chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`;
+      // Geser chatContainer agar tidak terhalang keyboard
+      chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`;
 
-    // Scroll percakapan ke bawah saat input fokus
-    setTimeout(scrollChat, 200);
-    setTimeout(() => {
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
-  });
-
-  // Ketika input kehilangan fokus, kembalikan posisi chatbot dan kontainer
-  input.addEventListener("blur", () => {
-    setTimeout(() => {
-      chatbot.style.bottom = initialBottom;
-      chatContainer.style.transform = "translateY(0)";
-    }, 200);
-  });
-
-  // Deteksi perubahan ukuran viewport untuk menangani keyboard pada perangkat Android
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", () => {
-      const windowHeight = window.innerHeight;
-      const viewportHeight = window.visualViewport.height;
-
-      // Jika keyboard muncul (viewport menyusut)
-      if (viewportHeight < windowHeight) {
-        chatbot.style.bottom = `${windowHeight - viewportHeight + keyboardBuffer}px`;
-        chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`; // Geser kontainer ke atas
-      } else {
-        chatbot.style.bottom = initialBottom; // Kembalikan chatbot jika keyboard hilang
-        chatContainer.style.transform = "translateY(0)"; // Kembalikan posisi chatContainer
-      }
-    });
-  }
-
-  // Event listener untuk percakapan baru
-  const chatForm = document.getElementById("chatForm");
-  if (chatForm) {
-    chatForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      // Tambahkan percakapan baru ke kontainer
+      // Scroll percakapan ke bawah saat input fokus
       setTimeout(scrollChat, 200);
+      setTimeout(() => {
+        input.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
     });
-  }
-}
 
-handleKeyboardOverlap();
+    // Ketika input kehilangan fokus, kembalikan posisi chatbot dan kontainer
+    input.addEventListener("blur", () => {
+      setTimeout(() => {
+        chatbot.style.bottom = initialBottom;
+        chatContainer.style.transform = "translateY(0)";
+      }, 200);
+    });
+
+    // Deteksi perubahan ukuran viewport untuk menangani keyboard pada perangkat Android
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", () => {
+        const windowHeight = window.innerHeight;
+        const viewportHeight = window.visualViewport.height;
+
+        // Jika keyboard muncul (viewport menyusut)
+        if (viewportHeight < windowHeight) {
+          chatbot.style.bottom = `${windowHeight - viewportHeight + keyboardBuffer}px`;
+          chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`; // Geser kontainer ke atas
+        } else {
+          chatbot.style.bottom = initialBottom; // Kembalikan chatbot jika keyboard hilang
+          chatContainer.style.transform = "translateY(0)"; // Kembalikan posisi chatContainer
+        }
+      });
+    }
+
+    // Event listener untuk percakapan baru
+    const chatForm = document.getElementById("chatForm");
+    if (chatForm) {
+      chatForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        // Tambahkan percakapan baru ke kontainer
+        setTimeout(scrollChat, 200);
+      });
+    }
+  }
+
+  handleKeyboardOverlap();
 
   const styleElement = document.createElement("style");
   styleElement.textContent = `
@@ -972,34 +972,34 @@ function setupChatbotEventListeners(encodedApiKey) {
   // Clear chat history
   clearChatButton.addEventListener("click", () => {
     const modal = document.getElementById("customConfirmModal");
-  if (!modal) {
-    console.error("Modal konfirmasi tidak ditemukan!");
-    return;
-  }
+    if (!modal) {
+      console.error("Modal konfirmasi tidak ditemukan!");
+      return;
+    }
 
-  modal.classList.remove("hidden");
+    modal.classList.remove("hidden");
 
-  const cancelBtn = document.getElementById("cancelClearChat");
-  const confirmBtn = document.getElementById("confirmClearChat");
+    const cancelBtn = document.getElementById("cancelClearChat");
+    const confirmBtn = document.getElementById("confirmClearChat");
 
-  cancelBtn.onclick = () => modal.classList.add("hidden");
+    cancelBtn.onclick = () => modal.classList.add("hidden");
 
-confirmBtn.onclick = () => {
-   const messages = chatHistory.querySelectorAll(".message");
+    confirmBtn.onclick = () => {
+      const messages = chatHistory.querySelectorAll(".message");
 
-  messages.forEach((msg, i) => {
-    msg.classList.add("fade-out-chat");
+      messages.forEach((msg, i) => {
+        msg.classList.add("fade-out-chat");
+      });
+
+      setTimeout(() => {
+        chatHistory.innerHTML = "";
+        localStorage.removeItem("gemini_chat_history");
+        chatHistory.scrollTop = 0;
+        showChatNotification("Riwayat chat dihapus!");
+      }, 800);
+      modal.classList.add("hidden");
+    };
   });
-
-  setTimeout(() => {
-    chatHistory.innerHTML = "";
-    localStorage.removeItem("gemini_chat_history");
-    chatHistory.scrollTop = 0;
-    showChatNotification("Riwayat chat dihapus!");
-  }, 800);
-  modal.classList.add("hidden");
-};
-});
 
   // Copy question from DOM to input
   copyQuestionButton.addEventListener("click", async () => {

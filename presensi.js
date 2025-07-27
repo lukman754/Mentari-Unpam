@@ -213,11 +213,9 @@ function showAttendanceDetails(pertemuan, mataKuliah) {
     const TglMulai = p.tanggal_mulai ? formatDateStart(p.tanggal_mulai) : "-";
 
     row.innerHTML = `
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        index + 1
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${index + 1
       }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        p.jenis_perkuliahan || "-"
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${p.jenis_perkuliahan || "-"
       }</td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">
         <div style="display: inline-flex; align-items: center; background-color: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 12px; font-weight: 500; font-size: 13px;">
@@ -226,8 +224,7 @@ function showAttendanceDetails(pertemuan, mataKuliah) {
       </td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${TglMulai}</td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${dateStr}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        p.presensi_by || "-"
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${p.presensi_by || "-"
       }</td>
     `;
 
@@ -495,20 +492,16 @@ function showPresensiTable(presensiData) {
     const sks = data.sks || "3";
 
     row.innerHTML = `
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        index + 1
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${index + 1
       }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; font-weight: 500;">${
-        data.nama_mata_kuliah
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; font-weight: 500;">${data.nama_mata_kuliah
       }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">${
-        data.id_mata_kuliah
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">${data.id_mata_kuliah
       }</td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; font-weight: bold;">${sks}</td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">${totalPertemuan}</td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; color: #10b981;">${hadir}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; color: #f43f5e;">${
-        totalPertemuan - hadir
+      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; color: #f43f5e;">${totalPertemuan - hadir
       }</td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">
         <div style="display: inline-flex; align-items: center; gap: 6px; background-color: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 12px; font-weight: 500; font-size: 13px;">

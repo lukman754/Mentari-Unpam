@@ -68,15 +68,16 @@
 
 ## 📦 Download
 <div style="width: 100%; display: flex; gap: 10px;">
-    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.8.1/Mentari-Unpam-v1.8.1.zip" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/2.4.5/MentariEnhancer_v2.4.5.zip" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Extension%20ZIP-FFA000?style=for-the-badge&logo=googlechrome" style="width: 60%;">
     </a>
-    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.5/Mentari-Mod-v1.5.apk" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/2.4.5/MentariEnhancer_v2.4.5.apk" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android" style="width: 60%;">
     </a>
     <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.5/Mentari.Mod.Setup.1.0.0.exe" style="display: block; width: 60%;">
         <img src="https://custom-icon-badges.demolab.com/badge/Download-Windows%20Setup-0078D6?style=for-the-badge&logo=windows11" style="width: 60%;">
     </a>
+  
 </div>
 
 ## 📥 Cara Instalasi

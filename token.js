@@ -111,9 +111,9 @@ console.log("Token.js sedang dijalankan!");
     </div>
   `;
 
-  (function addSkeletonLoaderStyles() {
-  const style = document.createElement("style");
-  style.textContent = `
+    (function addSkeletonLoaderStyles() {
+      const style = document.createElement("style");
+      style.textContent = `
     .skeleton {
       background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
       background-size: 200% 100%;
@@ -138,24 +138,24 @@ console.log("Token.js sedang dijalankan!");
       100% { background-position: 200% 0; }
     }
   `;
-  document.head.appendChild(style);
-})();
+      document.head.appendChild(style);
+    })();
 
-  function showSkeletonLoading(containerId, count = 3) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+    function showSkeletonLoading(containerId, count = 3) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
 
-  let skeletonHTML = "";
-  for (let i = 0; i < count; i++) {
-    skeletonHTML += `
+      let skeletonHTML = "";
+      for (let i = 0; i < count; i++) {
+        skeletonHTML += `
       <div class="skeleton skeleton-card"></div>
     `;
-  }
+      }
 
-  container.innerHTML = skeletonHTML;
-}
+      container.innerHTML = skeletonHTML;
+    }
 
-  showSkeletonLoading("forum-list", 4);
+    showSkeletonLoading("forum-list", 4);
 
     // CSS for popup - minimalist Vercel-style
     const style = document.createElement("style");
@@ -1034,9 +1034,8 @@ console.log("Token.js sedang dijalankan!");
         <div class="token-data-grid">
           <div class="token-data-item">
             <div class="token-info-section">
-              <p><span class="token-key">NIM :</span> <span class="token-value">${
-                tokenInfo.username
-              }</span></p>
+              <p><span class="token-key">NIM :</span> <span class="token-value">${tokenInfo.username
+      }</span></p>
             </div>
           </div>
           
@@ -1045,11 +1044,10 @@ console.log("Token.js sedang dijalankan!");
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <p><span class="token-key">Gemini AI :</span></p>
                 <label class="switch">
-                  <input type="checkbox" id="gemini-toggle" ${
-                    localStorage.getItem("gemini_enabled") === "true"
-                      ? "checked"
-                      : ""
-                  }>
+                  <input type="checkbox" id="gemini-toggle" ${localStorage.getItem("gemini_enabled") === "true"
+        ? "checked"
+        : ""
+      }>
                   <span class="slider round"></span>
                 </label>
               </div>
@@ -1061,11 +1059,10 @@ console.log("Token.js sedang dijalankan!");
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <p><span class="token-key">Auto Selesai Quiz :</span></p>
                 <label class="switch">
-                  <input type="checkbox" id="auto-finish-quiz-toggle" ${
-                    localStorage.getItem("auto_finish_quiz") === "true"
-                      ? "checked"
-                      : ""
-                  }>
+                  <input type="checkbox" id="auto-finish-quiz-toggle" ${localStorage.getItem("auto_finish_quiz") === "true"
+        ? "checked"
+        : ""
+      }>
                   <span class="slider round"></span>
                 </label>
               </div>
@@ -1402,11 +1399,10 @@ console.log("Token.js sedang dijalankan!");
           </div>
           <div class="material-details">
             <span>${material.judul}</span>
-            ${
-              material.completion
+            ${material.completion
                 ? '<span class="completion-badge">Selesai</span>'
                 : ""
-            }
+              }
           </div>
         </a>
       `;
@@ -1471,109 +1467,101 @@ console.log("Token.js sedang dijalankan!");
           }
 
           html += `
-      <div class="item-card ${completionStatus} ${
-            warningMessage ? "has-warning" : ""
-          }" ${dataAttrs}>
+      <div class="item-card ${completionStatus} ${warningMessage ? "has-warning" : ""
+            }" ${dataAttrs}>
         <div class="item-header">
           <div class="item-icon">
             ${getItemIcon(item.kode_template)}
           </div>
           <div class="item-details">
             <h4>${item.judul} ${durationText}</h4>
-            ${
-              item.completion
-                ? '<span class="completion-badge">Selesai</span>'
-                : ""
+            ${item.completion
+              ? '<span class="completion-badge">Selesai</span>'
+              : ""
             }
           </div>
         </div>
         
-        ${
-          item.konten && item.kode_template === "FORUM_DISKUSI"
-            ? `
+        ${item.konten && item.kode_template === "FORUM_DISKUSI"
+              ? `
             <div class="item-content responsive-content">${item.konten}</div>
-            <div class="forum-topics" id="forum-topics-${
-              item.id_trx_course_sub_section || item.id
-            }">
+            <div class="forum-topics" id="forum-topics-${item.id_trx_course_sub_section || item.id
+              }">
               <div class="loading-topics">Loading topics...</div>
             </div>
             ${(() => {
-              // Fetch topics when rendering forum items
-              const forumId = item.id_trx_course_sub_section || item.id;
-              if (forumId) {
-                fetchForumTopics(forumId)
-                  .then((topics) => {
-                    const topicsContainer = document.getElementById(
-                      `forum-topics-${forumId}`
-                    );
-                    if (topicsContainer) {
-                      if (topics && topics.length > 0) {
-                        topicsContainer.innerHTML = topics
-                          .map(
-                            (topic) => `
+                // Fetch topics when rendering forum items
+                const forumId = item.id_trx_course_sub_section || item.id;
+                if (forumId) {
+                  fetchForumTopics(forumId)
+                    .then((topics) => {
+                      const topicsContainer = document.getElementById(
+                        `forum-topics-${forumId}`
+                      );
+                      if (topicsContainer) {
+                        if (topics && topics.length > 0) {
+                          topicsContainer.innerHTML = topics
+                            .map(
+                              (topic) => `
                         <a href="https://mentari.unpam.ac.id/u-courses/${kode_course}/forum/${item.id}/topics/${topic.id}" 
                            class="topic-badge" ><i class="fas fa-comments"></i> 
                           ${topic.judul}
                         </a>
                       `
-                          )
-                          .join("");
-                      } else {
-                        topicsContainer.innerHTML =
-                          '<div class="no-topics">No topics available</div>';
+                            )
+                            .join("");
+                        } else {
+                          topicsContainer.innerHTML =
+                            '<div class="no-topics">No topics available</div>';
+                        }
                       }
-                    }
-                  })
-                  .catch((error) => {
-                    console.error(
-                      "Error loading topics for forum:",
-                      forumId,
-                      error
-                    );
-                    const topicsContainer = document.getElementById(
-                      `forum-topics-${forumId}`
-                    );
-                    if (topicsContainer) {
-                      topicsContainer.innerHTML =
-                        '<div class="error-topics">Failed to load topics</div>';
-                    }
-                  });
-              }
-              return "";
-            })()}
+                    })
+                    .catch((error) => {
+                      console.error(
+                        "Error loading topics for forum:",
+                        forumId,
+                        error
+                      );
+                      const topicsContainer = document.getElementById(
+                        `forum-topics-${forumId}`
+                      );
+                      if (topicsContainer) {
+                        topicsContainer.innerHTML =
+                          '<div class="error-topics">Failed to load topics</div>';
+                      }
+                    });
+                }
+                return "";
+              })()}
             `
-            : item.konten
-            ? `<div class="item-content responsive-content">${item.konten}</div>`
-            : ""
-        }
+              : item.konten
+                ? `<div class="item-content responsive-content">${item.konten}</div>`
+                : ""
+            }
         
-        ${
-          warningMessage
-            ? `<div class="warning-message">${warningMessage}</div>`
-            : ""
-        }
+        ${warningMessage
+              ? `<div class="warning-message">${warningMessage}</div>`
+              : ""
+            }
         
-        ${
-          item.file
-            ? `
+        ${item.file
+              ? `
           <div class="item-file">
             <a href="https://mentari.unpam.ac.id/api/file/${item.file}">
               <i class="fas fa-file-download"></i> Lampiran
             </a>
           </div>
         `
-            : ""
-        }
+              : ""
+            }
         
-        ${
-          validUrl && !warningMessage
-            ? `
+        ${validUrl && !warningMessage
+              ? `
           <div class="item-action">
-            <a href="${url}" class="action-button" ${
-                item.kode_template === "PRE_TEST" ||
+            <a href="${url}" class="action-button" ${item.kode_template === "PRE_TEST" ||
                 item.kode_template === "POST_TEST"
-                  ? ""
-                  : item.completion
+                ? ""
+                : item.completion
                   ? "disabled"
                   : ""
               }>
@@ -1581,27 +1569,26 @@ console.log("Token.js sedang dijalankan!");
             </a>
           </div>
         `
-            : validUrl && warningMessage
-            ? `
+              : validUrl && warningMessage
+                ? `
           <div class="item-action">
-            <a href="${url}" class="action-button" ${
-                item.kode_template === "PRE_TEST" ||
-                item.kode_template === "POST_TEST"
+            <a href="${url}" class="action-button" ${item.kode_template === "PRE_TEST" ||
+                  item.kode_template === "POST_TEST"
                   ? ""
                   : "disabled"
-              }>
+                }>
               ${getActionText(item.kode_template)}
             </a>
           </div>
         `
-            : `
+                : `
           <div class="item-action">
             <span class="action-button disabled">
               ${getActionText(item.kode_template)} (Tidak Tersedia)
             </span>
           </div>
         `
-        }
+            }
       </div>
     `;
         });
