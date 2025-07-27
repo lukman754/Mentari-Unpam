@@ -111,6 +111,52 @@ console.log("Token.js sedang dijalankan!");
     </div>
   `;
 
+  (function addSkeletonLoaderStyles() {
+  const style = document.createElement("style");
+  style.textContent = `
+    .skeleton {
+      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.2s infinite linear;
+      border-radius: 6px;
+    }
+
+    .skeleton-text {
+      height: 14px;
+      margin-bottom: 8px;
+      width: 100%;
+    }
+
+    .skeleton-card {
+      height: 80px;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+
+    @keyframes skeleton-loading {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+  function showSkeletonLoading(containerId, count = 3) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  let skeletonHTML = "";
+  for (let i = 0; i < count; i++) {
+    skeletonHTML += `
+      <div class="skeleton skeleton-card"></div>
+    `;
+  }
+
+  container.innerHTML = skeletonHTML;
+}
+
+  showSkeletonLoading("forum-list", 4);
+
     // CSS for popup - minimalist Vercel-style
     const style = document.createElement("style");
     style.textContent = `
@@ -131,6 +177,18 @@ console.log("Token.js sedang dijalankan!");
       cursor: move; /* Indicator for draggable */
     }
     
+    #token-runner-popup {
+    backdrop-filter: blur(10px);
+    background: rgba(30,30,30,0.85);
+  }
+
+    #token-runner-popup,
+    .popup-content,
+    .token-card-wrapper,
+    .token-tab-content {
+    transition: all 0.3s ease-in-out;
+    }
+
     #token-runner-popup.collapsed {
       width: 50px;
       height: 50px;
