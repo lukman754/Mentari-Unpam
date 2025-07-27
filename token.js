@@ -210,7 +210,7 @@ console.log("Token.js sedang dijalankan!");
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      // margin-bottom: 14px;
       padding-bottom: 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -268,7 +268,7 @@ console.log("Token.js sedang dijalankan!");
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 10px;
+      // padding-top: 10px;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
       font-size: 11px;
       opacity: 0.3;
@@ -1081,26 +1081,38 @@ console.log("Token.js sedang dijalankan!");
           </div>
         </div>
         
-        <div class="token-footer">
-          <a href="https://github.com/lukman754/Mentari-Unpam" style="display: flex; align-items: center; text-decoration: none; color: #fff;">
-            <span class="token-value">Made with </span>
-            <img src="https://img.icons8.com/?size=100&id=H5H0mqCCr5AV&format=png&color=000000" style="width: 15px; margin: 0 3px;" >
-            <span>by  Ananda Anugrah H & Lukman Muludin</span>
-          </a>
+<div class="token-footer" style="display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 0.85rem; color: #ccc; line-height: 1.6;">
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <span>Made with</span>
+    <img src="https://img.icons8.com/?size=100&id=H5H0mqCCr5AV&format=png&color=000000" style="width: 15px;" alt="love" />
+  </div>
+  
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+    <span>Lukman Muludin</span>
+    <a href="https://instagram.com/_.chopin" target="_blank">
+      <img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" alt="Instagram" />
+    </a>
+    <a href="https://facebook.com/lukman.mauludin.754" target="_blank">
+      <img src="https://img.icons8.com/?size=100&id=118467&format=png&color=ffffff" width=18" alt="Facebook" />
+    </a>
+    <a href="https://github.com/Lukman754" target="_blank">
+      <img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" alt="GitHub" />
+    </a>
+  </div>
 
-          <div style="display: flex; align-items: center;">
-            <a href="https://instagram.com/_.chopin" class="token-github-link">
-              <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" ></span>
-            </a>
-            <a href="https://facebook.com/lukman.mauludin.754" class="token-github-link">
-              <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=118467&format=png&color=ffffff" width="18" ></span>
-            </a>
-            <a href="https://github.com/Lukman754" class="token-github-link">
-              <span class="token-github-icon"><img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" ></span>
-            </a>
-          </div>
-        </div>
-      </div>
+  <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+    <span>Ananda Anugrah H</span>
+        <a href="https://instagram.com/nando_fiingerstyle" target="_blank">
+      <img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" alt="Instagram" />
+    </a>
+    <a href="https://t.me/DeanPerformer" target="_blank">
+      <img src="https://img.icons8.com/?size=100&id=lUktdBVdL4Kb&format=png&color=ffffff" width="18" alt="Telegram" />
+    </a>
+        <a href="https://github.com/AnandaAnugrahHandyanto" target="_blank">
+      <img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" alt="GitHub" />
+    </a>
+  </div>
+</div>
     `;
 
     // Add event listeners for new buttons
