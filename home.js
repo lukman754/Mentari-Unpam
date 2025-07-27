@@ -1,4 +1,4 @@
-console.log("Interval aktif - kedua gambar akan terus diganti secara otomatis");
+console.log("Interval aktif - gambar mobile dan desktop akan disesuaikan otomatis");
 
 const intervalId = setInterval(() => {
   // Ganti logo Mentari
@@ -16,7 +16,11 @@ const intervalId = setInterval(() => {
     'img[src*="Background-Dt75uuh7.jpg"]'
   );
   if (bgImage) {
-    const newSrc = chrome.runtime.getURL("img/crDroid-logo.png");
+    const isMobile = window.innerWidth <= 768;
+    const newSrc = isMobile
+      ? "https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/img/crDroid-logo-mobile.png"
+      : "https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/img/crDroid-logo.png";
+
     bgImage.src = newSrc;
 
     // Styling gambar
@@ -25,7 +29,7 @@ const intervalId = setInterval(() => {
     bgImage.style.objectFit = "cover";
     bgImage.style.objectPosition = "center";
 
-    console.log("✅ Background diganti:", newSrc);
+    console.log(`Background diganti (${isMobile ? "Mobile" : "Desktop"}):`, newSrc);
   }
 
   // Atur style teks judul
