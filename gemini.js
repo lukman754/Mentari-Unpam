@@ -913,6 +913,7 @@ function setupChatbotEventListeners(encodedApiKey) {
   const chatbot = document.getElementById("geminiChatbot");
   const closeChatButton = document.getElementById("closeChatButton");
   const clearChatButton = document.getElementById("clearChatButton");
+  const refreshChatButton = document.getElementById("refreshChatButton");
   const questionInput = document.getElementById("questionInput");
   const submitButton = document.getElementById("submitButton");
   const chatHistory = document.getElementById("chatHistory");
@@ -1000,6 +1001,15 @@ function setupChatbotEventListeners(encodedApiKey) {
       modal.classList.add("hidden");
     };
   });
+
+  if (refreshChatButton) {
+    refreshChatButton.addEventListener("click", () => {
+      localStorage.removeItem("gemini_chat_history");
+      document.getElementById("chatHistory").innerHTML = "";
+      saveChatHistory();
+      showChatNotification("Chat telah di-refresh!");
+    });
+  }
 
   // Copy question from DOM to input
   copyQuestionButton.addEventListener("click", async () => {
@@ -1439,6 +1449,9 @@ function createChatbotInterface(providedApiKey = null) {
       <div class="chatbot-header">
         <h3>Gemini Assistant</h3>
         <div class="chatbot-actions">
+          <button id="refreshChatButton" title="Refresh Chat">
+            <img src="https://img.icons8.com/?size=100&id=69347&format=png&color=00FF00" alt="Refresh" style="width: 20px; height: 20px;" />
+          </button>
           <button id="clearChatButton" title="Clear Chat">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"></path>
