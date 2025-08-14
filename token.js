@@ -16,7 +16,66 @@ console.log('Token.js sedang dijalankan!')
     LAST_UPDATE: 'mentari_last_update',
   }
 
-  // Fungsi untuk menyimpan data ke localStorage
+  function injectNotesUI() {
+    if (document.getElementById('catatan-mentari-container')) {
+      document.getElementById('catatan-mentari-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const cssRules = `
+        #catatan-mentari-container { background-color: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 15px; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); color: #f0f0f0; }
+        #catatan-mentari-container h3 { margin-top: 0; color: #f0f0f0; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        #catatan-mentari-textarea { width: 100%; min-height: 120px; box-sizing: border-box; background-color: #1e1e1e; color: #f0f0f0; border: 1px solid #555; border-radius: 4px; padding: 10px; font-size: 14px; margin-bottom: 10px; }
+        #catatan-mentari-simpan-btn { background-color: #0070f3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    `;
+    const styleElement = document.createElement('style');
+    styleElement.id = 'catatan-mentari-styles';
+    if (!document.getElementById(styleElement.id)) {
+        document.head.appendChild(styleElement);
+    }
+    styleElement.textContent = cssRules;
+
+    const mainContentArea = document.querySelector('h6.MuiTypography-subtitle1');
+    if (!mainContentArea) {
+      alert('Judul mata kuliah tidak ditemukan. Pastikan Anda berada di halaman utama sebuah mata kuliah.');
+      return;
+    }
+
+    const noteContainer = document.createElement('div');
+    noteContainer.id = 'catatan-mentari-container';
+    noteContainer.innerHTML = `
+        <h3>Catatan Pribadi untuk Mata Kuliah Ini</h3>
+        <textarea id="catatan-mentari-textarea" placeholder="Tulis apapun di sini..."></textarea>
+        <button id="catatan-mentari-simpan-btn">Simpan Catatan</button>
+        <span id="simpan-status" style="margin-left: 10px; color: #2ecc71;"></span>
+    `;
+
+    mainContentArea.parentNode.insertBefore(noteContainer, mainContentArea.nextSibling);
+
+    const noteTextarea = document.getElementById('catatan-mentari-textarea');
+    const saveButton = document.getElementById('catatan-mentari-simpan-btn');
+    const saveStatus = document.getElementById('simpan-status');
+    const courseTitle = mainContentArea.textContent.trim();
+    const storageKey = 'catatan_mentari_' + courseTitle;
+
+    function loadCatatan() {
+        const savedNote = localStorage.getItem(storageKey);
+        if (savedNote) {
+            noteTextarea.value = savedNote;
+        }
+    }
+
+    saveButton.addEventListener('click', function() {
+        const catatanTeks = noteTextarea.value;
+        localStorage.setItem(storageKey, catatanTeks);
+
+        saveStatus.textContent = 'Tersimpan!';
+        setTimeout(() => { saveStatus.textContent = ''; }, 2000);
+    });
+
+    loadCatatan();
+  }
+
   function saveToLocalStorage(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data))
@@ -26,7 +85,6 @@ console.log('Token.js sedang dijalankan!')
     }
   }
 
-  // Fungsi untuk mengambil data dari localStorage
   function getFromLocalStorage(key) {
     try {
       const data = localStorage.getItem(key)
@@ -58,7 +116,6 @@ console.log('Token.js sedang dijalankan!')
   }
 
   // Buat popup UI
-  // Buat popup UI
   function createPopupUI() {
     // Check if popup already exists
     if (document.getElementById('token-runner-popup')) return
@@ -87,18 +144,12 @@ console.log('Token.js sedang dijalankan!')
       <div class="token-tabs">
         <button class="token-tab active" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
-        <button class="token-tab" data-tab="user-info">Setting</button>
+        <button class="token-tab" data-tab="notes-data">Catatan</button> <button class="token-tab" data-tab="user-info">Setting</button>
       </div>
       <div class="token-tab-content" id="user-info-tab">
-        <div class="token-info-section">
-          <p>Klik Dashboard atau buka salah satu Course</p>
         </div>
-      </div>
       <div class="token-tab-content" id="token-data-tab">
-        <div class="token-info-section">
-          <p>Menunggu token...</p>
         </div>
-      </div>
       <div class="token-tab-content active" id="forum-data-tab">
         <div class="token-info-section">
           <p>Forum Diskusi yang belum dikerjakan</p>
@@ -107,6 +158,12 @@ console.log('Token.js sedang dijalankan!')
       </div>
       <div class="token-tab-content" id="student-data-tab">
         <div id="student-list"></div>
+      </div>
+      <div class="token-tab-content" id="notes-data-tab">
+        <div class="token-info-section" style="text-align:center; padding: 20px;">
+          <p style="margin-bottom: 15px;">Buat catatan pribadi untuk mata kuliah yang sedang dibuka.</p>
+          <button id="add-notes-section-btn" class="token-button" style="width: 100%;"><i class="fas fa-plus"></i> Tambahkan Catatan di Halaman</button>
+        </div>
       </div>
     </div>
   `
@@ -182,424 +239,426 @@ console.log('Token.js sedang dijalankan!')
     background: rgba(30,30,30,0.85);
   }
 
-    #token-runner-popup,
-    .popup-content,
-    .token-card-wrapper,
-    .token-tab-content {
-    transition: all 0.3s ease-in-out;
-    }
+  #token-runner-popup,
+  .popup-content,
+  .token-card-wrapper,
+  .token-tab-content {
+  transition: all 0.3s ease-in-out;
+  }
 
-    #token-runner-popup.collapsed {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      overflow: hidden;
-    }
+  #token-runner-popup.collapsed {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
 
-    /* Minimalist Card Styles */
-    .token-card-wrapper {
-      background: #161616;
-      border-radius: 8px;
-      padding: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Minimalist Card Styles */
+  .token-card-wrapper {
+    background: #161616;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-    }
+  }
 
-    .token-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      // margin-bottom: 14px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
+  .token-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    // margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
-    .token-user-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: #fff;
-      margin: 0;
-      letter-spacing: 0.2px;
-    }
+  .token-user-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
 
-    .token-role-badge {
-      background: rgba(0, 112, 243, 0.1);
-      color: #0070f3;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
+  .token-role-badge {
+    background: rgba(0, 112, 243, 0.1);
+    color: #0070f3;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
 
-    .token-data-grid {
-      margin-bottom: 14px;
-    }
+  .token-data-grid {
+    margin-bottom: 14px;
+  }
 
-    .token-data-item {
-      padding: 8px 10px;
-      margin-bottom: 8px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-    }
+  .token-data-item {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+  }
 
-    .token-info-section {
-      margin: 0;
-    }
+  .token-info-section {
+    margin: 0;
+  }
 
-    .token-info-section p {
-      margin: 0;
-      font-size: 12px;
-      line-height: 1.5;
-    }
+  .token-info-section p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+  }
 
-    .token-key {
-      color: rgba(255, 255, 255, 0.5);
-      font-weight: 400;
-    }
+  .token-key {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
+  }
 
-    .token-value {
-      color: rgba(255, 255, 255, 0.9);
-    }
+  .token-value {
+    color: rgba(255, 255, 255, 0.9);
+  }
 
-    .token-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      // padding-top: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 11px;
-      opacity: 0.3;
-    }
+  .token-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    // padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 11px;
+    opacity: 0.3;
+  }
 
-    .token-footer a {
-      color: rgba(255, 255, 255, 0.7);
-      transition: color 0.2s ease;
-    }
+  .token-footer a {
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.2s ease;
+  }
 
-    .token-footer a:hover {
-      color: rgba(255, 255, 255, 0.9);
-    }
+  .token-footer a:hover {
+    color: rgba(255, 255, 255, 0.9);
+  }
 
-    .token-github-link {
-      margin-left: 8px;
-      opacity: 0.7;
-      transition: opacity 0.2s ease;
-    }
+  .token-github-link {
+    margin-left: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
 
-    .token-github-link:hover {
-      opacity: 1;
-    }
+  .token-github-link:hover {
+    opacity: 1;
+  }
 
-    .popup-toggle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #1e1e1e;
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 10002;
-      transition: transform 0.3s ease;
-    }
+  .popup-toggle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #1e1e1e;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10002;
+    transition: transform 0.3s ease;
+  }
 
-    .popup-toggle:hover {
-      transform: scale(1.05);
-    }
+  .popup-toggle:hover {
+    transform: scale(1.05);
+  }
 
-    .popup-toggle img {
-      width: 30px;
-      height: 30px;
-    }
+  .popup-toggle img {
+    width: 30px;
+    height: 30px;
+  }
 
-    .popup-content {
-      padding-top: 12px;
-      max-height: 500px;
-      display: flex;
-      flex-direction: column;
-      transition: opacity 0.3s ease;
-      opacity: 0;
-      pointer-events: none;
-    }
+  .popup-content {
+    padding-top: 12px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
 
-    #token-runner-popup:not(.collapsed) .popup-content {
-      opacity: 1;
-      pointer-events: all;
-    }
+  #token-runner-popup:not(.collapsed) .popup-content {
+    opacity: 1;
+    pointer-events: all;
+  }
 
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 16px 12px 60px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
+  .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px 12px 60px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
-    .popup-title {
-      font-size: 14px;
-      font-weight: bold;
-      background: linear-gradient(90deg, #f0872d, #fff, #f0872d);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: shimmer 3s infinite linear;
-    }
+  .popup-title {
+    font-size: 14px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #f0872d, #fff, #f0872d);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s infinite linear;
+  }
 
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
 
-    #token-reset-btn {
-      background: rgba(46, 204, 113, 0.2);
-      border: none;
-      cursor: pointer;
-      color: #2ecc71;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      transition: all 0.2s ease;
-    }
+  #token-reset-btn {
+    background: rgba(46, 204, 113, 0.2);
+    border: none;
+    cursor: pointer;
+    color: #2ecc71;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
 
-    #token-reset-btn:hover {
-      background: rgba(46, 204, 113, 0.3);
-      transform: rotate(180deg);
-    }
+  #token-reset-btn:hover {
+    background: rgba(46, 204, 113, 0.3);
+    transform: rotate(180deg);
+  }
 
-    .token-loading-bar {
-      position: absolute;
-      left: 0;
-      height: 2px;
+  .token-loading-bar {
+    position: absolute;
+    left: 0;
+    height: 2px;
+    width: 0%;
+    background-color: #2ecc71;
+    top: 0;
+    transition: width 0.3s ease;
+    display: none;
+    z-index: 10003;
+  }
+
+  .token-loading-bar.active {
+    display: block;
+    animation: loading-progress 1.5s ease infinite;
+  }
+
+  @keyframes loading-progress {
+    0% {
       width: 0%;
-      background-color: #2ecc71;
-      top: 0;
-      transition: width 0.3s ease;
-      display: none;
-      z-index: 10003;
+      left: 0;
     }
-
-    .token-loading-bar.active {
-      display: block;
-      animation: loading-progress 1.5s ease infinite;
+    50% {
+      width: 70%;
+      left: 15%;
     }
-
-    @keyframes loading-progress {
-      0% {
-        width: 0%;
-        left: 0;
-      }
-      50% {
-        width: 70%;
-        left: 15%;
-      }
-      100% {
-        width: 0%;
-        left: 100%;
-      }
+    100% {
+      width: 0%;
+      left: 100%;
     }
+  }
 
-    .token-tabs {
-      display: flex;
-      padding: 0 12px;
-      margin-top: 8px;
-    }
+  .token-tabs {
+    display: flex;
+    padding: 0 12px;
+    margin-top: 8px;
+  }
 
-    .token-tab {
-      padding: 6px 12px;
-      background: transparent;
-      border: none;
-      color: rgba(255, 255, 255, 0.5);
-      cursor: pointer;
-      font-size: 12px;
-      position: relative;
-      transition: color 0.2s ease;
-    }
+  .token-tab {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 12px;
+    position: relative;
+    transition: color 0.2s ease;
+  }
 
-    .token-tab:hover {
-      color: rgba(255, 255, 255, 0.8);
-    }
+  .token-tab:hover {
+    color: rgba(255, 255, 255, 0.8);
+  }
 
-    .token-tab.active {
-      color: #fff;
-    }
+  .token-tab.active {
+    color: #fff;
+  }
 
-    .token-tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 12px;
-      right: 12px;
-      height: 2px;
-      background: #0070f3;
-      border-radius: 2px;
-    }
+  .token-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 12px;
+    right: 12px;
+    height: 2px;
+    background: #0070f3;
+    border-radius: 2px;
+  }
 
-    .token-tab-content {
-      display: none;
-      padding: 10px;
-      flex: 1;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #333 transparent;
-    }
+  .token-tab-content {
+    display: none;
+    padding: 10px;
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
 
-    .token-tab-content::-webkit-scrollbar {
-      width: 4px;
-    }
+  .token-tab-content::-webkit-scrollbar {
+    width: 4px;
+  }
 
-    .token-tab-content::-webkit-scrollbar-track {
-      background: transparent;
-    }
+  .token-tab-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-    .token-tab-content::-webkit-scrollbar-thumb {
-      background-color: #333;
-      border-radius: 4px;
-    }
+  .token-tab-content::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 4px;
+  }
 
-    .token-tab-content.active {
-      display: block;
-    }
+  .token-tab-content.active {
+    display: block;
+  }
 
-    .token-info-section {
-      margin-bottom: 10px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: rgba(255, 255, 255, 0.8);
-    }
+  .token-info-section {
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.8);
+  }
 
-    #forum-list, #student-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+  #forum-list, #student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 
-    .forum-item, .student-item {
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 6px;
-      padding: 10px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      transition: all 0.2s ease;
-    }
+  .forum-item, .student-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+  }
 
-    .forum-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
-    }
+  .forum-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
 
-    .forum-item-header, .student-item-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
+  .forum-item-header, .student-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
 
-    .forum-item-title, .student-item-title {
-      font-weight: normal;
-      color: rgba(255, 255, 255, 0.95);
-      margin: 0;
-      font-size: 13px;
-    }
+  .forum-item-title, .student-item-title {
+    font-weight: normal;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    font-size: 13px;
+  }
 
-    .forum-item-code, .student-item-code {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.5);
-      margin: 0;
-    }
+  .forum-item-code, .student-item-code {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+  }
 
-    .forum-item-link, .student-item-link {
-      display: inline-block;
-      color: rgba(255, 255, 255, 0.9);
-      text-decoration: none;
-      border-radius: 3px;
-      font-size: 14px;
-      transition: color 0.2s ease;
-    }
+  .forum-item-link, .student-item-link {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 14px;
+    transition: color 0.2s ease;
+  }
 
-    .forum-item-link:hover {
-      color: #0070f3;
-    }
+  .forum-item-link:hover {
+    color: #0070f3;
+  }
 
-    .forum-no-data, .student-no-data {
-      color: rgba(255, 255, 255, 0.5);
-      font-style: italic;
-      text-align: center;
-      padding: 12px;
-    }
+  .forum-no-data, .student-no-data {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    text-align: center;
+    padding: 12px;
+  }
 
-    .token-badge {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.6);
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-size: 10px;
-      margin-right: 4px;
-      transition: all 0.2s ease;
-    }
+  .token-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-right: 4px;
+    transition: all 0.2s ease;
+  }
 
-    .forum-item-link:hover .token-badge {
-      background: rgba(0, 112, 243, 0.1);
-      color: #0070f3;
-    }
+  .forum-item-link:hover .token-badge {
+    background: rgba(0, 112, 243, 0.1);
+    color: #0070f3;
+  }
 
-    pre {
-      background: rgba(0, 0, 0, 0.2);
-      padding: 8px;
-      border-radius: 4px;
-      max-height: 150px;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.8);
-      overflow: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #333 transparent;
-    }
+  pre {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    border-radius: 4px;
+    max-height: 150px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
 
-    pre::-webkit-scrollbar {
-      width: 4px;
-    }
+  pre::-webkit-scrollbar {
+    width: 4px;
+  }
 
-    pre::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 4px;
-    }
+  pre::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
 
-    .student-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  .student-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-    .student-details {
-      flex: 1;
-    }
+  .student-details {
+    flex: 1;
+  }
 
-    .student-contact {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.5);
-    }
+  .student-contact {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+  }
 
-    .course-header {
-      background: rgba(255, 255, 255, 0.03);
-      padding: 6px 10px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      font-size: 12px;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.9);
-    }
-  `
-
+  .course-header {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  `;
     document.head.appendChild(style)
     document.body.appendChild(popup)
+
+    // EVENT LISTENER BARU UNTUK TOMBOL CATATAN
+    document.getElementById('add-notes-section-btn').addEventListener('click', injectNotesUI);
 
     // Enhanced refresh function with loading animation
     function refreshAndTrackWithLoading() {
@@ -1343,7 +1402,6 @@ console.log('Token.js sedang dijalankan!')
         </span>
       </div>
       <div class="section-content" id="${sectionId}">
-        <!-- Direct Section Link Button -->
         <div class="section-direct-link">
           <a href="${sectionUrl}" class="section-link-button">
             <i class="fas fa-external-link-alt"></i> Buka Pertemuan
@@ -1382,10 +1440,10 @@ console.log('Token.js sedang dijalankan!')
         // Display learning materials grouped in one card ONLY if there are available materials
         if (availableLearningMaterials.length > 0) {
           html += `
-      <div class="materials-card">
-        <h4>Materi Pembelajaran</h4>
-        <div class="materials-list">
-      `
+    <div class="materials-card">
+      <h4>Materi Pembelajaran</h4>
+      <div class="materials-list">
+    `
 
           availableLearningMaterials.forEach((material) => {
             let url = material.link
@@ -1413,8 +1471,8 @@ console.log('Token.js sedang dijalankan!')
 
           html += `
         </div>
-      </div>
-      `
+    </div>
+    `
         }
 
         // Display other items individually
@@ -1470,139 +1528,139 @@ console.log('Token.js sedang dijalankan!')
           }
 
           html += `
-      <div class="item-card ${completionStatus} ${
+    <div class="item-card ${completionStatus} ${
             warningMessage ? 'has-warning' : ''
           }" ${dataAttrs}>
-        <div class="item-header">
-          <div class="item-icon">
-            ${getItemIcon(item.kode_template)}
-          </div>
-          <div class="item-details">
-            <h4>${item.judul} ${durationText}</h4>
-            ${
-              item.completion
-                ? '<span class="completion-badge">Selesai</span>'
-                : ''
-            }
-          </div>
+      <div class="item-header">
+        <div class="item-icon">
+          ${getItemIcon(item.kode_template)}
         </div>
+        <div class="item-details">
+          <h4>${item.judul} ${durationText}</h4>
+          ${
+            item.completion
+              ? '<span class="completion-badge">Selesai</span>'
+              : ''
+          }
+        </div>
+      </div>
 
-        ${
-          item.konten && item.kode_template === 'FORUM_DISKUSI'
-            ? `
-            <div class="item-content responsive-content">${item.konten}</div>
-            <div class="forum-topics" id="forum-topics-${
-              item.id_trx_course_sub_section || item.id
-            }">
-              <div class="loading-topics">Loading topics...</div>
-            </div>
-            ${(() => {
-              // Fetch topics when rendering forum items
-              const forumId = item.id_trx_course_sub_section || item.id
-              if (forumId) {
-                fetchForumTopics(forumId)
-                  .then((topics) => {
-                    const topicsContainer = document.getElementById(
-                      `forum-topics-${forumId}`
-                    )
-                    if (topicsContainer) {
-                      if (topics && topics.length > 0) {
-                        topicsContainer.innerHTML = topics
-                          .map(
-                            (topic) => `
+      ${
+        item.konten && item.kode_template === 'FORUM_DISKUSI'
+          ? `
+          <div class="item-content responsive-content">${item.konten}</div>
+          <div class="forum-topics" id="forum-topics-${
+            item.id_trx_course_sub_section || item.id
+          }">
+            <div class="loading-topics">Loading topics...</div>
+          </div>
+          ${(() => {
+            // Fetch topics when rendering forum items
+            const forumId = item.id_trx_course_sub_section || item.id
+            if (forumId) {
+              fetchForumTopics(forumId)
+                .then((topics) => {
+                  const topicsContainer = document.getElementById(
+                    `forum-topics-${forumId}`
+                  )
+                  if (topicsContainer) {
+                    if (topics && topics.length > 0) {
+                      topicsContainer.innerHTML = topics
+                        .map(
+                          (topic) => `
                         <a href="https://mentari.unpam.ac.id/u-courses/${kode_course}/forum/${item.id}/topics/${topic.id}"
                            class="topic-badge" ><i class="fas fa-comments"></i>
                           ${topic.judul}
                         </a>
                       `
-                          )
-                          .join('')
-                      } else {
-                        topicsContainer.innerHTML =
-                          '<div class="no-topics">No topics available</div>'
-                      }
-                    }
-                  })
-                  .catch((error) => {
-                    console.error(
-                      'Error loading topics for forum:',
-                      forumId,
-                      error
-                    )
-                    const topicsContainer = document.getElementById(
-                      `forum-topics-${forumId}`
-                    )
-                    if (topicsContainer) {
+                        )
+                        .join('')
+                    } else {
                       topicsContainer.innerHTML =
-                        '<div class="error-topics">Failed to load topics</div>'
+                        '<div class="no-topics">No topics available</div>'
                     }
-                  })
-              }
-              return ''
-            })()}
-            `
-            : item.konten
-            ? `<div class="item-content responsive-content">${item.konten}</div>`
-            : ''
-        }
+                  }
+                })
+                .catch((error) => {
+                  console.error(
+                    'Error loading topics for forum:',
+                    forumId,
+                    error
+                  )
+                  const topicsContainer = document.getElementById(
+                    `forum-topics-${forumId}`
+                  )
+                  if (topicsContainer) {
+                    topicsContainer.innerHTML =
+                      '<div class="error-topics">Failed to load topics</div>'
+                  }
+                })
+            }
+            return ''
+          })()}
+          `
+          : item.konten
+          ? `<div class="item-content responsive-content">${item.konten}</div>`
+          : ''
+      }
 
-        ${
-          warningMessage
-            ? `<div class="warning-message">${warningMessage}</div>`
-            : ''
-        }
+      ${
+        warningMessage
+          ? `<div class="warning-message">${warningMessage}</div>`
+          : ''
+      }
 
-        ${
-          item.file
-            ? `
-          <div class="item-file">
-            <a href="https://mentari.unpam.ac.id/api/file/${item.file}">
-              <i class="fas fa-file-download"></i> Lampiran
-            </a>
-          </div>
-        `
-            : ''
-        }
+      ${
+        item.file
+          ? `
+        <div class="item-file">
+          <a href="https://mentari.unpam.ac.id/api/file/${item.file}">
+            <i class="fas fa-file-download"></i> Lampiran
+          </a>
+        </div>
+      `
+          : ''
+      }
 
-        ${
-          validUrl && !warningMessage
-            ? `
-          <div class="item-action">
-            <a href="${url}" class="action-button" ${
-                item.kode_template === 'PRE_TEST' ||
-                item.kode_template === 'POST_TEST'
-                  ? ''
-                  : item.completion
-                  ? 'disabled'
-                  : ''
-              }>
-              ${getActionText(item.kode_template)}
-            </a>
-          </div>
-        `
-            : validUrl && warningMessage
-            ? `
-          <div class="item-action">
-            <a href="${url}" class="action-button" ${
-                item.kode_template === 'PRE_TEST' ||
-                item.kode_template === 'POST_TEST'
-                  ? ''
-                  : 'disabled'
-              }>
-              ${getActionText(item.kode_template)}
-            </a>
-          </div>
-        `
-            : `
-          <div class="item-action">
-            <span class="action-button disabled">
-              ${getActionText(item.kode_template)} (Tidak Tersedia)
-            </span>
-          </div>
-        `
-        }
-      </div>
-    `
+      ${
+        validUrl && !warningMessage
+          ? `
+        <div class="item-action">
+          <a href="${url}" class="action-button" ${
+              item.kode_template === 'PRE_TEST' ||
+              item.kode_template === 'POST_TEST'
+                ? ''
+                : item.completion
+                ? 'disabled'
+                : ''
+            }>
+            ${getActionText(item.kode_template)}
+          </a>
+        </div>
+      `
+          : validUrl && warningMessage
+          ? `
+        <div class="item-action">
+          <a href="${url}" class="action-button" ${
+              item.kode_template === 'PRE_TEST' ||
+              item.kode_template === 'POST_TEST'
+                ? ''
+                : 'disabled'
+            }>
+            ${getActionText(item.kode_template)}
+          </a>
+        </div>
+      `
+          : `
+        <div class="item-action">
+          <span class="action-button disabled">
+            ${getActionText(item.kode_template)} (Tidak Tersedia)
+          </span>
+        </div>
+      `
+      }
+    </div>
+  `
         })
 
         html += `

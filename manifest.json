@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod v2.4.6",
-  "version": "2.4.6",
+  "name": "Mentari Mod v2.4.7",
+  "version": "2.4.7",
   "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": ["https://mentari.unpam.ac.id/*"],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
   "content_scripts": [
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
@@ -38,8 +43,13 @@
         "https://mentari.unpam.ac.id/login"
       ],
       "js": ["pw.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*"],
+      "js": ["bridge.js"]
     }
   ],
+
   "web_accessible_resources": [
     {
       "resources": ["token.js", "apiKeyManager.js", "img/crDroid-logo.png"],
