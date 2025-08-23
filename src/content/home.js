@@ -18,8 +18,8 @@ const intervalId = setInterval(() => {
   if (bgImage) {
     const isMobile = window.innerWidth <= 768
     const newSrc = isMobile
-      ? 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/img/crDroid-logo-mobile.png'
-      : 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/img/crDroid-logo.png'
+      ? 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/assets/img/crDroid-logo-mobile.png'
+      : 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/assets/img/crDroid-logo.png'
 
     bgImage.src = newSrc
 
