@@ -14,6 +14,68 @@ console.log('Token.js sedang dijalankan!')
     USER_INFO: 'mentari_user_info',
     COURSE_DATA: 'mentari_course_data',
     LAST_UPDATE: 'mentari_last_update',
+    STUDENT_GROUPS: 'mentari_student_groups', 
+  }
+
+  // Fungsi untuk membuat modal konfirmasi kustom
+  function createConfirmationModal() {
+    if (document.getElementById('custom-confirm-modal')) return;
+
+    const modalHTML = `
+      <div id="custom-confirm-overlay" class="custom-confirm-overlay"></div>
+      <div id="custom-confirm-box" class="custom-confirm-box">
+        <div class="custom-confirm-header">
+          <h3 id="custom-confirm-title">Konfirmasi Tindakan</h3>
+        </div>
+        <div class="custom-confirm-content">
+          <p id="custom-confirm-message">Apakah Anda yakin?</p>
+        </div>
+        <div class="custom-confirm-actions">
+          <button id="custom-confirm-cancel" class="custom-confirm-btn custom-confirm-btn-cancel">Batal</button>
+          <button id="custom-confirm-ok" class="custom-confirm-btn custom-confirm-btn-ok">Hapus</button>
+        </div>
+      </div>
+    `;
+    
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'custom-confirm-modal';
+    modalContainer.innerHTML = modalHTML;
+    document.body.appendChild(modalContainer);
+
+    const modal = document.getElementById('custom-confirm-modal');
+    const cancelBtn = document.getElementById('custom-confirm-cancel');
+    const overlay = document.getElementById('custom-confirm-overlay');
+    
+    const hideModal = () => modal.classList.remove('visible');
+
+    cancelBtn.onclick = hideModal;
+    overlay.onclick = hideModal;
+  }
+
+  // Fungsi untuk menampilkan modal konfirmasi kustom
+  function showConfirmationDialog(message, onConfirm) {
+    const modal = document.getElementById('custom-confirm-modal');
+    const messageEl = document.getElementById('custom-confirm-message');
+    const confirmBtn = document.getElementById('custom-confirm-ok');
+
+    if (!modal || !messageEl || !confirmBtn) {
+      console.error("Confirmation modal elements not found!");
+      // Fallback ke confirm bawaan jika modal tidak ada
+      if (confirm(message.replace(/<br\s*\/?>/ig, "\n"))) {
+          onConfirm();
+      }
+      return;
+    }
+    
+    messageEl.innerHTML = message;
+    modal.classList.add('visible');
+
+    // Hapus event listener sebelumnya untuk menghindari penumpukan
+    confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+    document.getElementById('custom-confirm-ok').addEventListener('click', () => {
+        onConfirm();
+        modal.classList.remove('visible');
+    });
   }
 
   function injectNotesUI() {
@@ -99,6 +161,7 @@ console.log('Token.js sedang dijalankan!')
   window.clearCacheData = function () {
     localStorage.removeItem(STORAGE_KEYS.COURSE_DATA)
     localStorage.removeItem(STORAGE_KEYS.LAST_UPDATE)
+    localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS) 
     console.log(
       'Cache data berhasil dihapus. Refresh halaman untuk mengambil data baru.'
     )
@@ -2528,6 +2591,82 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
     }
   }
 
+  // Fungsi baru untuk menampilkan grup dan menambahkan event listener
+  function displayGroups(groups) {
+    const groupResultsDiv = document.getElementById('group-results');
+    const groupResultsCard = document.getElementById('group-results-card');
+    const groupTotalInfoEl = document.getElementById('group-total-info');
+    if (!groupResultsDiv || !groupResultsCard) return;
+
+    const groupCount = groups.length;
+
+    // Tampilkan jumlah total kelompok di judul
+    if (groupTotalInfoEl) {
+        groupTotalInfoEl.textContent = `- ${groupCount} Kelompok`;
+    }
+
+    // Generate HTML
+    let html = '';
+    groups.forEach((group, index) => {
+      html += `
+        <div class="group-container">
+          <div class="group-header">
+            <div>Kelompok ${index + 1}</div>
+            <div class="group-count">${group.length} mahasiswa</div>
+          </div>
+          <div class="group-members">
+      `;
+      group.forEach((student) => {
+        html += `
+          <div class="group-member">
+            <div class="member-absen">${student.absen}</div>
+            <div class="member-name">${student.nama_mahasiswa}</div>
+            <div class="member-nim">${student.nim}</div>
+          </div>
+        `;
+      });
+      html += `
+          </div>
+        </div>
+      `;
+    });
+
+    groupResultsDiv.innerHTML = html;
+    groupResultsCard.style.display = 'block';
+
+    // Event listener untuk menyalin data semua kelompok
+    document.getElementById('copy-all-groups-btn').addEventListener('click', () => {
+      let groupsData = '';
+      groups.forEach((group, index) => {
+        groupsData += `KELOMPOK ${index + 1} (${group.length} mahasiswa)\n`;
+        group.forEach((student) => {
+          groupsData += `${student.absen}. ${student.nama_mahasiswa} (${student.nim})\n`;
+        });
+        groupsData += '\n';
+      });
+      copyToClipboard(groupsData, 'Data kelompok berhasil disalin');
+    });
+
+    // Event listener untuk menghapus kelompok dengan konfirmasi custom modal
+    document.getElementById('delete-groups-btn').addEventListener('click', () => {
+      const confirmationMessage = `Anda akan menghapus <br><b>${groupCount} kelompok</b> yang sudah dibuat. <br>Apakah Anda yakin?`;
+      
+      showConfirmationDialog(confirmationMessage, () => {
+        // Hapus dari local storage
+        localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS);
+        
+        // Sembunyikan card dan hapus isinya
+        groupResultsCard.style.display = 'none';
+        groupResultsDiv.innerHTML = '';
+        if (groupTotalInfoEl) {
+            groupTotalInfoEl.textContent = ''; // Hapus info jumlah
+        }
+        
+        showToast('Data kelompok berhasil dihapus');
+      });
+    });
+  }
+
   // Update student data UI
   function updateStudentUI(courseDataList) {
     const studentTab = document.getElementById('student-data-tab')
@@ -2585,10 +2724,13 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
     const groupResultsCard = `
     <div class="data-card" id="group-results-card" style="display: none;">
       <div class="card-header">
-        <h3 class="card-title">Hasil Pengelompokan</h3>
+        <h3 class="card-title">Hasil Pengelompokan <span id="group-total-info" class="group-total-info"></span></h3>
         <div class="card-actions">
           <button id="copy-all-groups-btn" class="secondary-btn">
             <i class="fas fa-copy"></i> Copy Data
+          </button>
+          <button id="delete-groups-btn" class="danger-btn">
+            <i class="fas fa-trash-alt"></i> Hapus Kelompok
           </button>
         </div>
       </div>
@@ -2633,6 +2775,13 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
   `
 
     studentList.innerHTML = studentsHtml
+    
+    // Cek local storage untuk data kelompok yang sudah ada
+    const savedGroups = getFromLocalStorage(STORAGE_KEYS.STUDENT_GROUPS);
+    if (savedGroups && savedGroups.length > 0) {
+      displayGroups(savedGroups);
+    }
+
 
     // Add event listener to the create groups button
     document
@@ -2653,21 +2802,7 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
           return
         }
 
-        createGroups(allUniqueStudents, groupCount, groupingMethod)
-        document.getElementById('group-results-card').style.display = 'block'
-
-        // Scroll to group results with an offset to keep tabs visible
-        const tabsHeight =
-          document.querySelector('.token-tabs')?.offsetHeight || 50
-        const scrollPosition =
-          document.getElementById('group-results-card').offsetTop -
-          tabsHeight -
-          10
-
-        window.scrollTo({
-          top: scrollPosition,
-          behavior: 'smooth',
-        })
+        createGroups(allUniqueStudents, groupCount, groupingMethod);
       })
 
     // Add copy functionality for student data
@@ -2700,7 +2835,7 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
       }
 
       #group-results-card{
-        margin-bottom: 0;
+        margin-bottom: 1rem;
       }
 
       .card-header {
@@ -2716,7 +2851,16 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         font-size: 16px;
         font-weight: 600;
         color: #eee;
-        margin: 0 0 12px 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .group-total-info {
+        font-size: 14px;
+        font-weight: 500;
+        color: #888;
       }
 
       .card-actions {
@@ -2758,9 +2902,27 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         background: #444;
       }
 
+      .danger-btn {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .danger-btn:hover {
+        background-color: #c0392b;
+      }
+
       /* Grouping Form */
       .grouping-form {
-        margin-bottom: 0px;
+        margin-bottom: 1rem;
       }
 
       .input-group {
@@ -2989,6 +3151,8 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
         animation-fill-mode: forwards;
       }
+      
+      .toast i { color: #2ecc71; }
 
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
@@ -3000,6 +3164,101 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         to { opacity: 0; transform: translateY(20px); }
       }
 
+      /* Custom Confirmation Modal */
+      #custom-confirm-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10005;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      #custom-confirm-modal.visible {
+        display: flex;
+      }
+      .custom-confirm-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.2s ease-out forwards;
+      }
+      .custom-confirm-box {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border: 1px solid #444;
+        width: 90%;
+        max-width: 400px;
+        z-index: 1;
+        transform: scale(0.95);
+        opacity: 0;
+        animation: zoomIn 0.2s ease-out forwards;
+      }
+      #custom-confirm-modal.visible .custom-confirm-box {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .custom-confirm-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #444;
+      }
+      .custom-confirm-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #fff;
+      }
+      .custom-confirm-content {
+        padding: 20px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #ccc;
+      }
+      .custom-confirm-content p {
+        margin: 0;
+      }
+      .custom-confirm-actions {
+        padding: 16px 20px;
+        background-color: #252525;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+      }
+      .custom-confirm-btn {
+        border: none;
+        border-radius: 6px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .custom-confirm-btn-cancel {
+        background-color: #444;
+        color: #f0f0f0;
+      }
+      .custom-confirm-btn-cancel:hover {
+        background-color: #555;
+      }
+      .custom-confirm-btn-ok {
+        background-color: #e74c3c;
+        color: #fff;
+      }
+      .custom-confirm-btn-ok:hover {
+        background-color: #c0392b;
+      }
+      @keyframes zoomIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
       /* Responsive adjustments */
       @media (max-width: 768px) {
         .students-container,
@@ -3007,13 +3266,19 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         }
 
-
         .card-header {
+          flex-direction: column;
           align-items: flex-start;
         }
 
         .card-actions {
-          margin-top: 8px;
+          margin-top: 12px;
+          width: 100%;
+        }
+
+        .card-actions button {
+            flex-grow: 1;
+            justify-content: center;
         }
       }
 
@@ -3024,8 +3289,6 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
           grid-template-columns: 1fr;
         }
         */
-
-
       }
     `
       document.head.appendChild(style)
@@ -3034,8 +3297,6 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
 
   // Function to create and display groups with improved distribution logic
   function createGroups(students, groupCount, method) {
-    const groupResultsDiv = document.getElementById('group-results')
-
     // Make a copy of the students array to avoid modifying the original
     let studentsToDivide = [...students]
 
@@ -3061,7 +3322,6 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
 
     for (let i = 0; i < groupCount; i++) {
       // Calculate group size: if i < remainder, add 1 extra student
-      // This ensures the extra students are distributed evenly among the first 'remainder' groups
       const groupSize = baseSize + (i < remainder ? 1 : 0)
 
       // Skip creating empty groups
@@ -3074,110 +3334,12 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         currentIndex += groupSize
       }
     }
-
-    // Alternative distribution logic for special cases
-    const lastGroupIndex = groups.length - 1
-
-    // If the last group has significantly fewer members (less than half of average)
-    if (
-      groups.length > 1 &&
-      groups[lastGroupIndex].length < baseSize / 2 &&
-      groups[lastGroupIndex].length <= 2
-    ) {
-      const lastGroup = groups.pop() // Remove the last group
-
-      // Distribute these students to other groups
-      lastGroup.forEach((student, index) => {
-        // Add each student to a different group, cycling through all groups
-        const targetGroupIndex = index % groups.length
-        groups[targetGroupIndex].push(student)
-      })
-    }
-
-    // Generate HTML
-    let html = ''
-    groups.forEach((group, index) => {
-      html += `
-      <div class="group-container">
-        <div class="group-header">
-          <div>Kelompok ${index + 1}</div>
-          <div class="group-count">${group.length} mahasiswa</div>
-        </div>
-        <div class="group-members">
-    `
-
-      group.forEach((student) => {
-        html += `
-        <div class="group-member">
-          <div class="member-absen">${student.absen}</div>
-          <div class="member-name">${student.nama_mahasiswa}</div>
-          <div class="member-nim">${student.nim}</div>
-        </div>
-      `
-      })
-
-      html += `
-        </div>
-      </div>
-    `
-    })
-
-    groupResultsDiv.innerHTML = html
-
-    // Add event listener for copying all groups data
-    document
-      .getElementById('copy-all-groups-btn')
-      .addEventListener('click', () => {
-        let groupsData = ''
-
-        groups.forEach((group, index) => {
-          groupsData += `KELOMPOK ${index + 1} (${group.length} mahasiswa)\n`
-
-          group.forEach((student) => {
-            groupsData += `${student.absen}. ${student.nama_mahasiswa} (${student.nim})\n`
-          })
-
-          groupsData += '\n'
-        })
-
-        copyToClipboard(groupsData, 'Data kelompok berhasil disalin')
-      })
-  }
-
-  // Function to copy text to clipboard and show notification
-  function copyToClipboard(text, message) {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        showToast(message)
-      })
-      .catch((err) => {
-        showToast('Gagal menyalin: ' + err)
-      })
-  }
-
-  // Function to show toast notification
-  function showToast(message) {
-    // Remove existing toast if any
-    const existingToast = document.querySelector('.toast')
-    if (existingToast) {
-      existingToast.remove()
-    }
-
-    // Create new toast
-    const toast = document.createElement('div')
-    toast.className = 'toast'
-    toast.innerHTML = `
-    <i class="fas fa-check-circle"></i>
-    <span>${message}</span>
-  `
-
-    document.body.appendChild(toast)
-
-    // Remove toast after 3 seconds
-    setTimeout(() => {
-      toast.remove()
-    }, 3000)
+    
+    // Simpan hasil ke local storage
+    saveToLocalStorage(STORAGE_KEYS.STUDENT_GROUPS, groups);
+    
+    // Panggil fungsi untuk menampilkan grup di UI
+    displayGroups(groups);
   }
 
   // Function to copy text to clipboard and show notification
@@ -3555,6 +3717,7 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
   // Initialize
   function init() {
     createPopupUI()
+    createConfirmationModal();
     interceptXHR()
     interceptFetch()
 
