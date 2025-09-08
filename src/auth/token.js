@@ -37,7 +37,7 @@ console.log('Token.js sedang dijalankan!')
 
     const mainContentArea = document.querySelector('h6.MuiTypography-subtitle1');
     if (!mainContentArea) {
-      alert('Judul mata kuliah tidak ditemukan. Pastikan Anda berada di halaman utama sebuah mata kuliah.');
+      showCustomAlert('Judul mata kuliah tidak ditemukan. Pastikan Anda berada di halaman utama sebuah mata kuliah.', 'error');
       return;
     }
 
@@ -114,6 +114,54 @@ console.log('Token.js sedang dijalankan!')
     checkStorages()
     fetchCoursesListAndDetails(true) // Force refresh
   }
+
+function showCustomAlert(message, type = 'error', duration = 5000) {
+  const existingAlert = document.getElementById('custom-alert-mentari');
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+
+  // elemen utama notifikasi
+  const alertElement = document.createElement('div');
+  alertElement.id = 'custom-alert-mentari';
+  alertElement.className = `custom-alert-mentari ${type}`;
+
+  const icons = {
+    error: `
+      <svg fill="#e74c3c" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm1,15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/>
+      </svg>`,
+    success: `
+      <svg fill="#2ecc71" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm-2,15-5-5,1.41-1.41L10,14.17l7.59-7.59L19,8l-9,9Z"/>
+      </svg>`
+  };
+
+  alertElement.innerHTML = `
+    <div class="alert-icon">${icons[type] || ''}</div>
+    <div class="alert-message">${message}</div>
+    <button class="alert-close-btn">&times;</button>
+  `;
+
+  document.body.appendChild(alertElement);
+
+  // Fungsi untuk menghapus notifikasi dengan animasi
+  const removeAlert = () => {
+    alertElement.classList.add('fade-out');
+    // Tunggu animasi selesai sebelum menghapus elemen dari DOM
+    setTimeout(() => {
+      if (alertElement) alertElement.remove();
+    }, 300);
+  };
+
+  const timeoutId = setTimeout(removeAlert, duration);
+
+  // Tambahkan event listener untuk tombol close
+  alertElement.querySelector('.alert-close-btn').addEventListener('click', () => {
+    clearTimeout(timeoutId); // Batalkan auto-remove jika ditutup manual
+    removeAlert();
+  });
+}
 
   // Buat popup UI
   function createPopupUI() {
@@ -653,6 +701,82 @@ console.log('Token.js sedang dijalankan!')
     font-weight: bold;
     color: rgba(255, 255, 255, 0.9);
   }
+
+  .custom-alert-mentari {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 8px;
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+    border: 1px solid #444;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    animation: fadeInDown 0.3s ease-out forwards;
+    width: auto;
+    max-width: calc(100% - 40px);
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .custom-alert-mentari.fade-out {
+    animation: fadeOutUp 0.3s ease-in forwards;
+  }
+
+  .custom-alert-mentari.error {
+    border-left: 4px solid #e74c3c;
+  }
+  .custom-alert-mentari.success {
+    border-left: 4px solid #2ecc71;
+  }
+
+  .custom-alert-mentari .alert-icon {
+    flex-shrink: 0;
+  }
+  .custom-alert-mentari .alert-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .custom-alert-mentari .alert-message {
+    font-size: 14px;
+  }
+
+  .custom-alert-mentari .alert-close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 0 0 10px;
+    line-height: 1;
+    transition: color 0.2s ease;
+  }
+  .custom-alert-mentari .alert-close-btn:hover {
+    color: #fff;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  @keyframes fadeOutUp {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to { opacity: 0; transform: translate(-50%, -20px); }
+  }
+
+  .tombol-baru {
+  background-color: #ff5722;
+  color: white;
+  border-radius: 20px;
+  }
   `;
     document.head.appendChild(style)
     document.body.appendChild(popup)
@@ -1164,7 +1288,7 @@ console.log('Token.js sedang dijalankan!')
         <a href="https://instagram.com/nando_fiingerstyle" target="_blank">
       <img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" alt="Instagram" />
     </a>
-    <a href="https://t.me/DeanPerformer" target="_blank">
+    <a href="https://t.me/Vynix77" target="_blank">
       <img src="https://img.icons8.com/?size=100&id=lUktdBVdL4Kb&format=png&color=ffffff" width="18" alt="Telegram" />
     </a>
         <a href="https://github.com/AnandaAnugrahHandyanto" target="_blank">
