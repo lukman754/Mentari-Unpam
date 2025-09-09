@@ -14,12 +14,12 @@ console.log('Token.js sedang dijalankan!')
     USER_INFO: 'mentari_user_info',
     COURSE_DATA: 'mentari_course_data',
     LAST_UPDATE: 'mentari_last_update',
-    STUDENT_GROUPS: 'mentari_student_groups', 
+    STUDENT_GROUPS: 'mentari_student_groups',
   }
 
   // Fungsi untuk membuat modal konfirmasi kustom
   function createConfirmationModal() {
-    if (document.getElementById('custom-confirm-modal')) return;
+    if (document.getElementById('custom-confirm-modal')) return
 
     const modalHTML = `
       <div id="custom-confirm-overlay" class="custom-confirm-overlay"></div>
@@ -35,53 +35,55 @@ console.log('Token.js sedang dijalankan!')
           <button id="custom-confirm-ok" class="custom-confirm-btn custom-confirm-btn-ok">Hapus</button>
         </div>
       </div>
-    `;
-    
-    const modalContainer = document.createElement('div');
-    modalContainer.id = 'custom-confirm-modal';
-    modalContainer.innerHTML = modalHTML;
-    document.body.appendChild(modalContainer);
+    `
 
-    const modal = document.getElementById('custom-confirm-modal');
-    const cancelBtn = document.getElementById('custom-confirm-cancel');
-    const overlay = document.getElementById('custom-confirm-overlay');
-    
-    const hideModal = () => modal.classList.remove('visible');
+    const modalContainer = document.createElement('div')
+    modalContainer.id = 'custom-confirm-modal'
+    modalContainer.innerHTML = modalHTML
+    document.body.appendChild(modalContainer)
 
-    cancelBtn.onclick = hideModal;
-    overlay.onclick = hideModal;
+    const modal = document.getElementById('custom-confirm-modal')
+    const cancelBtn = document.getElementById('custom-confirm-cancel')
+    const overlay = document.getElementById('custom-confirm-overlay')
+
+    const hideModal = () => modal.classList.remove('visible')
+
+    cancelBtn.onclick = hideModal
+    overlay.onclick = hideModal
   }
 
   // Fungsi untuk menampilkan modal konfirmasi kustom
   function showConfirmationDialog(message, onConfirm) {
-    const modal = document.getElementById('custom-confirm-modal');
-    const messageEl = document.getElementById('custom-confirm-message');
-    const confirmBtn = document.getElementById('custom-confirm-ok');
+    const modal = document.getElementById('custom-confirm-modal')
+    const messageEl = document.getElementById('custom-confirm-message')
+    const confirmBtn = document.getElementById('custom-confirm-ok')
 
     if (!modal || !messageEl || !confirmBtn) {
-      console.error("Confirmation modal elements not found!");
+      console.error('Confirmation modal elements not found!')
       // Fallback ke confirm bawaan jika modal tidak ada
-      if (confirm(message.replace(/<br\s*\/?>/ig, "\n"))) {
-          onConfirm();
+      if (confirm(message.replace(/<br\s*\/?>/gi, '\n'))) {
+        onConfirm()
       }
-      return;
+      return
     }
-    
-    messageEl.innerHTML = message;
-    modal.classList.add('visible');
+
+    messageEl.innerHTML = message
+    modal.classList.add('visible')
 
     // Hapus event listener sebelumnya untuk menghindari penumpukan
-    confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+    confirmBtn.replaceWith(confirmBtn.cloneNode(true))
     document.getElementById('custom-confirm-ok').addEventListener('click', () => {
-        onConfirm();
-        modal.classList.remove('visible');
-    });
+      onConfirm()
+      modal.classList.remove('visible')
+    })
   }
 
   function injectNotesUI() {
     if (document.getElementById('catatan-mentari-container')) {
-      document.getElementById('catatan-mentari-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
+      document
+        .getElementById('catatan-mentari-container')
+        .scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
     }
 
     const cssRules = `
@@ -89,53 +91,61 @@ console.log('Token.js sedang dijalankan!')
         #catatan-mentari-container h3 { margin-top: 0; color: #f0f0f0; border-bottom: 1px solid #444; padding-bottom: 10px; }
         #catatan-mentari-textarea { width: 100%; min-height: 120px; box-sizing: border-box; background-color: #1e1e1e; color: #f0f0f0; border: 1px solid #555; border-radius: 4px; padding: 10px; font-size: 14px; margin-bottom: 10px; }
         #catatan-mentari-simpan-btn { background-color: #0070f3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    `;
-    const styleElement = document.createElement('style');
-    styleElement.id = 'catatan-mentari-styles';
+    `
+    const styleElement = document.createElement('style')
+    styleElement.id = 'catatan-mentari-styles'
     if (!document.getElementById(styleElement.id)) {
-        document.head.appendChild(styleElement);
+      document.head.appendChild(styleElement)
     }
-    styleElement.textContent = cssRules;
+    styleElement.textContent = cssRules
 
-    const mainContentArea = document.querySelector('h6.MuiTypography-subtitle1');
+    const mainContentArea = document.querySelector('h6.MuiTypography-subtitle1')
     if (!mainContentArea) {
-      showCustomAlert('Judul mata kuliah tidak ditemukan. Pastikan Anda berada di halaman utama sebuah mata kuliah.', 'error');
-      return;
+      showCustomAlert(
+        'Judul mata kuliah tidak ditemukan. Pastikan Anda berada di halaman utama sebuah mata kuliah.',
+        'error'
+      )
+      return
     }
 
-    const noteContainer = document.createElement('div');
-    noteContainer.id = 'catatan-mentari-container';
+    const noteContainer = document.createElement('div')
+    noteContainer.id = 'catatan-mentari-container'
     noteContainer.innerHTML = `
         <h3>Catatan Pribadi untuk Mata Kuliah Ini</h3>
         <textarea id="catatan-mentari-textarea" placeholder="Tulis apapun di sini..."></textarea>
         <button id="catatan-mentari-simpan-btn">Simpan Catatan</button>
         <span id="simpan-status" style="margin-left: 10px; color: #2ecc71;"></span>
-    `;
+    `
 
-    mainContentArea.parentNode.insertBefore(noteContainer, mainContentArea.nextSibling);
+    mainContentArea.parentNode.insertBefore(
+      noteContainer,
+      mainContentArea.nextSibling
+    )
 
-    const noteTextarea = document.getElementById('catatan-mentari-textarea');
-    const saveButton = document.getElementById('catatan-mentari-simpan-btn');
-    const saveStatus = document.getElementById('simpan-status');
-    const courseTitle = mainContentArea.textContent.trim();
-    const storageKey = 'catatan_mentari_' + courseTitle;
+    const noteTextarea = document.getElementById('catatan-mentari-textarea')
+    const saveButton = document.getElementById('catatan-mentari-simpan-btn')
+    const saveStatus = document.getElementById('simpan-status')
+    const courseTitle = mainContentArea.textContent.trim()
+    const storageKey = 'catatan_mentari_' + courseTitle
 
     function loadCatatan() {
-        const savedNote = localStorage.getItem(storageKey);
-        if (savedNote) {
-            noteTextarea.value = savedNote;
-        }
+      const savedNote = localStorage.getItem(storageKey)
+      if (savedNote) {
+        noteTextarea.value = savedNote
+      }
     }
 
-    saveButton.addEventListener('click', function() {
-        const catatanTeks = noteTextarea.value;
-        localStorage.setItem(storageKey, catatanTeks);
+    saveButton.addEventListener('click', function () {
+      const catatanTeks = noteTextarea.value
+      localStorage.setItem(storageKey, catatanTeks)
 
-        saveStatus.textContent = 'Tersimpan!';
-        setTimeout(() => { saveStatus.textContent = ''; }, 2000);
-    });
+      saveStatus.textContent = 'Tersimpan!'
+      setTimeout(() => {
+        saveStatus.textContent = ''
+      }, 2000)
+    })
 
-    loadCatatan();
+    loadCatatan()
   }
 
   function saveToLocalStorage(key, data) {
@@ -161,7 +171,7 @@ console.log('Token.js sedang dijalankan!')
   window.clearCacheData = function () {
     localStorage.removeItem(STORAGE_KEYS.COURSE_DATA)
     localStorage.removeItem(STORAGE_KEYS.LAST_UPDATE)
-    localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS) 
+    localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS)
     console.log(
       'Cache data berhasil dihapus. Refresh halaman untuk mengambil data baru.'
     )
@@ -178,53 +188,53 @@ console.log('Token.js sedang dijalankan!')
     fetchCoursesListAndDetails(true) // Force refresh
   }
 
-function showCustomAlert(message, type = 'error', duration = 5000) {
-  const existingAlert = document.getElementById('custom-alert-mentari');
-  if (existingAlert) {
-    existingAlert.remove();
-  }
+  function showCustomAlert(message, type = 'error', duration = 5000) {
+    const existingAlert = document.getElementById('custom-alert-mentari')
+    if (existingAlert) {
+      existingAlert.remove()
+    }
 
-  // elemen utama notifikasi
-  const alertElement = document.createElement('div');
-  alertElement.id = 'custom-alert-mentari';
-  alertElement.className = `custom-alert-mentari ${type}`;
+    // elemen utama notifikasi
+    const alertElement = document.createElement('div')
+    alertElement.id = 'custom-alert-mentari'
+    alertElement.className = `custom-alert-mentari ${type}`
 
-  const icons = {
-    error: `
+    const icons = {
+      error: `
       <svg fill="#e74c3c" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm1,15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/>
       </svg>`,
-    success: `
+      success: `
       <svg fill="#2ecc71" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm-2,15-5-5,1.41-1.41L10,14.17l7.59-7.59L19,8l-9,9Z"/>
-      </svg>`
-  };
+      </svg>`,
+    }
 
-  alertElement.innerHTML = `
+    alertElement.innerHTML = `
     <div class="alert-icon">${icons[type] || ''}</div>
     <div class="alert-message">${message}</div>
     <button class="alert-close-btn">&times;</button>
-  `;
+  `
 
-  document.body.appendChild(alertElement);
+    document.body.appendChild(alertElement)
 
-  // Fungsi untuk menghapus notifikasi dengan animasi
-  const removeAlert = () => {
-    alertElement.classList.add('fade-out');
-    // Tunggu animasi selesai sebelum menghapus elemen dari DOM
-    setTimeout(() => {
-      if (alertElement) alertElement.remove();
-    }, 300);
-  };
+    // Fungsi untuk menghapus notifikasi dengan animasi
+    const removeAlert = () => {
+      alertElement.classList.add('fade-out')
+      // Tunggu animasi selesai sebelum menghapus elemen dari DOM
+      setTimeout(() => {
+        if (alertElement) alertElement.remove()
+      }, 300)
+    }
 
-  const timeoutId = setTimeout(removeAlert, duration);
+    const timeoutId = setTimeout(removeAlert, duration)
 
-  // Tambahkan event listener untuk tombol close
-  alertElement.querySelector('.alert-close-btn').addEventListener('click', () => {
-    clearTimeout(timeoutId); // Batalkan auto-remove jika ditutup manual
-    removeAlert();
-  });
-}
+    // Tambahkan event listener untuk tombol close
+    alertElement.querySelector('.alert-close-btn').addEventListener('click', () => {
+      clearTimeout(timeoutId) // Batalkan auto-remove jika ditutup manual
+      removeAlert()
+    })
+  }
 
   // Buat popup UI
   function createPopupUI() {
@@ -255,7 +265,9 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
       <div class="token-tabs">
         <button class="token-tab active" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
-        <button class="token-tab" data-tab="notes-data">Catatan</button> <button class="token-tab" data-tab="user-info">Setting</button>
+        <button class="token-tab" data-tab="notes-data">Catatan</button>
+        <button class="token-tab" data-tab="feedback-data">Umpan Balik</button>
+        <button class="token-tab" data-tab="user-info">Setting</button>
       </div>
       <div class="token-tab-content" id="user-info-tab">
         </div>
@@ -274,6 +286,31 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         <div class="token-info-section" style="text-align:center; padding: 20px;">
           <p style="margin-bottom: 15px;">Buat catatan pribadi untuk mata kuliah yang sedang dibuka.</p>
           <button id="add-notes-section-btn" class="token-button" style="width: 100%;"><i class="fas fa-plus"></i> Tambahkan Catatan di Halaman</button>
+        </div>
+      </div>
+      <div class="token-tab-content" id="feedback-data-tab">
+        <div class="feedback-container">
+            <h3>Beri Masukan untuk Kami</h3>
+            <p>Setiap masukan Anda sangat berarti untuk pengembangan MENTARI MOD agar menjadi lebih baik. Silakan pilih salah satu opsi di bawah ini.</p>
+            <div class="feedback-actions">
+                <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues/new?template=bug_report.md&title=[BUG]%20Judul%20Bug" target="_blank" class="feedback-button bug">
+                    <i class="fas fa-bug"></i>
+                    <div>
+                        <span>Laporkan Bug</span>
+                        <small>Menemukan sesuatu yang tidak berfungsi?</small>
+                    </div>
+                </a>
+                <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues/new?template=feature_request.md&title=[FITUR]%20Saran%20Fitur" target="_blank" class="feedback-button feature">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <span>Saran Fitur Baru</span>
+                        <small>Punya ide cemerlang untuk kami?</small>
+                    </div>
+                </a>
+            </div>
+            <div class="feedback-footer">
+                <p>Anda akan diarahkan ke halaman GitHub Issues. Mohon jelaskan sedetail mungkin agar kami dapat memahaminya dengan baik.</p>
+            </div>
         </div>
       </div>
     </div>
@@ -840,12 +877,84 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
   color: white;
   border-radius: 20px;
   }
+
+  .feedback-container {
+      padding: 15px;
+      text-align: center;
+      color: #f0f0f0;
+  }
+  .feedback-container h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #fff;
+  }
+  .feedback-container p {
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.6;
+      max-width: 350px;
+      margin: 10px auto 20px auto;
+  }
+  .feedback-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+  }
+  .feedback-button {
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 15px;
+      text-decoration: none;
+      color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+  }
+  .feedback-button:hover {
+      border-color: #0070f3;
+      background-color: #333;
+      transform: translateY(-2px);
+  }
+  .feedback-button i {
+      font-size: 20px;
+  }
+  .feedback-button.bug i {
+      color: #e74c3c;
+  }
+  .feedback-button.feature i {
+      color: #f1c40f;
+  }
+  .feedback-button div {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+  }
+  .feedback-button span {
+      font-weight: 600;
+  }
+  .feedback-button small {
+      font-size: 12px;
+      color: #888;
+  }
+  .feedback-footer {
+      margin-top: 20px;
+      border-top: 1px solid #333;
+      padding-top: 15px;
+  }
+  .feedback-footer p {
+      font-size: 11px;
+      color: #666;
+  }
   `;
     document.head.appendChild(style)
     document.body.appendChild(popup)
 
     // EVENT LISTENER BARU UNTUK TOMBOL CATATAN
-    document.getElementById('add-notes-section-btn').addEventListener('click', injectNotesUI);
+    document
+      .getElementById('add-notes-section-btn')
+      .addEventListener('click', injectNotesUI)
 
     // Enhanced refresh function with loading animation
     function refreshAndTrackWithLoading() {
@@ -1240,7 +1349,9 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
     tokenTab.innerHTML = `
       <div class="token-info-section">
         <h4>Bearer Token</h4>
-        <p><span class="token-value">${tokenDisplay || 'Tidak ditemukan'}</span>
+        <p><span class="token-value">${
+          tokenDisplay || 'Tidak ditemukan'
+        }</span>
           <button class="token-copy-btn" data-copy="${token}">Copy</button>
         </p>
       </div>
@@ -2593,20 +2704,20 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
 
   // Fungsi baru untuk menampilkan grup dan menambahkan event listener
   function displayGroups(groups) {
-    const groupResultsDiv = document.getElementById('group-results');
-    const groupResultsCard = document.getElementById('group-results-card');
-    const groupTotalInfoEl = document.getElementById('group-total-info');
-    if (!groupResultsDiv || !groupResultsCard) return;
+    const groupResultsDiv = document.getElementById('group-results')
+    const groupResultsCard = document.getElementById('group-results-card')
+    const groupTotalInfoEl = document.getElementById('group-total-info')
+    if (!groupResultsDiv || !groupResultsCard) return
 
-    const groupCount = groups.length;
+    const groupCount = groups.length
 
     // Tampilkan jumlah total kelompok di judul
     if (groupTotalInfoEl) {
-        groupTotalInfoEl.textContent = `- ${groupCount} Kelompok`;
+      groupTotalInfoEl.textContent = `- ${groupCount} Kelompok`
     }
 
     // Generate HTML
-    let html = '';
+    let html = ''
     groups.forEach((group, index) => {
       html += `
         <div class="group-container">
@@ -2615,7 +2726,7 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
             <div class="group-count">${group.length} mahasiswa</div>
           </div>
           <div class="group-members">
-      `;
+      `
       group.forEach((student) => {
         html += `
           <div class="group-member">
@@ -2623,48 +2734,52 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
             <div class="member-name">${student.nama_mahasiswa}</div>
             <div class="member-nim">${student.nim}</div>
           </div>
-        `;
-      });
+        `
+      })
       html += `
           </div>
         </div>
-      `;
-    });
+      `
+    })
 
-    groupResultsDiv.innerHTML = html;
-    groupResultsCard.style.display = 'block';
+    groupResultsDiv.innerHTML = html
+    groupResultsCard.style.display = 'block'
 
     // Event listener untuk menyalin data semua kelompok
-    document.getElementById('copy-all-groups-btn').addEventListener('click', () => {
-      let groupsData = '';
-      groups.forEach((group, index) => {
-        groupsData += `KELOMPOK ${index + 1} (${group.length} mahasiswa)\n`;
-        group.forEach((student) => {
-          groupsData += `${student.absen}. ${student.nama_mahasiswa} (${student.nim})\n`;
-        });
-        groupsData += '\n';
-      });
-      copyToClipboard(groupsData, 'Data kelompok berhasil disalin');
-    });
+    document
+      .getElementById('copy-all-groups-btn')
+      .addEventListener('click', () => {
+        let groupsData = ''
+        groups.forEach((group, index) => {
+          groupsData += `KELOMPOK ${index + 1} (${group.length} mahasiswa)\n`
+          group.forEach((student) => {
+            groupsData += `${student.absen}. ${student.nama_mahasiswa} (${student.nim})\n`
+          })
+          groupsData += '\n'
+        })
+        copyToClipboard(groupsData, 'Data kelompok berhasil disalin')
+      })
 
     // Event listener untuk menghapus kelompok dengan konfirmasi custom modal
-    document.getElementById('delete-groups-btn').addEventListener('click', () => {
-      const confirmationMessage = `Anda akan menghapus <br><b>${groupCount} kelompok</b> yang sudah dibuat. <br>Apakah Anda yakin?`;
-      
-      showConfirmationDialog(confirmationMessage, () => {
-        // Hapus dari local storage
-        localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS);
-        
-        // Sembunyikan card dan hapus isinya
-        groupResultsCard.style.display = 'none';
-        groupResultsDiv.innerHTML = '';
-        if (groupTotalInfoEl) {
-            groupTotalInfoEl.textContent = ''; // Hapus info jumlah
-        }
-        
-        showToast('Data kelompok berhasil dihapus');
-      });
-    });
+    document
+      .getElementById('delete-groups-btn')
+      .addEventListener('click', () => {
+        const confirmationMessage = `Anda akan menghapus <br><b>${groupCount} kelompok</b> yang sudah dibuat. <br>Apakah Anda yakin?`
+
+        showConfirmationDialog(confirmationMessage, () => {
+          // Hapus dari local storage
+          localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS)
+
+          // Sembunyikan card dan hapus isinya
+          groupResultsCard.style.display = 'none'
+          groupResultsDiv.innerHTML = ''
+          if (groupTotalInfoEl) {
+            groupTotalInfoEl.textContent = '' // Hapus info jumlah
+          }
+
+          showToast('Data kelompok berhasil dihapus')
+        })
+      })
   }
 
   // Update student data UI
@@ -2775,13 +2890,12 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
   `
 
     studentList.innerHTML = studentsHtml
-    
-    // Cek local storage untuk data kelompok yang sudah ada
-    const savedGroups = getFromLocalStorage(STORAGE_KEYS.STUDENT_GROUPS);
-    if (savedGroups && savedGroups.length > 0) {
-      displayGroups(savedGroups);
-    }
 
+    // Cek local storage untuk data kelompok yang sudah ada
+    const savedGroups = getFromLocalStorage(STORAGE_KEYS.STUDENT_GROUPS)
+    if (savedGroups && savedGroups.length > 0) {
+      displayGroups(savedGroups)
+    }
 
     // Add event listener to the create groups button
     document
@@ -2802,7 +2916,7 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
           return
         }
 
-        createGroups(allUniqueStudents, groupCount, groupingMethod);
+        createGroups(allUniqueStudents, groupCount, groupingMethod)
       })
 
     // Add copy functionality for student data
@@ -3334,12 +3448,12 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
         currentIndex += groupSize
       }
     }
-    
+
     // Simpan hasil ke local storage
-    saveToLocalStorage(STORAGE_KEYS.STUDENT_GROUPS, groups);
-    
+    saveToLocalStorage(STORAGE_KEYS.STUDENT_GROUPS, groups)
+
     // Panggil fungsi untuk menampilkan grup di UI
-    displayGroups(groups);
+    displayGroups(groups)
   }
 
   // Function to copy text to clipboard and show notification
@@ -3717,7 +3831,7 @@ function showCustomAlert(message, type = 'error', duration = 5000) {
   // Initialize
   function init() {
     createPopupUI()
-    createConfirmationModal();
+    createConfirmationModal()
     interceptXHR()
     interceptFetch()
 
