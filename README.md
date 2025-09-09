@@ -5,8 +5,8 @@
 
 ### _Manajemen Terpadu Pembelajaran Daring_
 
-[![GitHub issues](https://img.shields.io/github/issues/Lukman754/mentari-unpam?color=green&style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/issues)
-[![GitHub stars](https://img.shields.io/github/stars/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/AnandaAnugrahHandyanto/mentari_unpam-mod?color=green&style=for-the-badge)](https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues)
+[![GitHub stars](https://img.shields.io/github/stars/AnandaAnugrahHandyanto/mentari_unpam-mod?style=for-the-badge)](https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/stargazers)
 [![GitHub license](https://img.shields.io/github/license/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam)
 
 </div>
@@ -71,10 +71,10 @@
 ## 📦 Download
 
 <div style="width: 100%; display: flex; gap: 10px;">
-    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/archive/refs/tags/v3.2.zip" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/archive/refs/tags/v3.4.zip" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Extension%20ZIP-FFA000?style=for-the-badge&logo=googlechrome" style="width: 60%;">
     </a>
-    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v3.2/MentariEnhancer_v3.2.apk" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v3.4/MentariEnhancer_v3.4.apk" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android" style="width: 60%;">
     </a>
 

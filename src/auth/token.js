@@ -17,6 +17,51 @@ console.log('Token.js sedang dijalankan!')
     STUDENT_GROUPS: 'mentari_student_groups',
   }
 
+async function checkForUpdates() {
+  try {
+    const manifestUrl = 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/manifest.json?_=' + new Date().getTime();
+
+    const response = await fetch(manifestUrl);
+    if (!response.ok) {
+      console.error('Gagal mengambil manifest dari GitHub.');
+      return null;
+    }
+
+    const remoteManifest = await response.json();
+    const remoteVersion = remoteManifest.version;
+    const tokenScriptElement = document.getElementById('mentari-mod-token-script');
+    const localVersion = tokenScriptElement.dataset.version;
+
+    // Bandingkan Versi
+    const compareVersions = (v1, v2) => {
+        const parts1 = v1.split('.').map(Number);
+        const parts2 = v2.split('.').map(Number);
+        const len = Math.max(parts1.length, parts2.length);
+        for (let i = 0; i < len; i++) {
+            const p1 = parts1[i] || 0;
+            const p2 = parts2[i] || 0;
+            if (p1 > p2) return 1;
+            if (p2 > p1) return -1;
+        }
+        return 0;
+    };
+
+    // Jika versi remote lebih baru
+    if (compareVersions(remoteVersion, localVersion) > 0) {
+      return {
+        isUpdateAvailable: true,
+        newVersion: remoteVersion,
+        releaseUrl: 'https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/latest'
+      };
+    }
+
+    return { isUpdateAvailable: false };
+  } catch (error) {
+    console.error('Error saat memeriksa pembaruan:', error);
+    return null;
+  }
+}
+
   // Fungsi untuk membuat modal konfirmasi kustom
   function createConfirmationModal() {
     if (document.getElementById('custom-confirm-modal')) return
@@ -1558,14 +1603,30 @@ console.log('Token.js sedang dijalankan!')
   }
 
   // Update forum data UI
-  function updateForumUI(courseDataList) {
+  async function updateForumUI(courseDataList) {
     const forumTab = document.getElementById('forum-data-tab')
     if (!forumTab) return
 
     const forumList = document.getElementById('forum-list')
     if (!forumList) return
+    
+    const updateStatus = await checkForUpdates();
+    let updateHtml = '';
 
-    let html = ''
+  if (updateStatus && updateStatus.isUpdateAvailable) {
+    updateHtml = `
+      <div id="update-notification" style="background-color: #2e2e2e; border: 1px solid #4CAF50; border-radius: 8px; padding: 15px; margin-bottom: 12px; text-align: center;">
+        <h4 style="margin: 0 0 8px 0; color: #4CAF50;">🚀 Pembaruan Tersedia! (v${updateStatus.newVersion})</h4>
+        <p style="margin: 0 0 12px 0; font-size: 13px; color: #ccc;">Versi baru Mentari Mod telah dirilis dengan fitur dan perbaikan terbaru.</p>
+        <a href="${updateStatus.releaseUrl}" target="_blank" style="background-color: #4CAF50; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; font-weight: 500;">
+          Update Sekarang
+        </a>
+      </div>
+    `;
+  }
+
+  let html = ''
+  html += updateHtml;
 
     // Add presensi button at the top
     html += `
@@ -3572,7 +3633,7 @@ console.log('Token.js sedang dijalankan!')
           'courses'
         )
         courseDataList = cachedCourseData
-        updateForumUI(courseDataList)
+        await updateForumUI(courseDataList)
         updateStudentUI(courseDataList)
         return cachedCourseData
       }
@@ -3614,7 +3675,7 @@ console.log('Token.js sedang dijalankan!')
       saveToLocalStorage(STORAGE_KEYS.LAST_UPDATE, new Date().toLocaleString())
 
       // Update forum UI after fetching all courses
-      updateForumUI(courseDataList)
+      await updateForumUI(courseDataList)
 
       // Update student UI after fetching all courses
       updateStudentUI(courseDataList)
@@ -3628,7 +3689,7 @@ console.log('Token.js sedang dijalankan!')
   }
 
   // Check storages for tokens
-  function checkStorages() {
+  async function checkStorages() {
     // Cek apakah ada token yang tersimpan di localStorage
     const savedToken = getFromLocalStorage(STORAGE_KEYS.AUTH_TOKEN)
     const savedUserInfo = getFromLocalStorage(STORAGE_KEYS.USER_INFO)
@@ -3645,7 +3706,7 @@ console.log('Token.js sedang dijalankan!')
       const cachedCourseData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA)
       if (cachedCourseData && cachedCourseData.length > 0) {
         courseDataList = cachedCourseData
-        updateForumUI(courseDataList)
+        await updateForumUI(courseDataList)
         updateStudentUI(courseDataList)
       }
 
@@ -3829,14 +3890,14 @@ console.log('Token.js sedang dijalankan!')
   }
 
   // Initialize
-  function init() {
+  async function init() {
     createPopupUI()
     createConfirmationModal()
     interceptXHR()
     interceptFetch()
 
     // Cek apakah ada data di localStorage
-    const hasExistingData = checkStorages()
+    const hasExistingData = await checkStorages()
 
     // Jika tidak ada data, coba klik card
     if (!hasExistingData) {

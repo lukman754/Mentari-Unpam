@@ -38,30 +38,34 @@ if (window.location.href === 'https://mentari.unpam.ac.id/login') {
     document.body.appendChild(button)
 
     // Fungsi untuk mengklik tombol
-    function clickButton() {
-      // Check if token.js has already been loaded
-      if (window.toggleTokenPopup) {
-        window.toggleTokenPopup()
-      } else {
-        // First load apiKeyManager.js
-        let apiKeyManagerScript = document.createElement('script')
-        apiKeyManagerScript.src = chrome.runtime.getURL('src/auth/apiKeyManager.js')
-        apiKeyManagerScript.onload = function () {
-          // Then load token.js after apiKeyManager.js is loaded
-          let tokenScript = document.createElement('script')
-          tokenScript.src = chrome.runtime.getURL('src/auth/token.js')
-          tokenScript.onload = function () {
-            // Call the toggle function after script loads
-            if (window.toggleTokenPopup) {
-              window.toggleTokenPopup()
-            }
-          }
-          document.body.appendChild(tokenScript)
-        }
-        document.body.appendChild(apiKeyManagerScript)
-      }
-    }
+  function clickButton() {
+  // Check if token.js has already been loaded
+  if (window.toggleTokenPopup) {
+    window.toggleTokenPopup()
+  } else {
+    // First load apiKeyManager.js
+    let apiKeyManagerScript = document.createElement('script')
+    apiKeyManagerScript.src = chrome.runtime.getURL('src/auth/apiKeyManager.js')
+    apiKeyManagerScript.onload = function () {
+      // Then load token.js after apiKeyManager.js is loaded
+      let tokenScript = document.createElement('script')
+      tokenScript.src = chrome.runtime.getURL('src/auth/token.js')
+      tokenScript.id = 'mentari-mod-token-script';
 
+      const localVersion = chrome.runtime.getManifest().version;
+      tokenScript.dataset.version = localVersion;
+
+      tokenScript.onload = function () {
+        // Call the toggle function after script loads
+        if (window.toggleTokenPopup) {
+          window.toggleTokenPopup()
+        }
+      }
+      document.body.appendChild(tokenScript)
+    }
+    document.body.appendChild(apiKeyManagerScript)
+  }
+}
     // Tambahkan event listener untuk menjalankan token.js
     button.addEventListener('click', clickButton)
 
