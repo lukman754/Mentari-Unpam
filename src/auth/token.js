@@ -29,8 +29,21 @@ async function checkForUpdates() {
 
     const remoteManifest = await response.json();
     const remoteVersion = remoteManifest.version;
-    const tokenScriptElement = document.getElementById('mentari-mod-token-script');
-    const localVersion = tokenScriptElement.dataset.version;
+    let localVersion;
+
+    if (window.mentariModVersion) {
+      localVersion = window.mentariModVersion;
+      console.log(`Versi lokal (dari WebView): ${localVersion}`);
+    } else {
+      const tokenScriptElement = document.getElementById('mentari-mod-token-script');
+      if (tokenScriptElement && tokenScriptElement.dataset.version) {
+        localVersion = tokenScriptElement.dataset.version;
+        console.log(`Versi lokal (dari Ekstensi): ${localVersion}`);
+      } else {
+        console.warn('Tidak dapat menentukan versi lokal ekstensi.');
+        return null;
+      }
+    }
 
     // Bandingkan Versi
     const compareVersions = (v1, v2) => {
