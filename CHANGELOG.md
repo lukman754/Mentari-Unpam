@@ -1,11 +1,15 @@
 # Changelog
 
-## [3.9] - 11 September 2025
+## [4.0] - 12 September 2025
+
+### Fitur Baru
+- **Halaman-Pengaturan-Terpusat**: Tab "Setting" di dalam popup utama telah dirombak menjadi pusat kontrol. Pengguna kini dapat mengelola Kunci-Aktivasi, API-Key-Gemini, serta mengaktifkan atau menonaktifkan fitur "Auto-Selesai-Quiz" dan "Auto-Isi-Kuisioner".
+- **Tombol-Reset-Aktivasi**: Pengguna sekarang dapat menghapus status aktivasi mereka langsung dari halaman pengaturan untuk memulai ulang proses aktivasi jika diperlukan.
 
 ### Keamanan
-- **Menambahkan Mekanisme Paksa Update (Kill Switch)**: Ekstensi kini akan memeriksa versi minimum yang diizinkan untuk berjalan dari server. Jika pengguna menggunakan versi yang lebih lama dari versi minimum yang ditetapkan, fungsionalitas ekstensi akan diblokir dan pengguna akan diminta untuk melakukan update ke versi terbaru.
-- **Peningkatan Keamanan**: Fitur ini memastikan bahwa pengguna tidak dapat lagi menggunakan versi lama yang tidak memiliki sistem Kunci Aktivasi, sehingga menutup celah keamanan.
+- **Sistem-Kunci-Aktivasi**: Ekstensi kini memerlukan "Kunci-Aktivasi" yang unik untuk setiap pengguna, yang harus disetujui dan diberikan langsung oleh developer untuk mencegah penggunaan yang tidak sah.
+- **Pembaruan-Wajib-(Force-Update)**: Mekanisme "Kill-Switch" telah diimplementasikan. Ekstensi akan memeriksa versi minimum yang diizinkan dari server. Jika versi yang digunakan pengguna sudah usang, fungsionalitas akan diblokir total dan pengguna akan diminta untuk melakukan update, memastikan semua pengguna berada di versi yang paling aman.
 
-### Ditambahkan
-- **File Kontrol Versi**: Membuat file `version_info.json` di server untuk mengelola versi minimum yang diizinkan dari jarak jauh.
-- **Popup Paksa Update**: Menambahkan antarmuka popup yang akan menutupi layar dan mengarahkan pengguna untuk mengunduh versi terbaru jika versi mereka sudah usang.
+### Peningkatan
+- **Logika-Fitur-Terkontrol**: Fitur "Auto-Isi-Kuisioner" sekarang hanya akan aktif jika toggle-nya dihidupkan di Halaman-Pengaturan-Terpusat.
+- **UI-Pengaturan**: Antarmuka halaman pengaturan didesain ulang agar lebih bersih, informatif, dan mudah digunakan oleh pengguna.
