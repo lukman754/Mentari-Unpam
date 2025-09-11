@@ -1,20 +1,116 @@
-// apiKeyManager.js
-function initializeApiKeyManager() {
-  console.log('API Key Manager initializing...')
-  // Check if API key already exists in localStorage
-  const storedApiKey = localStorage.getItem('geminiApiKey')
+async function initializeApiKeyManager() {
+  console.log('Memeriksa status aktivasi...');
+  const isActivated = localStorage.getItem('mentariModActivated');
 
-  if (!storedApiKey) {
-    console.log('No API key found, showing popup...')
-    // Tunggu sebentar untuk memastikan DOM sudah siap
-    setTimeout(() => {
-      showApiKeyPopup()
-    }, 1000)
-    return null
+  // Jika belum diaktivasi, tampilkan popup aktivasi
+  if (!isActivated) {
+    console.log('Ekstensi belum diaktivasi, menampilkan popup aktivasi...');
+    showActivationPopup(); // Menampilkan popup baru untuk aktivasi
+    return null;
   }
 
-  console.log('API key found, returning...')
-  return atob(storedApiKey)
+  console.log('Ekstensi sudah aktif. Melanjutkan ke manajer API Key Gemini...');
+  const storedApiKey = localStorage.getItem('geminiApiKey');
+
+  if (!storedApiKey) {
+    console.log('No API key found, showing popup...');
+    setTimeout(() => {
+      showApiKeyPopup();
+    }, 1000);
+    return null;
+  }
+
+  console.log('API key found, returning...');
+  return atob(storedApiKey);
+}
+
+function showActivationPopup() {
+  if (document.getElementById('gemini_activationOverlay')) return;
+
+  const popupHtml = `
+    <div id="gemini_activationOverlay" class="gemini_api-key-overlay">
+      <div id="gemini_activationPopup" class="gemini_api-key-popup">
+        <div class="gemini_popup-header">
+          <div style="font-weight:500;color:#fff;">Aktivasi Mentari MOD</div>
+        </div>
+        <div class="gemini_popup-content">
+          <div style="margin-bottom:15px;color:#999;font-size:13px;line-height:1.4;">
+            Untuk menggunakan ekstensi ini, Anda memerlukan Kunci Aktivasi dari developer.
+          </div>
+          <div class="gemini_input-section">
+            <input type="text" id="gemini_activationKeyInput" placeholder="Masukkan Kunci Aktivasi..." style="width:100%;padding:8px 12px;background:#2a2a2a;border:1px solid #333;border-radius:4px;color:#fff;font-size:13px;">
+          </div>
+          <div id="gemini_activationMessage" class="gemini_validation-message"></div>
+          <div style="margin-top:15px;display:flex;justify-content:flex-end;">
+            <button id="gemini_activateButton" style="background:#4CAF50;color:#fff;border:none;border-radius:4px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;">Aktivasi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const popupElement = document.createElement('div');
+  popupElement.innerHTML = popupHtml;
+  document.body.appendChild(popupElement);
+  addApiKeyPopupStyles();
+
+  document.getElementById('gemini_activateButton').addEventListener('click', async () => {
+    const activateButton = document.getElementById('gemini_activateButton');
+    const activationKey = document.getElementById('gemini_activationKeyInput').value.trim();
+    const messageElement = document.getElementById('gemini_activationMessage');
+
+    if (!activationKey) {
+      messageElement.textContent = 'Kunci Aktivasi tidak boleh kosong.';
+      messageElement.style.color = '#f44336';
+      messageElement.style.display = 'block';
+      return;
+    }
+
+    activateButton.textContent = 'Memvalidasi...';
+    activateButton.disabled = true;
+
+    const isValid = await validateActivationKeyOnServer(activationKey);
+
+    if (isValid) {
+      localStorage.setItem('mentariModActivated', 'true');
+      localStorage.setItem('mentariUserKey', activationKey); // Simpan kunci untuk validasi di masa depan
+      document.getElementById('gemini_activationOverlay').remove();
+      initializeApiKeyManager(); // Jalankan kembali inisialisasi untuk lanjut ke API Key Gemini
+    } else {
+      messageElement.textContent = 'Kunci Aktivasi tidak valid atau sudah kedaluwarsa.';
+      messageElement.style.color = '#f44336';
+      messageElement.style.display = 'block';
+      activateButton.textContent = 'Aktivasi';
+      activateButton.disabled = false;
+    }
+  });
+}
+
+async function validateActivationKeyOnServer(key) {
+  const VALIDATION_SERVER_URL = 'https://script.google.com/macros/s/AKfycbzGvRUsr2jGGBW27JjA-CAS1mQnsczZow3zyJgpoXHaQHhcXM3l5Vu9-th_MPKvCtwobw/exec';
+
+  try {
+    const response = await fetch(VALIDATION_SERVER_URL, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({ activationKey: key })
+    });
+
+    if (!response.ok) {
+      console.error("HTTP error!", response.status, response.statusText);
+      return false;
+    }
+
+    const data = await response.json();
+    return data.status === 'valid';
+  } catch (error) {
+    console.error('Gagal menghubungi server validasi:', error);
+    return false;
+  }
 }
 
 // Fungsi untuk memastikan API Key Manager diinisialisasi saat halaman dimuat
@@ -29,13 +125,7 @@ function initializeApiKeyManager() {
   function onDOMReady() {
     // Menunggu sedikit untuk memastikan semua elemen halaman telah dimuat
     setTimeout(() => {
-      const apiKey = initializeApiKeyManager()
-      // Jika API key sudah ada, langsung inisialisasi chatbot
-      if (apiKey) {
-        if (typeof createChatbotInterface === 'function') {
-          createChatbotInterface(apiKey)
-        }
-      }
+      initializeApiKeyManager()
     }, 1500)
   }
 })()
