@@ -1181,8 +1181,18 @@ console.log('Token.js sedang dijalankan!');
     
     // Initialize the position for when page loads
     applyDefaultPosition();
+    (async () => {
+        const hasExistingData = await checkStorages();
+        if (!hasExistingData) {
+            console.log("[UI Ready] Data tidak ditemukan, mencoba klik otomatis...");
+            setTimeout(() => {
+                document.querySelector('.card.MuiBox-root')?.click();
+                setTimeout(clickDashboardButton, 1000);
+            }, 1000);
+        }
+    })();
   }
-
+  
   function addPositionToggleToPopup() {
     const popup = document.getElementById('token-runner-popup');
     if (!popup) return;
@@ -2266,22 +2276,16 @@ console.log('Token.js sedang dijalankan!');
     console.log('Cache data dan info user berhasil dihapus. Refresh untuk mengambil data baru.');
   };
 
-  async function init() {
+async function init() {
     const canContinue = await performExtensionKillSwitchCheck();
-    if (!canContinue) return;
+    if (!canContinue) {
+        return;
+    }
 
     createPopupUI();
     createConfirmationModal();
     interceptRequests();
-
-    const hasExistingData = await checkStorages();
-    if (!hasExistingData) {
-      setTimeout(() => {
-        document.querySelector('.card.MuiBox-root')?.click();
-        setTimeout(clickDashboardButton, 1000);
-      }, 1000);
-    }
-  }
+}
 
   init();
 
