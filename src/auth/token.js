@@ -1,12 +1,12 @@
-console.log('Token.js sedang dijalankan!')
+console.log('Token.js sedang dijalankan!');
 
 // Inisialisasi UI dan logic token
-;(function () {
-  let authToken = null
-  let isHandlingCourseApiRequest = false
-  let courseDataList = []
-  let userInfo = null
-  let studentDataList = []
+(function () {
+  let authToken = null;
+  let isHandlingCourseApiRequest = false;
+  let courseDataList = [];
+  let userInfo = null;
+  let studentDataList = [];
 
   // Nama kunci untuk localStorage
   const STORAGE_KEYS = {
@@ -15,65 +15,111 @@ console.log('Token.js sedang dijalankan!')
     COURSE_DATA: 'mentari_course_data',
     LAST_UPDATE: 'mentari_last_update',
     STUDENT_GROUPS: 'mentari_student_groups',
-  }
+  };
 
-async function checkForUpdates() {
-  try {
-    const manifestUrl = 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/manifest.json?_=' + new Date().getTime();
-
-    const response = await fetch(manifestUrl);
-    if (!response.ok) {
-      console.error('Gagal mengambil manifest dari GitHub.');
-      return null;
-    }
-
-    const remoteManifest = await response.json();
-    const remoteVersion = remoteManifest.version;
-    let localVersion;
-
-    if (window.mentariModVersion) {
-      localVersion = window.mentariModVersion;
-      console.log(`Versi lokal (dari WebView): ${localVersion}`);
-    } else {
-      const tokenScriptElement = document.getElementById('mentari-mod-token-script');
-      if (tokenScriptElement && tokenScriptElement.dataset.version) {
-        localVersion = tokenScriptElement.dataset.version;
-        console.log(`Versi lokal (dari Ekstensi): ${localVersion}`);
-      } else {
-        console.warn('Tidak dapat menentukan versi lokal ekstensi.');
-        return null;
+  // Fungsi untuk memeriksa update dan versi minimum (KILL SWITCH)
+  async function checkForUpdates() {
+    try {
+      // Ambil info versi dari remote (GitHub)
+      const versionInfoUrl = 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/version_info.json?_=' + new Date().getTime();
+      const response = await fetch(versionInfoUrl);
+      if (!response.ok) {
+        console.error('Gagal mengambil info versi dari GitHub.');
+        return; // Gagal mengambil, biarkan ekstensi berjalan
       }
-    }
+      const versionInfo = await response.json();
+      const minVersion = versionInfo.min_version;
 
-    // Bandingkan Versi
-    const compareVersions = (v1, v2) => {
-        const parts1 = v1.split('.').map(Number);
-        const parts2 = v2.split('.').map(Number);
-        const len = Math.max(parts1.length, parts2.length);
-        for (let i = 0; i < len; i++) {
-            const p1 = parts1[i] || 0;
-            const p2 = parts2[i] || 0;
-            if (p1 > p2) return 1;
-            if (p2 > p1) return -1;
+      // Ambil versi lokal yang sedang digunakan
+      let localVersion;
+      if (window.mentariModVersion) {
+        localVersion = window.mentariModVersion;
+      } else {
+        const tokenScriptElement = document.getElementById('mentari-mod-token-script');
+        if (tokenScriptElement && tokenScriptElement.dataset.version) {
+          localVersion = tokenScriptElement.dataset.version;
+        } else {
+          console.warn('Tidak dapat menentukan versi lokal ekstensi.');
+          return; // Tidak bisa cek, biarkan berjalan
         }
-        return 0;
-    };
+      }
 
-    // Jika versi remote lebih baru
-    if (compareVersions(remoteVersion, localVersion) > 0) {
-      return {
-        isUpdateAvailable: true,
-        newVersion: remoteVersion,
-        releaseUrl: 'https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/latest'
+      const isOutdated = (local, min) => {
+          const partsLocal = local.split('.').map(Number);
+          const partsMin = min.split('.').map(Number);
+          const len = Math.max(partsLocal.length, partsMin.length);
+          for (let i = 0; i < len; i++) {
+              const p1 = partsLocal[i] || 0;
+              const p2 = partsMin[i] || 0;
+              if (p1 < p2) return true;
+              if (p1 > p2) return false;
+          }
+          return false;
       };
+
+      if (isOutdated(localVersion, minVersion)) {
+          console.error(`Versi ekstensi usang (${localVersion}). Versi minimum: ${minVersion}. Memblokir fungsi...`);
+          showForceUpdatePopup();
+          return true; // Mengembalikan true untuk menandakan ekstensi diblokir
+      }
+
+      const manifestUrl = 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/manifest.json?_=' + new Date().getTime();
+      const manifestResponse = await fetch(manifestUrl);
+      const remoteManifest = await manifestResponse.json();
+      const remoteVersion = remoteManifest.version;
+
+      if (!isOutdated(remoteVersion, localVersion) && remoteVersion !== localVersion) {
+        console.log(`Pembaruan tersedia: v${remoteVersion}`);
+        // Anda bisa menambahkan notifikasi visual di sini jika mau
+      }
+
+    } catch (error) {
+      console.error('Error saat memeriksa pembaruan:', error);
+    }
+    return false; // Mengembalikan false jika ekstensi tidak diblokir
+  }
+
+  // Fungsi untuk menampilkan popup paksa update
+  function showForceUpdatePopup() {
+    // Hapus popup ekstensi yang ada agar tidak bisa digunakan
+    const existingPopup = document.getElementById('token-runner-popup');
+    if (existingPopup) {
+        existingPopup.remove();
     }
 
-    return { isUpdateAvailable: false };
-  } catch (error) {
-    console.error('Error saat memeriksa pembaruan:', error);
-    return null;
+    // Buat overlay yang menutupi seluruh halaman
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85); z-index: 1000000;
+      display: flex; justify-content: center; align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    `;
+
+    const messageBox = document.createElement('div');
+    messageBox.style.cssText = `
+      background: #1e1e1e; color: #f0f0f0; padding: 30px;
+      border-radius: 12px; text-align: center; max-width: 400px;
+      border: 1px solid #333;
+    `;
+
+    messageBox.innerHTML = `
+      <h2 style="margin-top:0; color: #e74c3c;">Versi Ekstensi Usang</h2>
+      <p style="color: #ccc; line-height: 1.6;">
+        Anda menggunakan versi MENTARI MOD yang sudah tidak didukung lagi. 
+        Silakan update ke versi terbaru untuk melanjutkan penggunaan dan mendapatkan fitur keamanan terbaru.
+      </p>
+      <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/latest" 
+         target="_blank" 
+         style="display: inline-block; background: #e74c3c; color: white; padding: 12px 24px;
+                border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px;">
+         Update Sekarang
+      </a>
+    `;
+
+    overlay.appendChild(messageBox);
+    document.body.appendChild(overlay);
   }
-}
 
   // Fungsi untuk membuat modal konfirmasi kustom
   function createConfirmationModal() {
@@ -1623,23 +1669,11 @@ async function checkForUpdates() {
     const forumList = document.getElementById('forum-list')
     if (!forumList) return
     
-    const updateStatus = await checkForUpdates();
-    let updateHtml = '';
+    // Periksa update di sini, sebelum render UI utama
+    const isBlocked = await checkForUpdates();
+    if (isBlocked) return; // Jika diblokir, hentikan render UI
 
-  if (updateStatus && updateStatus.isUpdateAvailable) {
-    updateHtml = `
-      <div id="update-notification" style="background-color: #2e2e2e; border: 1px solid #4CAF50; border-radius: 8px; padding: 15px; margin-bottom: 12px; text-align: center;">
-        <h4 style="margin: 0 0 8px 0; color: #4CAF50;">🚀 Pembaruan Tersedia! (v${updateStatus.newVersion})</h4>
-        <p style="margin: 0 0 12px 0; font-size: 13px; color: #ccc;">Versi baru Mentari Mod telah dirilis dengan fitur dan perbaikan terbaru.</p>
-        <a href="${updateStatus.releaseUrl}" target="_blank" style="background-color: #4CAF50; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; font-weight: 500;">
-          Update Sekarang
-        </a>
-      </div>
-    `;
-  }
-
-  let html = ''
-  html += updateHtml;
+    let html = ''
 
     // Add presensi button at the top
     html += `
@@ -3901,38 +3935,39 @@ async function checkForUpdates() {
       'Cache data berhasil dihapus. Refresh halaman untuk mengambil data baru.'
     )
   }
-
-  // Initialize
+  
+  // Modifikasi fungsi init()
   async function init() {
-    createPopupUI()
-    createConfirmationModal()
-    interceptXHR()
-    interceptFetch()
+    const isBlocked = await checkForUpdates();
+    if (isBlocked) {
+        // Jika ekstensi diblokir, hentikan semua inisialisasi lainnya
+        return;
+    }
 
-    // Cek apakah ada data di localStorage
-    const hasExistingData = await checkStorages()
+    // Jika tidak diblokir, lanjutkan dengan inisialisasi normal
+    createPopupUI();
+    createConfirmationModal();
+    interceptXHR();
+    interceptFetch();
 
-    // Jika tidak ada data, coba klik card
+    const hasExistingData = await checkStorages();
+
     if (!hasExistingData) {
       setTimeout(() => {
-        // Temukan elemen dengan kelas "card MuiBox-root"
-        let card = document.querySelector('.card.MuiBox-root')
-
-        // Jika ditemukan, klik elemen tersebut
+        let card = document.querySelector('.card.MuiBox-root');
         if (card) {
-          console.log('Card ditemukan! Mengklik...')
-          card.click()
+          console.log('Card ditemukan! Mengklik...');
+          card.click();
         } else {
-          console.warn('Card tidak ditemukan!')
+          console.warn('Card tidak ditemukan!');
         }
-
-        // Attempt to click the Dashboard button after a short delay
         setTimeout(() => {
-          clickDashboardButton()
-        }, 1000)
-      }, 1000)
+          clickDashboardButton();
+        }, 1000);
+      }, 1000);
     }
   }
+
 
   init()
 
