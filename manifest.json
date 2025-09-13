@@ -1,55 +1,56 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod v1.8.1",
-  "version": "1.8.1",
+  "name": "Mentari Mod",
+  "version": "4.3",
   "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": ["https://mentari.unpam.ac.id/*"],
   "content_scripts": [
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"],
-      "js": ["apiKeyManager.js", "content.js", "gemini.js"]
+      "js": ["src/auth/apiKeyManager.js", "src/content/content.js", "src/features/gemini.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
-      "js": ["home.js"]
+      "js": ["src/content/home.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/u-courses/*/exam/*"],
-      "js": ["quiz.js"]
+      "js": ["src/content/quiz.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/u-courses/*/kuesioner/*"],
-      "js": ["kuisioner.js"]
+      "js": ["src/content/kuisioner.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/u-courses/*/forum/*/topics/*"],
-      "js": ["discus.js"]
+      "js": ["src/content/discus.js"]
     },
     {
       "matches": ["https://my.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"],
-      "js": ["presensi.js", "QuickSurvey.js"]
+      "js": ["src/content/presensi.js", "src/content/QuickSurvey.js"]
     },
     {
       "matches": [
         "https://my.unpam.ac.id/login",
         "https://mentari.unpam.ac.id/login"
       ],
-      "js": ["pw.js"]
+      "js": ["src/auth/pw.js"]
     }
   ],
+
   "web_accessible_resources": [
     {
-      "resources": ["token.js", "apiKeyManager.js"],
+      "resources": ["src/auth/token.js", "src/auth/apiKeyManager.js", "assets/img/crDroid-logo.png"],
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"]
     }
   ],
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "16": "assets/icons/icon.png",
+    "48": "assets/icons/icon.png",
+    "128": "assets/icons/icon.png"
   }
 }

@@ -1,17 +1,19 @@
 <div align="center">
   <img src="https://github.com/user-attachments/assets/bc206a62-4b37-4064-a1af-872e7a157463" width="200" alt="MENTARI Logo">
-  
-  # MENTARI MOD
-  ### *Manajemen Terpadu Pembelajaran Daring*
-  
-  [![GitHub issues](https://img.shields.io/github/issues/Lukman754/mentari-unpam?color=green&style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/issues)
-  [![GitHub stars](https://img.shields.io/github/stars/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam/stargazers)
-  [![GitHub license](https://img.shields.io/github/license/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam)
+
+# MENTARI MOD
+
+### _Manajemen Terpadu Pembelajaran Daring_
+
+[![GitHub issues](https://img.shields.io/github/issues/AnandaAnugrahHandyanto/mentari_unpam-mod?color=green&style=for-the-badge)](https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues)
+[![GitHub stars](https://img.shields.io/github/stars/AnandaAnugrahHandyanto/mentari_unpam-mod?style=for-the-badge)](https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/stargazers)
+[![GitHub license](https://img.shields.io/github/license/Lukman754/mentari-unpam?style=for-the-badge)](https://github.com/Lukman754/mentari-unpam)
+
 </div>
 
 ## 🚀 Tentang MENTARI
 
-**MENTARI** (*Manajemen Terpadu Pembelajaran Daring*) adalah platform pembelajaran digital modern yang dirancang untuk menggantikan [e-learning.unpam.ac.id](https://e-learning.unpam.ac.id). Platform ini menawarkan pengalaman belajar yang lebih intuitif, efisien, dan menyenangkan bagi civitas akademika Universitas Pamulang.
+**MENTARI** (_Manajemen Terpadu Pembelajaran Daring_) adalah platform pembelajaran digital modern yang dirancang untuk menggantikan [e-learning.unpam.ac.id](https://e-learning.unpam.ac.id). Platform ini menawarkan pengalaman belajar yang lebih intuitif, efisien, dan menyenangkan bagi civitas akademika Universitas Pamulang.
 
 **MENTARI MOD** hadir sebagai ekstensi browser yang memperkaya platform ini dengan berbagai fitur tambahan untuk memaksimalkan produktivitas dalam pembelajaran daring.
 
@@ -21,12 +23,12 @@
 
 ## 💫 Mengapa MENTARI MOD?
 
-| Keunggulan | Deskripsi |
-|------------|-----------|
-| 🎨 **Desain Modern** | Antarmuka yang intuitif dengan tampilan yang segar dan kontemporer |
-| 🔍 **Akses Cepat** | Forum diskusi dapat diakses tanpa perlu membuka setiap pertemuan |
-| 🤖 **Bantuan AI** | Asisten berbasis kecerdasan buatan untuk meningkatkan produktivitas |
-| 🎯 **Efisiensi** | Menghemat waktu dengan fitur otomatisasi tugas yang repetitif |
+| Keunggulan           | Deskripsi                                                           |
+| -------------------- | ------------------------------------------------------------------- |
+| 🎨 **Desain Modern** | Antarmuka yang intuitif dengan tampilan yang segar dan kontemporer  |
+| 🔍 **Akses Cepat**   | Forum diskusi dapat diakses tanpa perlu membuka setiap pertemuan    |
+| 🤖 **Bantuan AI**    | Asisten berbasis kecerdasan buatan untuk meningkatkan produktivitas |
+| 🎯 **Efisiensi**     | Menghemat waktu dengan fitur otomatisasi tugas yang repetitif       |
 
 ## 💎 Fitur Utama
 
@@ -67,17 +69,15 @@
 </div>
 
 ## 📦 Download
+
 <div style="width: 100%; display: flex; gap: 10px;">
-    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.8.1/Mentari-Unpam-v1.8.1.zip" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v4.3/MentariEnhancer_v4.3.zip" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Extension%20ZIP-FFA000?style=for-the-badge&logo=googlechrome" style="width: 60%;">
     </a>
-    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.5/Mentari-Mod-v1.5.apk" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v4.3/MentariEnhancer_v4.3.apk" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android" style="width: 60%;">
     </a>
-    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v1.5/Mentari.Mod.Setup.1.0.0.exe" style="display: block; width: 60%;">
-        <img src="https://custom-icon-badges.demolab.com/badge/Download-Windows%20Setup-0078D6?style=for-the-badge&logo=windows11" style="width: 60%;">
-    </a>
-  
+
 </div>
 
 ## 📥 Cara Instalasi
@@ -135,7 +135,7 @@
 <details>
 <summary><b>🔮 Fitur apa yang akan datang?</b></summary>
 <div style="padding: 10px;">
-  <b>Punya ide untuk fitur baru?</b> Buka <a href="https://github.com/Lukman754/mentari-unpam/issues">issue baru</a> dan bagikan ide Anda!.
+  <b>Punya ide untuk fitur baru?</b> Buka <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues">issue baru</a> dan bagikan ide Anda!.
 </div>
 </details>
 
@@ -148,10 +148,9 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 <div align="center">
   <p>Dibuat dengan ❤️ untuk mahasiswa UNPAM</p>
 
-  [![GitHub](https://img.shields.io/badge/Follow-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/lukman754)
-  [![Instagram](https://img.shields.io/badge/Follow-Instagram-E4405F?style=for-the-badge&logo=instagram)](https://instagram.com/_.chopin)
-  [![Support Me](https://img.shields.io/badge/Support_with_Coffee-FF813F?style=for-the-badge&logo=buymeacoffee&logoColor=white)](https://saweria.co/chopin)
+[![GitHub](https://img.shields.io/badge/Follow-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/lukman754)
+[![Instagram](https://img.shields.io/badge/Follow-Instagram-E4405F?style=for-the-badge&logo=instagram)](https://instagram.com/_.chopin)
+[![Support Me](https://img.shields.io/badge/Support_with_Coffee-FF813F?style=for-the-badge&logo=buymeacoffee&logoColor=white)](https://saweria.co/chopin)
 
   <p>© 2025 <a href="https://instagram.com/_.chopin">Lukman Muludin</a>. All Rights Reserved.</p>
 </div>
-

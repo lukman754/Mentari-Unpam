@@ -1,136 +1,136 @@
 function automateFlow(mode) {
   function clickRadios(mode) {
-    if (mode === "Setuju") {
+    if (mode === 'Setuju') {
       // Pilih "Sering" (index 2) untuk semua pertanyaan
       document.querySelectorAll('[role="radiogroup"]').forEach((group) => {
-        const radios = Array.from(group.querySelectorAll('[role="radio"]'));
+        const radios = Array.from(group.querySelectorAll('[role="radio"]'))
         if (radios.length >= 3) {
-          radios[2].click(); // Index 2 = "Sering"
+          radios[2].click() // Index 2 = "Sering"
         }
-      });
-    } else if (mode === "Random") {
+      })
+    } else if (mode === 'Random') {
       // Random tanpa "Tidak Pernah" - pilih dari index 1, 2, 3
       document.querySelectorAll('[role="radiogroup"]').forEach((group) => {
-        const radios = Array.from(group.querySelectorAll('[role="radio"]'));
+        const radios = Array.from(group.querySelectorAll('[role="radio"]'))
         if (radios.length >= 4) {
           // Buat array dengan weight: index 1 = 1x, index 2 = 2x, index 3 = 2x
-          const weightedChoices = [];
-          weightedChoices.push(1); // "Kadang-kadang" 1x
-          weightedChoices.push(2, 2); // "Sering" 2x
-          weightedChoices.push(3, 3); // "Selalu" 2x
+          const weightedChoices = []
+          weightedChoices.push(1) // "Kadang-kadang" 1x
+          weightedChoices.push(2, 2) // "Sering" 2x
+          weightedChoices.push(3, 3) // "Selalu" 2x
 
           const randomChoice =
-            weightedChoices[Math.floor(Math.random() * weightedChoices.length)];
-          radios[randomChoice].click();
+            weightedChoices[Math.floor(Math.random() * weightedChoices.length)]
+          radios[randomChoice].click()
         }
-      });
-    } else if (mode.startsWith("star")) {
-      const rating = parseInt(mode.slice(4));
+      })
+    } else if (mode.startsWith('star')) {
+      const rating = parseInt(mode.slice(4))
       document.querySelectorAll('[role="radiogroup"]').forEach((group) => {
-        const radios = Array.from(group.querySelectorAll('[role="radio"]'));
+        const radios = Array.from(group.querySelectorAll('[role="radio"]'))
 
         // Urutan radio: [0="Tidak Pernah", 1="Kadang-kadang", 2="Sering", 3="Selalu"]
-        let weights;
+        let weights
         switch (rating) {
           case 1: // ⭐ - Buruk
-            weights = [0.7, 0.3, 0, 0]; // Lebih banyak "Tidak Pernah"
-            break;
+            weights = [0.7, 0.3, 0, 0] // Lebih banyak "Tidak Pernah"
+            break
           case 2: // ⭐⭐ - Kurang
-            weights = [0.3, 0.7, 0, 0]; // Lebih banyak "Kadang-kadang"
-            break;
+            weights = [0.3, 0.7, 0, 0] // Lebih banyak "Kadang-kadang"
+            break
           case 3: // ⭐⭐⭐ - Cukup
-            weights = [0, 0.4, 0.6, 0]; // Campuran "Kadang-kadang" dan "Sering"
-            break;
+            weights = [0, 0.4, 0.6, 0] // Campuran "Kadang-kadang" dan "Sering"
+            break
           case 4: // ⭐⭐⭐⭐ - Baik
-            weights = [0, 0, 0.7, 0.3]; // Lebih banyak "Sering"
-            break;
+            weights = [0, 0, 0.7, 0.3] // Lebih banyak "Sering"
+            break
           case 5: // ⭐⭐⭐⭐⭐ - Sangat Baik
-            weights = [0, 0, 0.3, 0.7]; // Lebih banyak "Selalu"
-            break;
+            weights = [0, 0, 0.3, 0.7] // Lebih banyak "Selalu"
+            break
         }
 
-        const random = Math.random();
-        let sum = 0;
-        let selectedIndex = 0;
+        const random = Math.random()
+        let sum = 0
+        let selectedIndex = 0
         for (let i = 0; i < weights.length; i++) {
-          sum += weights[i];
+          sum += weights[i]
           if (random < sum) {
-            selectedIndex = i;
-            break;
+            selectedIndex = i
+            break
           }
         }
 
         if (radios[selectedIndex]) {
-          radios[selectedIndex].click();
+          radios[selectedIndex].click()
         }
-      });
+      })
     } else {
       // FullRandom - pilih semua opsi termasuk "Tidak Pernah"
       document.querySelectorAll('[role="radiogroup"]').forEach((group) => {
-        const radios = Array.from(group.querySelectorAll('[role="radio"]'));
+        const radios = Array.from(group.querySelectorAll('[role="radio"]'))
         if (radios.length > 0) {
-          const randomIndex = Math.floor(Math.random() * radios.length);
-          radios[randomIndex].click();
+          const randomIndex = Math.floor(Math.random() * radios.length)
+          radios[randomIndex].click()
         }
-      });
+      })
     }
   }
 
   function clickNextButton() {
     function findAndClickButtons() {
       // Klik radio button terlebih dahulu
-      clickRadios(mode);
+      clickRadios(mode)
 
       // Tunggu sebentar untuk memastikan radio button terpilih
       setTimeout(() => {
         const buttons = document.querySelectorAll(
-          "button.q-btn.bg-blue-6.text-white"
-        );
-        let foundNextButton = false;
+          'button.q-btn.bg-blue-6.text-white'
+        )
+        let foundNextButton = false
 
         buttons.forEach((button) => {
-          const spanContent = button.querySelector(".block");
+          const spanContent = button.querySelector('.block')
           if (spanContent) {
-            if (spanContent.textContent === "SELANJUTNYA") {
-              foundNextButton = true;
-              button.click();
+            if (spanContent.textContent === 'SELANJUTNYA') {
+              foundNextButton = true
+              button.click()
               // Setelah klik next, tunggu sebentar lalu cari tombol lagi
-              setTimeout(findAndClickButtons, 500);
-              return;
+              setTimeout(findAndClickButtons, 500)
+              return
             }
           }
-        });
+        })
 
         // Jika tidak ada tombol SELANJUTNYA, cari tombol SIMPAN
         if (!foundNextButton) {
           buttons.forEach((button) => {
-            const spanContent = button.querySelector(".block");
-            if (spanContent && spanContent.textContent === "SIMPAN") {
-              button.click();
-              return;
+            const spanContent = button.querySelector('.block')
+            if (spanContent && spanContent.textContent === 'SIMPAN') {
+              button.click()
+              return
             }
-          });
+          })
         }
-      }, 500);
+      }, 500)
     }
 
     // Mulai proses
-    findAndClickButtons();
+    findAndClickButtons()
   }
-  clickRadios(mode);
-  setTimeout(clickNextButton, 500);
+  clickRadios(mode)
+  setTimeout(clickNextButton, 500)
 }
 
 function createQuickSurveyToggle() {
   // Remove existing elements first
-  const existingToggle = document.getElementById("quickSurveyToggle");
-  if (existingToggle) existingToggle.remove();
+  const existingToggle = document.getElementById('quickSurveyToggle')
+  if (existingToggle) existingToggle.remove()
 
   // Gunakan container yang sama dengan presensi jika ada
-  let container = document.getElementById("floatingButtonContainer");
+  let container = document.getElementById('floatingButtonContainer')
   if (!container) {
-    container = document.createElement("div");
-    container.id = "floatingButtonContainer";
+    container = document.createElement('div')
+    container.id = 'floatingButtonContainer'
     container.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -139,14 +139,14 @@ function createQuickSurveyToggle() {
       flex-direction: row;
       gap: 10px;
       z-index: 9999;
-    `;
-    document.body.appendChild(container);
+    `
+    document.body.appendChild(container)
   }
 
   // Buat tombol Quick Survey
-  const toggleButton = document.createElement("button");
-  toggleButton.id = "quickSurveyToggle";
-  toggleButton.textContent = "Quick Survey";
+  const toggleButton = document.createElement('button')
+  toggleButton.id = 'quickSurveyToggle'
+  toggleButton.textContent = 'Quick Survey'
   toggleButton.style.cssText = `
     padding: 10px 16px;
     background-color: #10b981;
@@ -159,67 +159,67 @@ function createQuickSurveyToggle() {
     font-size: 14px;
     transition: background 0.2s;
     box-shadow: none;
-  `;
+  `
   toggleButton.onmouseover = function () {
-    this.style.backgroundColor = "#059669";
-  };
+    this.style.backgroundColor = '#059669'
+  }
   toggleButton.onmouseout = function () {
-    this.style.backgroundColor = "#10b981";
-  };
+    this.style.backgroundColor = '#10b981'
+  }
   // Add click handler
-  toggleButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  toggleButton.addEventListener('click', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
 
-    const popup = document.getElementById("quickSurveyPopup");
-    const overlay = document.getElementById("quickSurveyPopupOverlay");
+    const popup = document.getElementById('quickSurveyPopup')
+    const overlay = document.getElementById('quickSurveyPopupOverlay')
 
     if (popup && overlay) {
-      const isVisible = popup.style.display === "block";
+      const isVisible = popup.style.display === 'block'
 
       if (isVisible) {
-        popup.style.display = "none";
-        overlay.style.display = "none";
-        toggleButton.style.backgroundColor = "#10b981";
+        popup.style.display = 'none'
+        overlay.style.display = 'none'
+        toggleButton.style.backgroundColor = '#10b981'
       } else {
-        popup.style.display = "block";
-        overlay.style.display = "block";
-        toggleButton.style.backgroundColor = "#059669";
+        popup.style.display = 'block'
+        overlay.style.display = 'block'
+        toggleButton.style.backgroundColor = '#059669'
       }
     } else {
-      console.log("Popup or overlay not found, creating new ones...");
-      createQuickSurveyPopup();
+      console.log('Popup or overlay not found, creating new ones...')
+      createQuickSurveyPopup()
       // Try again after creation
       setTimeout(() => {
-        const newPopup = document.getElementById("quickSurveyPopup");
-        const newOverlay = document.getElementById("quickSurveyPopupOverlay");
+        const newPopup = document.getElementById('quickSurveyPopup')
+        const newOverlay = document.getElementById('quickSurveyPopupOverlay')
         if (newPopup && newOverlay) {
-          newPopup.style.display = "block";
-          newOverlay.style.display = "block";
-          toggleButton.style.backgroundColor = "#059669";
+          newPopup.style.display = 'block'
+          newOverlay.style.display = 'block'
+          toggleButton.style.backgroundColor = '#059669'
         }
-      }, 100);
+      }, 100)
     }
-  });
+  })
 
-  container.appendChild(toggleButton);
+  container.appendChild(toggleButton)
 }
 
 function createQuickSurveyPopup() {
   // Remove existing popup elements
-  const existingPopup = document.getElementById("quickSurveyPopup");
+  const existingPopup = document.getElementById('quickSurveyPopup')
   if (existingPopup) {
-    existingPopup.remove();
+    existingPopup.remove()
   }
 
-  const existingOverlay = document.getElementById("quickSurveyPopupOverlay");
+  const existingOverlay = document.getElementById('quickSurveyPopupOverlay')
   if (existingOverlay) {
-    existingOverlay.remove();
+    existingOverlay.remove()
   }
 
   // Create popup container
-  const popupContainer = document.createElement("div");
-  popupContainer.id = "quickSurveyPopup";
+  const popupContainer = document.createElement('div')
+  popupContainer.id = 'quickSurveyPopup'
   popupContainer.style.cssText = `
     position: fixed;
     top: 50%;
@@ -237,7 +237,7 @@ function createQuickSurveyPopup() {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     color: black;
     display: none;
-  `;
+  `
 
   popupContainer.innerHTML = `
     <div style="margin-bottom: 24px; border-bottom: 1px solid #eaeaea; padding-bottom: 16px;">
@@ -273,11 +273,11 @@ function createQuickSurveyPopup() {
     <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #666;">
       &copy; 2025 Created by <a href="https://github.com/Lukman754" target="_blank" style="color: #0070f3; text-decoration: none;">Lukman754</a>. All rights reserved.
     </div>
-  `;
+  `
 
   // Create overlay
-  const overlay = document.createElement("div");
-  overlay.id = "quickSurveyPopupOverlay";
+  const overlay = document.createElement('div')
+  overlay.id = 'quickSurveyPopupOverlay'
   overlay.style.cssText = `
     position: fixed;
     top: 0;
@@ -287,60 +287,60 @@ function createQuickSurveyPopup() {
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
     display: none;
-  `;
+  `
 
   // Add elements to document
-  document.body.appendChild(overlay);
-  document.body.appendChild(popupContainer);
+  document.body.appendChild(overlay)
+  document.body.appendChild(popupContainer)
 
   // Add close functionality
   document
-    .getElementById("close-quick-survey")
-    .addEventListener("click", () => {
-      const toggleButton = document.getElementById("quickSurveyToggle");
+    .getElementById('close-quick-survey')
+    .addEventListener('click', () => {
+      const toggleButton = document.getElementById('quickSurveyToggle')
       if (toggleButton) {
-        toggleButton.click();
+        toggleButton.click()
       }
-    });
+    })
 
-  overlay.addEventListener("click", () => {
-    const toggleButton = document.getElementById("quickSurveyToggle");
+  overlay.addEventListener('click', () => {
+    const toggleButton = document.getElementById('quickSurveyToggle')
     if (toggleButton) {
-      toggleButton.click();
+      toggleButton.click()
     }
-  });
+  })
 
   // Add hover effects to buttons
   const buttons = popupContainer.querySelectorAll(
-    "button:not(#close-quick-survey)"
-  );
+    'button:not(#close-quick-survey)'
+  )
   buttons.forEach((button) => {
     button.onmouseover = function () {
-      this.style.opacity = "0.9";
-      this.style.transform = "translateY(-1px)";
-    };
+      this.style.opacity = '0.9'
+      this.style.transform = 'translateY(-1px)'
+    }
     button.onmouseout = function () {
-      this.style.opacity = "1";
-      this.style.transform = "translateY(0)";
-    };
-  });
+      this.style.opacity = '1'
+      this.style.transform = 'translateY(0)'
+    }
+  })
 
   // Setup event listeners immediately after creating the popup
-  setupQuickSurveyEventListeners();
+  setupQuickSurveyEventListeners()
 
-  console.log("Popup created and added to DOM"); // Debug log
+  console.log('Popup created and added to DOM') // Debug log
 }
 
 function setupQuickSurveyEventListeners() {
   // Check if we're in a Chrome extension context
   const isExtension =
-    typeof chrome !== "undefined" && chrome.tabs && chrome.scripting;
+    typeof chrome !== 'undefined' && chrome.tabs && chrome.scripting
 
   // Event listeners for star rating buttons
-  document.querySelectorAll(".star-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      const rating = button.getAttribute("data-rating");
-      console.log(`Star ${rating} button clicked`); // Debug log
+  document.querySelectorAll('.star-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const rating = button.getAttribute('data-rating')
+      console.log(`Star ${rating} button clicked`) // Debug log
 
       if (isExtension) {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -348,39 +348,39 @@ function setupQuickSurveyEventListeners() {
             target: { tabId: tabs[0].id },
             function: automateFlow,
             args: [`star${rating}`],
-          });
-        });
+          })
+        })
       } else {
         // If not in extension context, run directly
-        automateFlow(`star${rating}`);
+        automateFlow(`star${rating}`)
       }
 
       // Hide popup
-      const popup = document.getElementById("quickSurveyPopup");
-      const overlay = document.getElementById("quickSurveyPopupOverlay");
+      const popup = document.getElementById('quickSurveyPopup')
+      const overlay = document.getElementById('quickSurveyPopupOverlay')
       if (popup && overlay) {
-        popup.style.display = "none";
-        overlay.style.display = "none";
-        const toggleButton = document.getElementById("quickSurveyToggle");
+        popup.style.display = 'none'
+        overlay.style.display = 'none'
+        const toggleButton = document.getElementById('quickSurveyToggle')
         if (toggleButton) {
-          toggleButton.style.backgroundColor = "#0070f3";
+          toggleButton.style.backgroundColor = '#0070f3'
         }
       }
-    });
-  });
+    })
+  })
 
   // Other button event listeners
   const buttons = [
-    { id: "setuju", mode: "Setuju" },
-    { id: "random", mode: "Random" },
-    { id: "fullRandom", mode: "FullRandom" },
-  ];
+    { id: 'setuju', mode: 'Setuju' },
+    { id: 'random', mode: 'Random' },
+    { id: 'fullRandom', mode: 'FullRandom' },
+  ]
 
   buttons.forEach(({ id, mode }) => {
-    const button = document.getElementById(id);
+    const button = document.getElementById(id)
     if (button) {
-      button.addEventListener("click", () => {
-        console.log(`${id} button clicked`); // Debug log
+      button.addEventListener('click', () => {
+        console.log(`${id} button clicked`) // Debug log
 
         if (isExtension) {
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -388,124 +388,124 @@ function setupQuickSurveyEventListeners() {
               target: { tabId: tabs[0].id },
               function: automateFlow,
               args: [mode],
-            });
-          });
+            })
+          })
         } else {
           // If not in extension context, run directly
-          automateFlow(mode);
+          automateFlow(mode)
         }
 
         // Hide popup
-        const popup = document.getElementById("quickSurveyPopup");
-        const overlay = document.getElementById("quickSurveyPopupOverlay");
+        const popup = document.getElementById('quickSurveyPopup')
+        const overlay = document.getElementById('quickSurveyPopupOverlay')
         if (popup && overlay) {
-          popup.style.display = "none";
-          overlay.style.display = "none";
-          const toggleButton = document.getElementById("quickSurveyToggle");
+          popup.style.display = 'none'
+          overlay.style.display = 'none'
+          const toggleButton = document.getElementById('quickSurveyToggle')
           if (toggleButton) {
-            toggleButton.style.backgroundColor = "#0070f3";
+            toggleButton.style.backgroundColor = '#0070f3'
           }
         }
-      });
+      })
     }
-  });
+  })
 }
 
 // Fungsi untuk mengecek URL dan menampilkan popup jika sesuai
 function checkUrlAndInitialize() {
-  const currentUrl = window.location.href;
+  const currentUrl = window.location.href
   // Toleran: abaikan query string/hash
-  const targetPrefix = "https://my.unpam.ac.id/data-akademik/khs";
+  const targetPrefix = 'https://my.unpam.ac.id/data-akademik/khs'
   if (currentUrl.startsWith(targetPrefix)) {
     console.log(
-      "URL matches target (with tolerance), initializing QuickSurvey..."
-    );
-    initializeQuickSurvey();
+      'URL matches target (with tolerance), initializing QuickSurvey...'
+    )
+    initializeQuickSurvey()
   } else {
-    console.log("URL does not match target, removing QuickSurvey if exists...");
+    console.log('URL does not match target, removing QuickSurvey if exists...')
     // Remove existing elements if they exist
-    const existingToggle = document.getElementById("quickSurveyToggle");
-    if (existingToggle) existingToggle.remove();
-    const existingPopup = document.getElementById("quickSurveyPopup");
-    if (existingPopup) existingPopup.remove();
-    const existingOverlay = document.getElementById("quickSurveyPopupOverlay");
-    if (existingOverlay) existingOverlay.remove();
+    const existingToggle = document.getElementById('quickSurveyToggle')
+    if (existingToggle) existingToggle.remove()
+    const existingPopup = document.getElementById('quickSurveyPopup')
+    if (existingPopup) existingPopup.remove()
+    const existingOverlay = document.getElementById('quickSurveyPopupOverlay')
+    if (existingOverlay) existingOverlay.remove()
   }
 }
 
 // Fungsi untuk memantau perubahan URL
 function observeUrlChanges() {
-  let lastUrl = window.location.href;
+  let lastUrl = window.location.href
 
   // Fungsi untuk mengecek perubahan URL
   function checkUrlChange() {
-    const currentUrl = window.location.href;
+    const currentUrl = window.location.href
     if (currentUrl !== lastUrl) {
-      console.log("URL changed from", lastUrl, "to", currentUrl);
-      lastUrl = currentUrl;
-      checkUrlAndInitialize();
+      console.log('URL changed from', lastUrl, 'to', currentUrl)
+      lastUrl = currentUrl
+      checkUrlAndInitialize()
     }
   }
 
   // Menggunakan MutationObserver untuk memantau perubahan pada history
   const observer = new MutationObserver(() => {
-    checkUrlChange();
-  });
+    checkUrlChange()
+  })
 
   // Mulai observasi
   observer.observe(document.body, {
     childList: true,
     subtree: true,
-  });
+  })
 
   // Tambahkan event listener untuk popstate (untuk navigasi browser)
-  window.addEventListener("popstate", checkUrlChange);
+  window.addEventListener('popstate', checkUrlChange)
 
   // Tambahkan event listener untuk pushState dan replaceState
-  const originalPushState = history.pushState;
-  const originalReplaceState = history.replaceState;
+  const originalPushState = history.pushState
+  const originalReplaceState = history.replaceState
 
   history.pushState = function () {
-    originalPushState.apply(this, arguments);
-    checkUrlChange();
-  };
+    originalPushState.apply(this, arguments)
+    checkUrlChange()
+  }
 
   history.replaceState = function () {
-    originalReplaceState.apply(this, arguments);
-    checkUrlChange();
-  };
+    originalReplaceState.apply(this, arguments)
+    checkUrlChange()
+  }
 
   // Cek URL saat script pertama kali dijalankan
-  checkUrlAndInitialize();
+  checkUrlAndInitialize()
 }
 
 // Modifikasi fungsi initializeQuickSurvey
 function initializeQuickSurvey() {
-  console.log("Initializing QuickSurvey..."); // Debug log
+  console.log('Initializing QuickSurvey...') // Debug log
 
   // Hapus elemen yang ada terlebih dahulu
-  const existingToggle = document.getElementById("quickSurveyToggle");
+  const existingToggle = document.getElementById('quickSurveyToggle')
   if (existingToggle) {
-    existingToggle.remove();
+    existingToggle.remove()
   }
-  const existingPopup = document.getElementById("quickSurveyPopup");
+  const existingPopup = document.getElementById('quickSurveyPopup')
   if (existingPopup) {
-    existingPopup.remove();
+    existingPopup.remove()
   }
-  const existingOverlay = document.getElementById("quickSurveyPopupOverlay");
+  const existingOverlay = document.getElementById('quickSurveyPopupOverlay')
   if (existingOverlay) {
-    existingOverlay.remove();
+    existingOverlay.remove()
   }
 
   // Buat elemen baru
-  createQuickSurveyToggle();
-  createQuickSurveyPopup();
+  createQuickSurveyToggle()
+  createQuickSurveyPopup()
 }
 
 // Jalankan observasi URL saat script dimuat
-console.log("=== SCRIPT UNTUK QUICK SURVEY UNPAM ===");
-console.log("Memulai observasi perubahan URL...");
-observeUrlChanges();
+console.log('=== SCRIPT UNTUK QUICK SURVEY UNPAM ===')
+console.log('Memulai observasi perubahan URL...')
+observeUrlChanges()
 
 // Pastikan tombol langsung muncul jika URL cocok saat script pertama kali dijalankan
-checkUrlAndInitialize();
+checkUrlAndInitialize()
