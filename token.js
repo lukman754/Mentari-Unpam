@@ -1,20 +1,32 @@
 console.log("Token.js sedang dijalankan!");
 
+// Versi aplikasi - Diperbarui secara manual saat rilis baru
+const APP_VERSION = "1.9";
+
 // Inisialisasi UI dan logic token
 (function () {
-  let authToken = null;
-  let isHandlingCourseApiRequest = false;
-  let courseDataList = [];
-  let userInfo = null;
-  let studentDataList = [];
-
   // Nama kunci untuk localStorage
   const STORAGE_KEYS = {
     AUTH_TOKEN: "mentari_auth_token",
     USER_INFO: "mentari_user_info",
     COURSE_DATA: "mentari_course_data",
     LAST_UPDATE: "mentari_last_update",
+    VERSION_CHECK: "mentari_version_check",
+    LAST_VERSION_CHECK: "mentari_last_version_check",
+    VERSION_STATUS: "mentari_version_status",
   };
+
+  // Hapus cache status versi untuk memastikan pemeriksaan versi baru
+  localStorage.removeItem(STORAGE_KEYS.VERSION_STATUS);
+  localStorage.removeItem(STORAGE_KEYS.LAST_VERSION_CHECK);
+  console.log("Cache status versi dihapus untuk memastikan pemeriksaan baru");
+
+  let authToken = null;
+  let isHandlingCourseApiRequest = false;
+  let courseDataList = [];
+  let userInfo = null;
+  let studentDataList = [];
+  let lecturerNotifications = [];
 
   // Fungsi untuk menyimpan data ke localStorage
   function saveToLocalStorage(key, data) {
@@ -45,6 +57,386 @@ console.log("Token.js sedang dijalankan!");
       "Cache data berhasil dihapus. Refresh halaman untuk mengambil data baru."
     );
   };
+
+  // Fungsi untuk mendapatkan versi saat ini
+  function getCurrentVersion() {
+    console.log("Current app version:", APP_VERSION);
+    return APP_VERSION;
+  }
+
+  // Fungsi untuk kompatibilitas (async version)
+  async function fetchManifestVersionAsync() {
+    return APP_VERSION;
+  }
+
+  // Fungsi untuk memeriksa versi terbaru dari GitHub
+  async function checkLatestVersion() {
+    try {
+      const response = await fetch(
+        "https://api.github.com/repos/lukman754/Mentari-Unpam/releases/latest"
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+      return {
+        version: data.tag_name.replace("v", ""), // Remove 'v' prefix
+        html_url: data.html_url,
+        published_at: data.published_at,
+      };
+    } catch (error) {
+      console.error("Error checking latest version:", error);
+      return null;
+    }
+  }
+
+  // Fungsi untuk membandingkan versi
+  function compareVersions(currentVersion, latestVersion) {
+    console.log(
+      "compareVersions dipanggil dengan:",
+      currentVersion,
+      latestVersion
+    );
+
+    // Pastikan versi dengan 2 angka ditambahkan 0 di belakangnya
+    let currentNormalized = currentVersion;
+    let latestNormalized = latestVersion;
+
+    // Jika hanya ada 2 angka (1 titik), tambahkan .0 di belakangnya
+    if ((currentVersion.match(/\./g) || []).length === 1) {
+      currentNormalized = currentVersion + ".0";
+      console.log("currentVersion dinormalisasi menjadi:", currentNormalized);
+    }
+    if ((latestVersion.match(/\./g) || []).length === 1) {
+      latestNormalized = latestVersion + ".0";
+      console.log("latestVersion dinormalisasi menjadi:", latestNormalized);
+    }
+
+    // Hapus titik dan gabungkan angka
+    const currentNum = parseInt(currentNormalized.replace(/\./g, ""));
+    const latestNum = parseInt(latestNormalized.replace(/\./g, ""));
+
+    console.log("Nilai numerik setelah konversi:", currentNum, latestNum);
+
+    // Bandingkan angka gabungan
+    if (currentNum < latestNum) {
+      console.log("Hasil: Current is older (-1)");
+      return -1; // Current is older
+    }
+    if (currentNum > latestNum) {
+      console.log("Hasil: Current is newer (1)");
+      return 1; // Current is newer
+    }
+
+    console.log("Hasil: Versions are equal (0)");
+    return 0; // Versions are equal
+  }
+
+  // Fungsi untuk menampilkan notifikasi status versi
+  function showVersionStatusNotification(status, latestVersion = null) {
+    // Don't show notification if there's no update available
+    if (status !== "update-available" || !latestVersion) {
+      console.log("Tidak ada pembaruan tersedia atau versi tidak valid");
+      return;
+    }
+
+    const notification = document.createElement("div");
+    notification.id = "version-status-notification";
+
+    let message = `Update tersedia! Versi terbaru: v${latestVersion}`;
+    let icon = "fas fa-sync-alt";
+    let bgColor = "rgba(121, 187, 124, 0.9)";
+
+    notification.innerHTML = `
+      <div class="version-status-content">
+        <div class="update-header">
+          <div class="header-left">
+            <div class="status-icon">
+              <i class="${icon}"></i>
+            </div>
+            <div class="update-title">Pembaruan Tersedia</div>
+          </div>
+          <button class="close-status" title="Tutup">×</button>
+        </div>
+        <div class="update-body">
+          <p>Versi terbaru <strong>Mentari Mod v${latestVersion}</strong> sudah tersedia! Pembaruan ini berisi perbaikan bug dan peningkatan performa.</p>
+          ${
+            status === "update-available"
+              ? `
+            <div class="update-actions">
+              <a href="https://github.com/lukman754/Mentari-Unpam/releases/latest" target="_blank" class="download-btn">
+                <i class="fas fa-download"></i> Unduh Pembaruan
+              </a>
+              <button class="later-btn">
+                Nanti Saja
+              </button>
+            </div>
+          `
+              : ""
+          }
+        </div>
+      </div>
+    `;
+
+    // Add event listeners
+    notification
+      .querySelector(".close-status")
+      .addEventListener("click", function () {
+        notification.remove();
+      });
+
+    const laterBtn = notification.querySelector(".later-btn");
+    if (laterBtn) {
+      laterBtn.addEventListener("click", function () {
+        notification.remove();
+      });
+    }
+
+    // Add styles for status notification
+    if (!document.getElementById("version-status-styles")) {
+      const style = document.createElement("style");
+      style.id = "version-status-styles";
+      style.textContent = `
+
+        #version-status-notification {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 500px;
+          max-width: 90%;
+          z-index: 10001;
+          animation: fadeIn 0.3s ease-out;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .version-status-content {
+          display: flex;
+          flex-direction: column;
+          background: #1e1e1e;
+          color: #ffffff;
+        }
+        
+        .update-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px;
+          background: #2a2a2a;
+          border-bottom: 1px solid #3a3a3a;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .status-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: rgba(121, 187, 124, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .status-icon i {
+          color: #79bb7c;
+          font-size: 16px;
+        }
+        
+        .update-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #fff;
+        }
+        
+        .update-body {
+          padding: 20px;
+          background: #1e1e1e;
+        }
+        
+        .update-body p {
+          margin: 0 0 24px 0;
+          color: #e0e0e0;
+          font-size: 15px;
+          line-height: 1.6;
+        }
+        
+        .update-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+        }
+        
+        .download-btn, .later-btn {
+          padding: 10px 20px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .download-btn {
+          background: #79bb7c;
+          color: #1e1e1e;
+        }
+        
+        .download-btn:hover {
+          background: #6aaa6d;
+          transform: translateY(-1px);
+        }
+        
+        .later-btn {
+          background: #2a2a2a;
+          color: #e0e0e0;
+          border: 1px solid #3a3a3a;
+        }
+        
+        .later-btn:hover {
+          background: #333;
+        }
+        
+        .close-status {
+          background: none;
+          border: none;
+          color: #999;
+          font-size: 24px;
+          line-height: 1;
+          cursor: pointer;
+          padding: 4px;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+        }
+        
+        .close-status:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(notification);
+  }
+
+  // Fungsi untuk auto check update setiap 6 jam
+  async function autoCheckUpdate() {
+    try {
+      const lastCheck = localStorage.getItem(STORAGE_KEYS.LAST_VERSION_CHECK);
+      const now = Date.now();
+      const sixHours = 6 * 60 * 60 * 1000; // 6 jam dalam milliseconds
+
+      // Check if 6 hours have passed since last check
+      if (lastCheck && now - parseInt(lastCheck) < sixHours) {
+        return; // Not time to check yet
+      }
+
+      console.log("Auto checking for updates...");
+      const latestVersionInfo = await checkLatestVersion();
+
+      if (latestVersionInfo) {
+        const currentVersion = getCurrentVersion();
+        if (typeof currentVersion === "string") {
+          // Debug log untuk melihat versi yang dibandingkan
+          console.log("Debug - Versi yang dibandingkan:");
+          console.log("APP_VERSION:", currentVersion);
+          console.log("GitHub Version:", latestVersionInfo.version);
+
+          const comparison = compareVersions(
+            currentVersion,
+            latestVersionInfo.version
+          );
+
+          // Debug log untuk hasil perbandingan
+          console.log("Hasil perbandingan:", comparison);
+          console.log(
+            "Nilai numerik APP_VERSION:",
+            parseInt(currentVersion.replace(/\./g, ""))
+          );
+          console.log(
+            "Nilai numerik GitHub Version:",
+            parseInt(latestVersionInfo.version.replace(/\./g, ""))
+          );
+
+          // Save check time
+          localStorage.setItem(STORAGE_KEYS.LAST_VERSION_CHECK, now.toString());
+
+          if (
+            comparison < 0 &&
+            latestVersionInfo &&
+            latestVersionInfo.version
+          ) {
+            // Update available and version is valid
+            showVersionStatusNotification(
+              "update-available",
+              latestVersionInfo.version
+            );
+            // Save version status
+            saveToLocalStorage(STORAGE_KEYS.VERSION_STATUS, {
+              status: "update-available",
+              latestVersion: latestVersionInfo.version,
+              downloadUrl: latestVersionInfo.html_url,
+              checkedAt: new Date().toISOString(),
+            });
+          } else {
+            // Up to date
+            showVersionStatusNotification("up-to-date");
+            saveToLocalStorage(STORAGE_KEYS.VERSION_STATUS, {
+              status: "up-to-date",
+              currentVersion: currentVersion,
+              checkedAt: new Date().toISOString(),
+            });
+          }
+        } else {
+          console.error("Invalid current version:", currentVersion);
+          showVersionStatusNotification("error");
+        }
+      } else {
+        showVersionStatusNotification("error");
+      }
+    } catch (error) {
+      console.error("Auto version check failed:", error);
+      showVersionStatusNotification("error");
+    }
+  }
+
+  // Fungsi untuk menampilkan notifikasi update
+  function showUpdateNotification(latestVersion, downloadUrl) {
+    // Check if notification already shown today
+    const lastCheck = localStorage.getItem(STORAGE_KEYS.VERSION_CHECK);
+    const today = new Date().toDateString();
+
+    if (lastCheck === today) {
+      return; // Already shown today
+    }
+
+    // Save today's date to prevent showing again today
+    localStorage.setItem(STORAGE_KEYS.VERSION_CHECK, today);
+
+    // Auto remove after 10 seconds
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 10000);
+  }
 
   // Fungsi untuk melakukan tracking ulang
   window.refreshAndTrack = function () {
@@ -79,15 +471,19 @@ console.log("Token.js sedang dijalankan!");
     <div class="token-loading-bar"></div>
     <div class="popup-content">
       <div class="popup-header">
-        <span class="popup-title">MENTARI MOD</span>
-        <div class="token-popup-actions">
-          <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
+        <div class="header-top">
+          <span class="popup-title">MENTARI MOD</span>
+          <div class="token-popup-actions">
+            <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
+          </div>
         </div>
-      </div>
-      <div class="token-tabs">
-        <button class="token-tab active" data-tab="forum-data">Forum</button>
-        <button class="token-tab" data-tab="student-data">Mahasiswa</button>
-        <button class="token-tab" data-tab="user-info">Setting</button>
+        <div class="token-tabs">
+          <button class="token-tab active" data-tab="forum-data">Forum</button>
+          <button class="token-tab" data-tab="student-data">Mahasiswa</button>
+          <button class="token-tab" data-tab="notifications">Notifikasi</button>
+          <button class="token-tab" data-tab="user-info">Setting</button>
+          <button class="token-tab" data-tab="token-data">Token</button>
+        </div>
       </div>
       <div class="token-tab-content" id="user-info-tab">
         <div class="token-info-section">
@@ -104,6 +500,12 @@ console.log("Token.js sedang dijalankan!");
           <p>Forum Diskusi yang belum dikerjakan</p>
         </div>
         <div id="forum-list"></div>
+      </div>
+      <div class="token-tab-content" id="notifications-tab">
+        <div class="token-info-section">
+          <p>Balasan Dosen Terbaru</p>
+        </div>
+        <div id="notifications-list"></div>
       </div>
       <div class="token-tab-content" id="student-data-tab">
         <div id="student-list"></div>
@@ -261,7 +663,7 @@ console.log("Token.js sedang dijalankan!");
     }
     
     .popup-content {
-      padding-top: 12px;
+      padding-top: 0;
       max-height: 500px;
       display: flex;
       flex-direction: column;
@@ -277,10 +679,17 @@ console.log("Token.js sedang dijalankan!");
     
     .popup-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
       padding: 0 16px 12px 60px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .header-top {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
     }
     
     .popup-title {
@@ -352,8 +761,15 @@ console.log("Token.js sedang dijalankan!");
     
     .token-tabs {
       display: flex;
-      padding: 0 12px;
-      margin-top: 8px;
+      padding: 0;
+      margin: 0;
+      overflow-x: auto;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .token-tabs::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, and Opera */
     }
     
     .token-tab {
@@ -706,6 +1122,11 @@ console.log("Token.js sedang dijalankan!");
       .getElementById("token-reset-btn")
       .addEventListener("click", refreshAndTrackWithLoading);
 
+    // Auto reset every 3 minutes
+    setInterval(() => {
+      refreshAndTrackWithLoading();
+    }, 3 * 60 * 1000); // 3 minutes in milliseconds
+
     // Tab switching
     document.querySelectorAll(".token-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
@@ -934,37 +1355,62 @@ console.log("Token.js sedang dijalankan!");
     }
 
     tokenTab.innerHTML = `
-      <div class="token-info-section">
-        <h4>Bearer Token</h4>
-        <p><span class="token-value">${tokenDisplay || "Tidak ditemukan"}</span>
-          <button class="token-copy-btn" data-copy="${token}">Copy</button>
-        </p>
-      </div>
-      <div class="token-info-section">
-        <h4>Payload</h4>
-        <pre>${JSON.stringify(tokenInfo?.payload || {}, null, 2)}</pre>
+      <div class="token-data-grid">
+        <div class="token-data-item">
+          <div class="token-info-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p style="margin: 0;"><span class="token-key">Bearer Token :</span> <span class="token-value">${
+                tokenDisplay || "Tidak ditemukan"
+              }...</span></p>
+              <button class="token-button" data-copy="${token}" style="margin-left: 10px; padding: 4px 8px; font-size: 12px;">
+                <i class="fas fa-copy"></i> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="token-data-item">
+          <div class="token-info-section">
+            <p class="token-key">Payload :</p>
+            <div class="token-payload">
+              <pre>${JSON.stringify(tokenInfo?.payload || {}, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
     // Add copy functionality
-    tokenTab.querySelectorAll(".token-copy-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const textToCopy = btn.getAttribute("data-copy");
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          const originalText = btn.innerText;
-          btn.innerText = "Copied!";
+    const copyButton = tokenTab.querySelector(".token-button[data-copy]");
+    if (copyButton) {
+      copyButton.addEventListener("click", async () => {
+        const textToCopy = copyButton.getAttribute("data-copy");
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          const originalHTML = copyButton.innerHTML;
+          copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          copyButton.style.backgroundColor = "#28a745";
+
           setTimeout(() => {
-            btn.innerText = originalText;
+            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            copyButton.style.backgroundColor = "";
           }, 1500);
-        });
+        } catch (error) {
+          console.error("Failed to copy:", error);
+          copyButton.innerHTML = '<i class="fas fa-times"></i> Error';
+          setTimeout(() => {
+            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+          }, 1500);
+        }
       });
-    });
+    }
   }
 
   // Update user info UI
   function updateUserInfoUI(tokenInfo) {
     const userInfoTab = document.getElementById("user-info-tab");
     if (!userInfoTab || !tokenInfo) return;
+
+    const currentVersion = getCurrentVersion();
 
     userInfoTab.innerHTML = `
       <div class="token-card-wrapper">
@@ -979,6 +1425,14 @@ console.log("Token.js sedang dijalankan!");
               <p><span class="token-key">NIM :</span> <span class="token-value">${
                 tokenInfo.username
               }</span></p>
+            </div>
+          </div>
+          
+          <div class="token-data-item">
+            <div class="token-info-section">
+              <button id="update-api-key" class="token-button" style="width: 100%;">
+                <i class="fas fa-key"></i> Update API Key
+              </button>
             </div>
           </div>
           
@@ -1001,7 +1455,7 @@ console.log("Token.js sedang dijalankan!");
           <div class="token-data-item">
             <div class="token-info-section">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <p><span class="token-key">Auto Selesai Quiz :</span></p>
+                <p><span class="token-key">Auto Finish Quiz :</span></p>
                 <label class="switch">
                   <input type="checkbox" id="auto-finish-quiz-toggle" ${
                     localStorage.getItem("auto_finish_quiz") === "true"
@@ -1014,11 +1468,31 @@ console.log("Token.js sedang dijalankan!");
             </div>
           </div>
 
-          <div class="token-data-item">
+
+          <div class="token-data-item version-info">
             <div class="token-info-section">
-              <button id="update-api-key" class="token-button" style="width: 100%;">
-                <i class="fas fa-key"></i> Update API Key
-              </button>
+              <div class="version-display">
+                <div class="version-current">
+                  <span class="token-key">Versi Saat Ini:</span>
+                  <span class="token-value version-number" id="current-version">v${currentVersion}</span>
+                </div>
+                <div class="version-latest" id="version-latest-info" style="display: none;">
+                  <span class="token-key">Versi Terbaru:</span>
+                  <span class="token-value version-number latest" id="latest-version">-</span>
+                </div>
+                <div class="version-status" id="version-status-display" style="display: none;">
+                  <span class="token-key">Status:</span>
+                  <span class="token-value version-status-text" id="version-status-text">-</span>
+                </div>
+                <div class="version-actions">
+                  <button id="check-update-btn" class="version-btn">
+                    <i class="fas fa-sync-alt"></i> Cek Update
+                  </button>
+                  <a href="https://github.com/lukman754/Mentari-Unpam/releases" target="_blank" class="version-btn secondary" id="github-releases-link" style="display: none;">
+                    <i class="fas fa-external-link-alt"></i> Lihat Semua
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1129,6 +1603,173 @@ console.log("Token.js sedang dijalankan!");
         }
       });
     }
+
+    // Load and display last version status
+    const versionStatus = getFromLocalStorage(STORAGE_KEYS.VERSION_STATUS);
+    if (versionStatus) {
+      const statusDisplay = document.getElementById("version-status-display");
+      const statusText = document.getElementById("version-status-text");
+
+      if (statusDisplay && statusText) {
+        let statusMessage = "";
+        let statusClass = "";
+
+        switch (versionStatus.status) {
+          case "up-to-date":
+            statusMessage = "✅ Up to date";
+            statusClass = "up-to-date";
+            break;
+          case "update-available":
+            statusMessage = `🔄 Update tersedia (v${versionStatus.latestVersion})`;
+            statusClass = "update-available";
+            break;
+          case "error":
+            statusMessage = "❌ Error checking";
+            statusClass = "error";
+            break;
+        }
+
+        statusText.textContent = statusMessage;
+        statusText.className = `version-status-text ${statusClass}`;
+        statusDisplay.style.display = "block";
+      }
+    }
+
+    // Add version check event listener
+    const checkUpdateBtn = document.getElementById("check-update-btn");
+    if (checkUpdateBtn) {
+      checkUpdateBtn.addEventListener("click", async function () {
+        const button = this;
+        const originalText = button.innerHTML;
+
+        // Show loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengecek...';
+        button.disabled = true;
+
+        try {
+          const latestVersionInfo = await checkLatestVersion();
+
+          if (latestVersionInfo) {
+            const currentVersion = getCurrentVersion(); // Get version from manifest
+            if (typeof currentVersion === "string") {
+              const comparison = compareVersions(
+                currentVersion,
+                latestVersionInfo.version
+              );
+
+              // Show latest version info
+              const latestVersionElement =
+                document.getElementById("latest-version");
+              const versionLatestInfo = document.getElementById(
+                "version-latest-info"
+              );
+              const githubReleasesLink = document.getElementById(
+                "github-releases-link"
+              );
+
+              if (latestVersionElement && versionLatestInfo) {
+                latestVersionElement.textContent = `v${latestVersionInfo.version}`;
+                versionLatestInfo.style.display = "block";
+
+                if (githubReleasesLink) {
+                  githubReleasesLink.href = latestVersionInfo.html_url;
+                  githubReleasesLink.style.display = "inline-flex";
+                }
+              }
+
+              if (comparison < 0) {
+                // Current version is older
+                showUpdateNotification(
+                  latestVersionInfo.version,
+                  latestVersionInfo.html_url
+                );
+                button.innerHTML =
+                  '<i class="fas fa-download"></i> Update Tersedia!';
+                button.classList.add("update-available");
+                // Make button clickable to go to repo
+                button.onclick = () =>
+                  window.open(latestVersionInfo.html_url, "_blank");
+              } else if (comparison > 0) {
+                // Current version is newer (beta/dev version)
+                button.innerHTML = '<i class="fas fa-check"></i> Versi Terbaru';
+                button.classList.add("up-to-date");
+                // Make button clickable to go to repo
+                button.onclick = () =>
+                  window.open(
+                    "https://github.com/lukman754/Mentari-Unpam/releases",
+                    "_blank"
+                  );
+              } else {
+                // Versions are equal
+                button.innerHTML = '<i class="fas fa-check"></i> Sudah Terbaru';
+                button.classList.add("up-to-date");
+                // Make button clickable to go to repo
+                button.onclick = () =>
+                  window.open(
+                    "https://github.com/lukman754/Mentari-Unpam/releases",
+                    "_blank"
+                  );
+              }
+            } else {
+              console.error("Invalid current version:", currentVersion);
+              button.innerHTML =
+                '<i class="fas fa-exclamation-triangle"></i> Error Version';
+              button.classList.add("error");
+            }
+          } else {
+            button.innerHTML =
+              '<i class="fas fa-exclamation-triangle"></i> Gagal Cek';
+            button.classList.add("error");
+          }
+        } catch (error) {
+          console.error("Error checking version:", error);
+          button.innerHTML =
+            '<i class="fas fa-exclamation-triangle"></i> Error';
+          button.classList.add("error");
+        } finally {
+          // Re-enable button after 3 seconds
+          setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove("update-available", "up-to-date", "error");
+          }, 3000);
+        }
+      });
+    }
+  }
+
+  // Function to check if all section cards are hidden
+  function areAllSectionsHidden(courseContent) {
+    const sectionCards = courseContent.querySelectorAll('.section-card');
+    return sectionCards.length > 0 && 
+      Array.from(sectionCards).every(section => 
+        window.getComputedStyle(section).display === 'none' || 
+        section.style.display === 'none'
+      );
+  }
+
+  // Function to handle course card visibility
+  function updateCourseCardVisibility(courseContent) {
+    if (!courseContent) return;
+    
+    const isEmpty = courseContent.children.length === 0;
+    const allSectionsHidden = areAllSectionsHidden(courseContent);
+    const courseCard = courseContent.closest('.course-card');
+    
+    if (!courseCard) return;
+    
+    if (isEmpty || allSectionsHidden) {
+      if (courseCard.style.display !== 'none') {
+        courseCard.style.transition = 'opacity 0.5s';
+        courseCard.style.opacity = '0';
+        setTimeout(() => {
+          courseCard.style.display = 'none';
+        }, 500);
+      }
+    } else if (courseCard.style.display === 'none') {
+      courseCard.style.display = '';
+      courseCard.style.opacity = '1';
+    }
   }
 
   // Update forum data UI
@@ -1202,6 +1843,9 @@ console.log("Token.js sedang dijalankan!");
 
         // Skip if no forum with ID exists
         if (!forumWithId) return false;
+        
+        // We'll check topics later after they're fetched by fetchForumTopics
+        // This is just the initial filter to find valid forums
 
         // Find POST_TEST in the section
         const postTest = section.sub_section.find(
@@ -1214,12 +1858,16 @@ console.log("Token.js sedang dijalankan!");
           postTest &&
           postTest.completion === true
         ) {
-          return false;
+          // Instead of returning false, mark this section for API calls only
+          section.apiOnly = true;
+          return true; // Include in processing but mark for API only
         }
 
         // HIDE CRITERIA 2: FORUM_DISKUSI with ID is completed (true) and POST_TEST exists but has no ID
         if (forumWithId.completion === true && postTest && !postTest.id) {
-          return false;
+          // Instead of returning false, mark this section for API calls only
+          section.apiOnly = true;
+          return true; // Include in processing but mark for API only
         }
 
         // HIDE CRITERIA 3: FORUM_DISKUSI has a warningAlert about unavailable forum discussions
@@ -1233,8 +1881,90 @@ console.log("Token.js sedang dijalankan!");
         return true;
       });
 
-      // Skip this course if there are no valid sections with forum discussions
-      if (validSections.length === 0) return;
+      // Process completed forums for API calls only (before checking valid sections)
+      const completedForums = [];
+      courseData.data.forEach((section) => {
+        if (section.sub_section) {
+          section.sub_section.forEach((item) => {
+            if (item.kode_template === "FORUM_DISKUSI" && item.id) {
+              const postTest = section.sub_section.find(
+                (sub) => sub.kode_template === "POST_TEST"
+              );
+
+              // Check if this forum should be hidden but still processed for API
+              const shouldHideButProcess =
+                (item.completion === true &&
+                  postTest &&
+                  postTest.completion === true) ||
+                (item.completion === true && postTest && !postTest.id);
+
+              if (shouldHideButProcess) {
+                completedForums.push({
+                  forumId: item.id_trx_course_sub_section || item.id,
+                  forumTitle: item.judul,
+                  sectionName: section.nama_section,
+                });
+              }
+            }
+          });
+        }
+      });
+
+      // Process completed forums in background for API calls
+      if (completedForums.length > 0) {
+        console.log(
+          `Found ${completedForums.length} completed forums for background processing`
+        );
+        completedForums.forEach((forum) => {
+          console.log(
+            `Processing completed forum: ${forum.forumTitle} in ${forum.sectionName}`
+          );
+          fetchForumTopics(forum.forumId).catch((error) => {
+            console.error(
+              `Error fetching topics for completed forum ${forum.forumId}:`,
+              error
+            );
+          });
+        });
+      }
+
+      // Filter out sections that are marked for API only from UI rendering
+      const uiSections = validSections.filter((section) => !section.apiOnly);
+
+      // Skip this course if there are no valid sections for UI display
+      let hasVisibleContent = false;
+      
+      // Check if any section has visible content
+      uiSections.forEach(section => {
+        if (section.sub_section && section.sub_section.some(item => {
+          // Don't count completed items as visible content
+          if (item.completion) return false;
+          
+          // Count non-completed items as visible content
+          if (item.kode_template === 'FORUM_DISKUSI' && item.id) return true;
+          if (item.kode_template === 'PRE_TEST' || item.kode_template === 'POST_TEST') return true;
+          if (item.kode_template === 'KUESIONER') return true;
+          if (item.kode_template === 'PENUGASAN_TERSTRUKTUR') return true;
+          
+          // Check learning materials
+          if ([
+            'BUKU_ISBN',
+            'VIDEO_AJAR',
+            'POWER_POINT',
+            'ARTIKEL_RISET',
+            'MATERI_LAINNYA'
+          ].includes(item.kode_template) && item.link) {
+            return true;
+          }
+          
+          return false;
+        })) {
+          hasVisibleContent = true;
+        }
+      });
+      
+      // Skip if no visible content in any section
+      if (!hasVisibleContent && uiSections.length > 0) return;
 
       // Create a unique ID for this course card
       const courseId = `course-${kode_course}`;
@@ -1254,9 +1984,15 @@ console.log("Token.js sedang dijalankan!");
     <div class="course-content" id="${courseId}">
   `;
 
-      // Process each valid section
-      validSections.forEach((section, sectionIndex) => {
+      // Process each UI section (excluding API-only sections)
+      uiSections.forEach((section, sectionIndex) => {
         if (!section.sub_section) return;
+
+        // Find the forum item in this section to get its ID
+        const forumItem = section.sub_section.find(
+          (sub) => sub.kode_template === "FORUM_DISKUSI" && sub.id
+        );
+        const forumId = forumItem ? forumItem.id : '';
 
         // Create a unique ID for this section
         const sectionId = `section-${kode_course}-${sectionIndex}`;
@@ -1266,7 +2002,7 @@ console.log("Token.js sedang dijalankan!");
         const sectionUrl = `https://mentari.unpam.ac.id/u-courses/${kode_course}?accord_pertemuan=${kode_section}`;
 
         html += `
-    <div class="section-card">
+    <div class="section-card" ${forumId ? `data-forum-id="${forumId}"` : ''}>
       <div class="section-header" onclick="toggleSection('${sectionId}', '${courseId}')">
         <h3>${section.nama_section}</h3>
         <span class="section-toggle" id="toggle-${sectionId}">
@@ -1547,6 +2283,47 @@ console.log("Token.js sedang dijalankan!");
     </div>
   </div>
   `;
+
+    // After adding the HTML, set up mutation observer to watch for display changes
+    setTimeout(() => {
+      const courseContent = document.getElementById(courseId);
+      if (!courseContent) return;
+      
+      // Initial check
+      updateCourseCardVisibility(courseContent);
+      
+      // Set up mutation observer to watch for style changes on section cards
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+            updateCourseCardVisibility(courseContent);
+          }
+        });
+      });
+      
+      // Start observing all section cards for style changes
+      const sectionCards = courseContent.querySelectorAll('.section-card');
+      sectionCards.forEach(section => {
+        observer.observe(section, { 
+          attributes: true,
+          attributeFilter: ['style']
+        });
+      });
+      
+      // Also observe the course content for any changes in its children
+      const contentObserver = new MutationObserver(() => {
+        updateCourseCardVisibility(courseContent);
+      });
+      
+      contentObserver.observe(courseContent, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Store observers for cleanup if needed
+      if (!window.courseObservers) window.courseObservers = new Map();
+      window.courseObservers.set(courseId, { observer, contentObserver });
+    }, 0);
     });
 
     // Check if there's any content
@@ -2224,6 +3001,124 @@ console.log("Token.js sedang dijalankan!");
         background: #0060df;
         transform: translateY(-1px);
       }
+
+      /* Version Info Styles */
+      .version-info {
+        background: rgba(0, 112, 243, 0.05);
+        border: 1px solid rgba(0, 112, 243, 0.1);
+      }
+
+      .version-display {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .version-current, .version-latest {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+      }
+
+      .version-number {
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 13px;
+      }
+
+      .version-number.latest {
+        color: #00a550;
+      }
+
+      .version-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+      }
+
+      .version-status-text {
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .version-status-text.up-to-date {
+        color: #00a550;
+      }
+
+      .version-status-text.update-available {
+        color: #0070f3;
+      }
+
+      .version-status-text.error {
+        color: #f43f5e;
+      }
+
+      .version-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .version-btn {
+        background: #0070f3;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.2s;
+        text-decoration: none;
+        flex: 1;
+      }
+
+      .version-btn:hover {
+        background: #0060df;
+        transform: translateY(-1px);
+      }
+
+      .version-btn.secondary {
+        background: #333;
+        color: #ccc;
+      }
+
+      .version-btn.secondary:hover {
+        background: #444;
+        color: #fff;
+      }
+
+      .version-btn.update-available {
+        background: #00a550;
+        animation: pulse 2s infinite;
+      }
+
+      .version-btn.update-available:hover {
+        background: #008f47;
+      }
+
+      .version-btn.up-to-date {
+        background: #0070f3;
+      }
+
+      .version-btn.error {
+        background: #f43f5e;
+      }
+
+      .version-btn.error:hover {
+        background: #e11d48;
+      }
+
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(0, 165, 80, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(0, 165, 80, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 165, 80, 0); }
+      }
       
       /* Forum Topics Styles */
       .forum-topics {
@@ -2248,11 +3143,14 @@ console.log("Token.js sedang dijalankan!");
       }
       
       .topic-badge {
-        background: rgba(255, 255, 255, 0.71);
-        color: #252525;
-        padding: 4px 8px;
+        background:rgb(0, 51, 0);
+        color:rgb(163, 255, 163);
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        font-size: 13px;
+        border: 1px solid rgb(0, 85, 4);
        
-        border-radius: 5px;
         font-size: 11px;
         white-space: nowrap;
         overflow: hidden;
@@ -2265,16 +3163,306 @@ console.log("Token.js sedang dijalankan!");
       }
       
       .topic-badge:hover {
-        background: rgba(56, 56, 56, 0.65);
+        background: rgba(80, 129, 0, 0.48);
         transform: translateY(-1px);
-        color:rgb(255, 255, 255);
+        color:rgb(157, 255, 0);
         text-decoration: none;
-        box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2);
+        border: 1px solid rgb(157, 255, 0);
+      }
+
+      /* Notification Styles */
+      #notifications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .notification-item {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.2s ease;
+      }
+
+      .notification-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .notification-item.clickable:hover {
+        background: rgba(0, 112, 243, 0.1);
+        border-color: rgba(0, 112, 243, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 112, 243, 0.2);
+      }
+
+      .notification-item.clickable:hover {
+        background: rgba(0, 112, 243, 0.1);
+        border-color: rgba(0, 112, 243, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 112, 243, 0.2);
+      }
+
+      .notification-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .notification-icon {
+        background: rgba(0, 112, 243, 0.1);
+        color: #0070f3;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .notification-meta {
+        flex: 1;
+      }
+
+      .notification-lecturer {
+        font-weight: 600;
+        color: #fff;
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+
+      .notification-time {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+
+      .notification-title {
+        font-weight: 500;
+        color: #eee;
+        font-size: 13px;
+        margin-bottom: 4px;
+        line-height: 1.4;
+      }
+
+      .notification-text {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.4;
+      }
+
+      .no-notifications {
+        text-align: left;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+      }
+
+      .no-notifications p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+      }
+
+      .no-notifications small {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
       }
     `;
 
       document.head.appendChild(styleElement);
     }
+  }
+
+  // Update notifications UI
+  function updateNotificationsUI() {
+    const notificationsTab = document.getElementById("notifications-tab");
+    if (!notificationsTab) return;
+
+    const notificationsList = document.getElementById("notifications-list");
+    if (!notificationsList) return;
+
+    // Filter notifications that are less than 5 days old
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+    const recentNotifications = lecturerNotifications.filter((notification) => {
+      const notificationDate = new Date(notification.createdAt);
+      return notificationDate >= fiveDaysAgo;
+    });
+
+    if (recentNotifications.length === 0) {
+      notificationsList.innerHTML = `
+        <div class="notification-item no-notifications">
+          <div class="notification-content">
+            <p>Belum ada balasan dosen</p>
+            <small>Ketika dosen membalas postingan Anda, notifikasi akan muncul di sini</small>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = "";
+    recentNotifications.forEach((notification, index) => {
+      const createdDate = new Date(notification.createdAt).toLocaleString(
+        "id-ID",
+        {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }
+      );
+
+      // Create topic URL if we have the necessary information
+
+      const courseCode = notification.kode_course || "unknown-course";
+      const forumId =
+        notification.forumId ||
+        notification.id_trx_course_sub_section ||
+        "unknown-forum";
+      const topicId =
+        notification.topicId || notification.id || "unknown-topic";
+      const topicUrl = `https://mentari.unpam.ac.id/u-courses/${courseCode}/forum/${forumId}/topics/${topicId}`;
+      const isClickable = true;
+
+      const notificationId = `notification-${notification.id}`;
+
+      if (isClickable) {
+        html += `
+        <div class="notification-item clickable" id="${notificationId}" style="cursor: pointer; position: relative;">
+          <a href="${topicUrl}" class="notification-link" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; text-decoration: none;"></a>
+          <div style="position: relative; z-index: 2; pointer-events: none;">
+            <div class="notification-header">
+              <div class="notification-icon">
+                <i class="fas fa-user-graduate"></i>
+              </div>
+              <div class="notification-meta">
+                <div class="notification-lecturer">${notification.lecturerName}</div>
+                <div class="notification-time">${createdDate}</div>
+              </div>
+            </div>
+            <div class="notification-content">
+              <div class="notification-text">${notification.content}</div>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        html += `
+        <div class="notification-item" id="${notificationId}">
+          <div class="notification-header">
+            <div class="notification-icon">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="notification-meta">
+              <div class="notification-lecturer">${notification.lecturerName}</div>
+              <div class="notification-time">${createdDate}</div>
+            </div>
+          </div>
+          <div class="notification-content">
+            <div class="notification-text">${notification.content}</div>
+          </div>
+        </div>`;
+      }
+    });
+
+    notificationsList.innerHTML = html;
+
+    // Add click event listeners to notification items
+    document
+      .querySelectorAll(".notification-item.clickable")
+      .forEach((item, index) => {
+        item.addEventListener("click", function (e) {
+          if (e.target.closest("a.notification-link")) {
+            e.preventDefault();
+            const href = e.target
+              .closest("a.notification-link")
+              .getAttribute("href");
+
+            // Simpan ID elemen yang akan discroll ke
+            const notificationId = item.id.replace("notification-", "");
+            sessionStorage.setItem("scrollToNotificationId", notificationId);
+
+            // Navigate to the URL
+            window.location.href = href;
+          }
+        });
+      });
+
+    // Function to scroll to element
+    function scrollToElement() {
+      console.log("Memulai fungsi scrollToElement");
+      const notificationId = sessionStorage.getItem("scrollToNotificationId");
+
+      if (!notificationId) {
+        console.log("Tidak ada ID notifikasi yang tersimpan");
+        return;
+      }
+
+      // Hapus ID setelah digunakan
+      sessionStorage.removeItem("scrollToNotificationId");
+
+      console.log(
+        'Mencari elemen dengan ID yang dimulai dengan "notification-"'
+      );
+
+      // Cari elemen dengan ID yang sesuai
+      const element = document.getElementById(`${notificationId}`);
+      console.log("Mencari elemen dengan ID:", `${notificationId}`);
+      console.log("Elemen ditemukan:", element);
+
+      if (element) {
+        console.log("Elemen ditemukan:", element);
+        console.log("Posisi elemen:", element.getBoundingClientRect());
+
+        // Tambahkan delay 3 detik sebelum scroll
+        console.log("Menunggu 3 detik sebelum scroll...");
+
+        setTimeout(() => {
+          console.log("Memulai scroll ke elemen...");
+
+          // Scroll ke elemen
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+
+          console.log("Scroll selesai");
+
+          // Efek highlight
+          console.log("Menambahkan efek highlight");
+          element.style.transition = "background-color 1s ease";
+          element.style.backgroundColor = "rgba(255, 221, 0, 0.3)";
+
+          // Hapus highlight setelah 2 detik
+          setTimeout(() => {
+            console.log("Menghapus highlight");
+            element.style.backgroundColor = "";
+          }, 2000);
+        }, 100); // Delay 3 detik
+      } else {
+        console.error("Elemen tidak ditemukan dengan ID:", elementId);
+        console.log("Isi dokumen:", document.body.innerHTML);
+      }
+    }
+
+    // Try scrolling when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", scrollToElement);
+    } else {
+      setTimeout(scrollToElement, 0);
+    }
+
+    // Also try scrolling when window loads (as a fallback)
+    window.addEventListener("load", scrollToElement);
   }
 
   // Update student data UI
@@ -3092,6 +4280,9 @@ console.log("Token.js sedang dijalankan!");
       // Update student UI after fetching all courses
       updateStudentUI(courseDataList);
 
+      // Update notifications UI
+      updateNotificationsUI();
+
       return data;
     } catch (error) {
       console.error(`Error fetching courses:`, error);
@@ -3120,6 +4311,7 @@ console.log("Token.js sedang dijalankan!");
         courseDataList = cachedCourseData;
         updateForumUI(courseDataList);
         updateStudentUI(courseDataList);
+        updateNotificationsUI();
       }
 
       return true;
@@ -3292,6 +4484,9 @@ console.log("Token.js sedang dijalankan!");
 
   window.fetchCoursesList = fetchCoursesListAndDetails;
 
+  // Expose fetchForumReplies function
+  window.fetchForumReplies = fetchForumReplies;
+
   // Fungsi untuk menghapus cache data
   window.clearCacheData = function () {
     localStorage.removeItem(STORAGE_KEYS.COURSE_DATA);
@@ -3309,6 +4504,16 @@ console.log("Token.js sedang dijalankan!");
 
     // Cek apakah ada data di localStorage
     const hasExistingData = checkStorages();
+
+    // Auto check for updates every 6 hours
+    setTimeout(() => {
+      autoCheckUpdate();
+    }, 2000); // Initial check after 2 seconds
+
+    // Set up interval for checking every 6 hours
+    setInterval(() => {
+      autoCheckUpdate();
+    }, 6 * 60 * 60 * 1000); // 6 hours in milliseconds
 
     // Jika tidak ada data, coba klik card
     if (!hasExistingData) {
@@ -3405,10 +4610,186 @@ console.log("Token.js sedang dijalankan!");
       );
 
       console.log("Matching topics:", matchingTopics);
+
+      // If no matching topics, hide the forum section
+      if (matchingTopics.length === 0) {
+        const forumElement = document.querySelector(`[data-forum-id="${forumId}"]`);
+        if (forumElement) {
+          forumElement.style.display = 'none';
+        }
+        return [];
+      }
+
+      // Fetch replies for each topic
+      for (const topic of matchingTopics) {
+        if (topic.id) {
+          await fetchForumReplies(topic.id);
+        }
+      }
+
       return matchingTopics;
     } catch (error) {
       console.error("Error fetching forum topics:", error);
       return [];
     }
   }
+
+  // Add this function to fetch replies from API
+  async function fetchForumReplies(topicId) {
+    try {
+      const response = await fetch(
+        `https://mentari.unpam.ac.id/api/forum/reply/${topicId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Failed to fetch replies:",
+          response.status,
+          response.statusText
+        );
+        throw new Error("Failed to fetch replies");
+      }
+
+      const data = await response.json();
+      const currentUserNIM = userInfo?.username;
+      let allReplies = [];
+      let mainTopic = null;
+
+      // Handle different response structures
+      if (Array.isArray(data)) {
+        allReplies = data;
+      } else if (data.data && Array.isArray(data.data)) {
+        allReplies = data.data;
+        if (data.id && data.post_type === "TOPIC") {
+          mainTopic = data;
+          console.log("Main Topic:", {
+            id: mainTopic.id,
+            kode_course: mainTopic.kode_course,
+            id_trx_course_sub_section: mainTopic.id_trx_course_sub_section,
+            judul: mainTopic.judul,
+            dosen: mainTopic.dosen?.nama_gelar || mainTopic.dosen?.nama_dosen,
+          });
+        }
+      }
+
+      if (allReplies.length > 0 && currentUserNIM) {
+        const mainTopicId = mainTopic?.id || topicId;
+
+        // Find student's own posts and related lecturer replies
+        const studentPosts = allReplies.filter(
+          (reply) =>
+            reply.nim === currentUserNIM &&
+            reply.post_type === "REPLY" &&
+            reply.id_parent === mainTopicId
+        );
+
+        const lecturerReplies = allReplies.filter(
+          (reply) =>
+            reply.id_dosen &&
+            reply.post_type === "REPLY" &&
+            studentPosts.some((post) => post.id === reply.id_parent)
+        );
+
+        // Create notification data
+        const notificationData = [];
+
+        // Add main topic info if exists
+        if (mainTopic) {
+          notificationData.push({
+            id: mainTopic.id,
+            kode_course: mainTopic.kode_course,
+            id_trx_course_sub_section: mainTopic.id_trx_course_sub_section,
+            judul: mainTopic.judul,
+            post_type: mainTopic.post_type,
+            createdAt: mainTopic.createdAt,
+            lecturerName:
+              mainTopic.dosen?.nama_gelar ||
+              mainTopic.dosen?.nama_dosen ||
+              "Dosen",
+          });
+        }
+
+        // Add student posts
+        studentPosts.forEach((post) => {
+          notificationData.push({
+            id: post.id,
+            kode_course: post.kode_course,
+            id_trx_course_sub_section: post.id_trx_course_sub_section,
+            judul: post.judul || `Balasan dari ${userInfo?.name || "Anda"}`,
+            post_type: post.post_type,
+            createdAt: post.createdAt,
+            isMyPost: true,
+          });
+        });
+
+        // Add lecturer replies
+        lecturerReplies.forEach((reply) => {
+          const notification = {
+            id: reply.id,
+            kode_course: reply.kode_course,
+            id_trx_course_sub_section: reply.id_trx_course_sub_section,
+            judul: reply.judul || "Balasan Dosen",
+            post_type: reply.post_type,
+            createdAt: reply.createdAt,
+            lecturerName:
+              reply.dosen?.nama_gelar || reply.dosen?.nama_dosen || "Dosen",
+            topicId: topicId,
+            forumId: topicId,
+            content: reply.konten
+              ? reply.konten.substring(0, 150) +
+                (reply.konten.length > 150 ? "..." : "")
+              : "Tidak ada konten",
+          };
+
+          // Add to notification data
+          notificationData.push(notification);
+
+          // Also add to lecturer notifications if not exists
+          const existingIndex = lecturerNotifications.findIndex(
+            (n) => n.id === reply.id
+          );
+          if (existingIndex === -1) {
+            lecturerNotifications.unshift({
+              ...notification,
+              type: "lecturer_reply",
+              title: notification.judul,
+              parentId: reply.id_parent,
+              courseCode: reply.kode_course,
+            });
+
+            // Keep only latest 50 notifications
+            if (lecturerNotifications.length > 50) {
+              lecturerNotifications = lecturerNotifications.slice(0, 50);
+            }
+          }
+        });
+
+        // Update notifications UI
+        updateNotificationsUI();
+
+        console.log("Notification Data:", notificationData);
+        return notificationData;
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Error in fetchForumReplies:", error);
+      return [];
+    }
+  }
+
+  // Jalankan pengujian compareVersions
+  testCompareVersions();
+
+  // Jalankan pemeriksaan versi secara manual
+  console.log("Menjalankan pemeriksaan versi secara manual...");
+  setTimeout(() => {
+    autoCheckUpdate();
+  }, 1000); // Tunggu 1 detik untuk memastikan semua fungsi sudah dimuat
 })();

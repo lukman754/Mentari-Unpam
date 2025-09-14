@@ -148,23 +148,23 @@ function createQuickSurveyToggle() {
   toggleButton.id = "quickSurveyToggle";
   toggleButton.textContent = "Quick Survey";
   toggleButton.style.cssText = `
-    padding: 10px 16px;
-    background-color: #10b981;
+    padding: 8px 14px;
+    background-color: #1e293b;
     color: white;
     border: none;
-    border-radius: 7px;
+    border-radius: 6px;
     cursor: pointer;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     transition: background 0.2s;
-    box-shadow: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   `;
   toggleButton.onmouseover = function () {
-    this.style.backgroundColor = "#059669";
+    this.style.backgroundColor = "#334155";
   };
   toggleButton.onmouseout = function () {
-    this.style.backgroundColor = "#10b981";
+    this.style.backgroundColor = "#1e293b";
   };
   // Add click handler
   toggleButton.addEventListener("click", (e) => {
@@ -180,11 +180,11 @@ function createQuickSurveyToggle() {
       if (isVisible) {
         popup.style.display = "none";
         overlay.style.display = "none";
-        toggleButton.style.backgroundColor = "#10b981";
+        toggleButton.style.backgroundColor = "#1e293b";
       } else {
         popup.style.display = "block";
         overlay.style.display = "block";
-        toggleButton.style.backgroundColor = "#059669";
+        toggleButton.style.backgroundColor = "#334155";
       }
     } else {
       console.log("Popup or overlay not found, creating new ones...");
@@ -225,53 +225,53 @@ function createQuickSurveyPopup() {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     z-index: 10000;
     width: 90%;
-    max-width: 500px;
+    max-width: 400px;
     max-height: 90vh;
     overflow-y: auto;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    color: black;
+    color: #e0e0e0;
     display: none;
   `;
 
   popupContainer.innerHTML = `
-    <div style="margin-bottom: 24px; border-bottom: 1px solid #eaeaea; padding-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #000;">Quick Survey</h2>
-        <button id="close-quick-survey" style="background: none; border: none; cursor: pointer; color: #666; font-size: 20px;">×</button>
+    <div style="margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #fff;">Quick Survey</h2>
+        <button id="close-quick-survey" style="background: none; border: none; cursor: pointer; color: #aaa; font-size: 20px;">×</button>
       </div>
-      <p style="margin: 0; font-size: 14px; color: #666;">Pilih salah satu opsi dibawah ini untuk mengisi kuisioner</p>
+      <p style="margin: 0; font-size: 13px; color: #aaa;">Pilih salah satu opsi untuk mengisi kuisioner</p>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 16px;">
-      <div style="background-color: #fafafa; border-radius: 8px; padding: 16px; border: 1px solid #eaeaea;">
-        <p style="margin: 0 0 12px 0; font-weight: 500; color: #000;">Bagaimana penilaian kamu terhadap kinerja dosen?</p>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <button class="star-btn" data-rating="1" style="background-color: #f43f5e; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Bintang 1</button>
-          <button class="star-btn" data-rating="2" style="background-color: #f97316; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Bintang 2</button>
-          <button class="star-btn" data-rating="3" style="background-color: #eab308; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Bintang 3</button>
-          <button class="star-btn" data-rating="4" style="background-color: #84cc16; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Bintang 4</button>
-          <button class="star-btn" data-rating="5" style="background-color: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Bintang 5</button>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="background-color: #2a2a2a; border-radius: 8px; padding: 14px; border: 1px solid #333;">
+        <p style="margin: 0 0 10px 0; font-weight: 500; color: #ddd;">Penilaian kinerja dosen:</p>
+        <div style="display: flex; justify-content: space-between; gap: 5px;">
+          <button class="star-btn" data-rating="1" style="flex: 1; background-color: #7f1d1d; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">1<br><span style="font-size: 10px;">Sangat Kurang</span></button>
+          <button class="star-btn" data-rating="2" style="flex: 1; background-color: #92400e; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">2<br><span style="font-size: 10px;">Kurang</span></button>
+          <button class="star-btn" data-rating="3" style="flex: 1; background-color: #854d0e; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">3<br><span style="font-size: 10px;">Cukup</span></button>
+          <button class="star-btn" data-rating="4" style="flex: 1; background-color: #3f6212; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">4<br><span style="font-size: 10px;">Baik</span></button>
+          <button class="star-btn" data-rating="5" style="flex: 1; background-color: #065f46; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">5<br><span style="font-size: 10px;">Sangat Baik</span></button>
         </div>
       </div>
 
-      <div style="background-color: #fafafa; border-radius: 8px; padding: 16px; border: 1px solid #eaeaea;">
-        <p style="margin: 0 0 12px 0; font-weight: 500; color: #000;">Bingung memberikan penilaian? Gunakan opsi berikut:</p>
+      <div style="background-color: #2a2a2a; border-radius: 8px; padding: 14px; border: 1px solid #333;">
+        <p style="margin: 0 0 10px 0; font-weight: 500; color: #ddd;">Opsi lainnya:</p>
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <button id="setuju" style="background-color: #84cc16; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Pilih Semua "Setuju"</button>
-          <button id="random" style="background-color: #eab308; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Random (Tanpa "Sangat Tidak Setuju")</button>
-          <button id="fullRandom" style="background-color: #8b5cf6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Acak Total</button>
+          <button id="setuju" style="background-color: #3f6212; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Pilih Semua "Setuju"</button>
+          <button id="random" style="background-color: #854d0e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Random (Tanpa "Sangat Tidak Setuju")</button>
+          <button id="fullRandom" style="background-color: #5b21b6; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Acak Total</button>
         </div>
       </div>
     </div>
 
-    <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #666;">
-      &copy; 2025 Created by <a href="https://github.com/Lukman754" target="_blank" style="color: #0070f3; text-decoration: none;">Lukman754</a>. All rights reserved.
+    <div style="margin-top: 16px; text-align: center; font-size: 11px; color: #777;">
+      &copy; 2025 Created by <a href="https://github.com/Lukman754" target="_blank" style="color: #6d9ee7; text-decoration: none;">Lukman754</a>
     </div>
   `;
 
@@ -363,7 +363,7 @@ function setupQuickSurveyEventListeners() {
         overlay.style.display = "none";
         const toggleButton = document.getElementById("quickSurveyToggle");
         if (toggleButton) {
-          toggleButton.style.backgroundColor = "#0070f3";
+          toggleButton.style.backgroundColor = "#1e293b";
         }
       }
     });
@@ -403,8 +403,8 @@ function setupQuickSurveyEventListeners() {
           overlay.style.display = "none";
           const toggleButton = document.getElementById("quickSurveyToggle");
           if (toggleButton) {
-            toggleButton.style.backgroundColor = "#0070f3";
-          }
+            toggleButton.style.backgroundColor = "#1e293b";
+        }
         }
       });
     }

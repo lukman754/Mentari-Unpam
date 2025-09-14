@@ -453,8 +453,24 @@ Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
       ];
 
       // Cek toggle auto_finish_quiz sebelum klik otomatis tombol Selesai Quiz
-      if (localStorage.getItem("auto_finish_quiz") !== "true") {
-        // Jika toggle tidak aktif, jangan klik otomatis tombol Selesai Quiz
+      const autoFinishEnabled =
+        localStorage.getItem("auto_finish_quiz") === "true";
+
+      if (!autoFinishEnabled) {
+        // Jika toggle tidak aktif, tambahkan delay random 2-3 menit untuk humanize
+        const randomDelay = Math.floor(Math.random() * 60000) + 120000; // 2-3 menit dalam milidetik
+        console.log(
+          `Auto finish quiz tidak aktif, menunggu ${Math.round(
+            randomDelay / 1000
+          )} detik untuk humanize...`
+        );
+
+        setTimeout(() => {
+          console.log("Delay selesai, melanjutkan auto finish quiz...");
+          // Panggil fungsi ini lagi setelah delay
+          clickNextButton();
+        }, randomDelay);
+
         return false;
       }
 

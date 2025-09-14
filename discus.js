@@ -23,21 +23,20 @@
   ) {
     const GEMINI_API_KEY = getGeminiApiKey();
     let prompt = "";
-    // Deteksi apakah ada beberapa pertanyaan bernomor
-    const hasNumberedQuestions = /\b1\.[\s\S]*2\./.test(content);
+
     if (mode === "default") {
-      prompt =
-        `Bacalah diskusi berikut, lalu tuliskan jawaban atau rangkuman yang natural, mengalir, dan mudah dipahami seperti jawaban manusia. Hindari tanda bintang, bullet, atau penomoran. Jika memungkinkan, gunakan satu atau dua paragraf saja, jangan ucapkan "Tentu, ini rangkumannya:\n" atau semacamnya, langsung jawab saja. Jika terdapat soal atau pertanyaan yang berhubungan dengan bahasa pemrograman atau coding, berikan contoh singkat code nya` +
-        (hasNumberedQuestions
-          ? ` Jika terdapat beberapa pertanyaan bernomor (misal: 1. ... 2. ...), jawab setiap pertanyaan secara berurutan. Untuk setiap pertanyaan, awali jawaban dengan angka yang sesuai (misal: 1..., 2..., 3..., dst), lalu tuliskan jawaban natural satu paragraf untuk setiap nomor. Jangan gunakan bullet, penomoran ulang, atau format lain selain angka yang sesuai dengan soal.`
-          : "") +
-        `\n\n${content}\n\nJawaban:`;
+      prompt = `Bacalah diskusi berikut, lalu tuliskan jawaban atau rangkuman yang natural, mengalir, dan mudah dipahami seperti jawaban manusia. Gunakan bahasa yang natural seperti manusia. Jika memungkinkan, gunakan satu atau dua paragraf saja, jangan ucapkan "Tentu, ini rangkumannya:" atau semacamnya, langsung jawab saja. Jika terdapat soal atau pertanyaan yang berhubungan dengan bahasa pemrograman atau coding, berikan contoh singkat code nya. jika pertanyaannya bernomor maka buat jawaban bernomor juga, hanya pertanyaan saja
+      \n${content}\n\nJawaban yang natural dan mengalir:`;
     } else if (mode === "shorten") {
       prompt = `Ringkas jawaban berikut menjadi lebih singkat, tetap natural dan mudah dipahami, tanpa bullet atau penomoran:\n\n${prevAnswer}`;
+    } else if (mode === "paragraph") {
+      prompt = `Ubah jawaban berikut menjadi satu paragraf, tetap natural dan mudah dipahami, tanpa bullet atau penomoran:\n\n${prevAnswer}`;
     } else if (mode === "clarify") {
       prompt = `Perjelas dan buat jawaban berikut lebih mudah dipahami, tetap natural dan tidak seperti AI, tanpa bullet atau penomoran:\n\n${prevAnswer}`;
     } else if (mode === "lengthen") {
       prompt = `Perpanjang dan tambahkan detail pada jawaban berikut, tetap natural dan mudah dipahami, tanpa bullet atau penomoran:\n\n${prevAnswer}`;
+    } else if (mode === "numbered") {
+      prompt = `Ubah jawaban berikut menjadi nomor, tetap natural dan mudah dipahami, tanpa bullet atau paragraf:\n\n${prevAnswer}`;
     }
 
     const response = await fetch(
@@ -67,6 +66,36 @@
     );
   }
 
+  // Fungsi untuk mengekstrak konten dari berbagai struktur DOM yang mungkin
+  function extractDiscussionContent(rootElement) {
+    // Coba cari konten dengan selector yang berbeda-beda
+    const selectors = [
+      ".ck-content", // CKEditor content
+      ".MuiBox-root", // MUI Box content
+      ".discussion-content", // Generic discussion content
+      '[class*="content"]', // Any element with 'content' in class
+      "div:not([class]):not([id])", // Fallback to plain div
+    ];
+
+    // Coba setiap selector sampai menemukan yang sesuai
+    for (const selector of selectors) {
+      const elements = rootElement.querySelectorAll(selector);
+      for (const element of elements) {
+        // Skip elements that are too small or likely not the main content
+        if (element.textContent.trim().length < 10) continue;
+
+        // Skip elements that contain buttons or other interactive elements
+        if (element.querySelector("button, a, input, select, textarea"))
+          continue;
+
+        return element.textContent.trim();
+      }
+    }
+
+    // Fallback: ambil semua teks dari root element
+    return rootElement.textContent.trim();
+  }
+
   // Fungsi untuk menambahkan tombol "Cari Jawaban" dan "Buat Pertanyaan" khusus dosen
   function addCariJawabanButtons() {
     document
@@ -77,24 +106,31 @@
         // Cek apakah sudah ada tombol "Cari Jawaban"
         if (replyBtn.parentElement.querySelector(".cari-jawaban-btn")) return;
 
-        // Deteksi apakah ini diskusi dosen (cek nama dosen di parent)
-        const rootPaper = replyBtn.closest(".MuiPaper-root");
-        const isDosen =
-          rootPaper &&
-          rootPaper.querySelector(
-            '.MuiTypography-root span[style*="font-weight: bold;"]'
-          ) &&
-          rootPaper
-            .querySelector(
-              '.MuiTypography-root span[style*="font-weight: bold;"]'
-            )
-            .textContent.match(
-              /\b(?:S\.Kom|M\.Kom|Dr|Prof|S\.Pd|M\.Pd|Dosen)\b/i
-            );
+        // Dapatkan elemen root diskusi
+        const rootPaper =
+          replyBtn.closest(
+            ".MuiPaper-root, .discussion-post, [role='article']"
+          ) || replyBtn.closest("div");
+
+        // Deteksi apakah ini dosen berdasarkan pola nama
+        const isDosen = () => {
+          // Cari elemen yang mungkin berisi nama dosen
+          const possibleNameElements = [
+            ...(rootPaper?.querySelectorAll(
+              'strong, b, [style*="font-weight:bold"], [class*="name"], [class*="user"], [class*="author"], .MuiTypography-root'
+            ) || []),
+          ];
+
+          // Cek apakah ada teks yang mengandung koma atau titik
+          return possibleNameElements.some((el) => {
+            const text = el.textContent.trim();
+            return /\b(?:,|\.)\b/i.test(text);
+          });
+        };
 
         // --- TOMBOL BUAT PERTANYAAN (KHUSUS DOSEN) ---
         let buatBtn = null;
-        if (isDosen) {
+        if (isDosen()) {
           buatBtn = document.createElement("button");
           buatBtn.type = "button";
           buatBtn.className =
@@ -108,16 +144,19 @@
           <span class=\"MuiButton-label\">Buat Pertanyaan</span>`;
           // Insert sebelum tombol Cari Jawaban/Reply
           replyBtn.parentElement.insertBefore(buatBtn, replyBtn);
-          // Event klik
+          // Event listener untuk tombol Buat Pertanyaan
           buatBtn.addEventListener("click", async () => {
             buatBtn.disabled = true;
             buatBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 8v4\"></path><path d=\"M12 16h.01\"></path></svg></span><span class=\"MuiButton-label\">Memproses...</span>`;
-            const ckContents = rootPaper.querySelectorAll(".ck-content");
-            const content =
-              (ckContents[1] && getCkContentWithListNumbering(ckContents[1])) ||
-              (ckContents[0] && getCkContentWithListNumbering(ckContents[0])) ||
-              "";
+
             try {
+              // Gunakan fungsi extractDiscussionContent untuk mendapatkan konten
+              const content = extractDiscussionContent(rootPaper);
+
+              if (!content) {
+                throw new Error("Tidak dapat menemukan konten diskusi");
+              }
+
               const prompt = `Bacalah diskusi berikut, lalu buatkan beberapa saran pertanyaan yang natural, relevan, dan menarik untuk diajukan pada diskusi ini. Hindari bullet, penomoran, dan buat seolah-olah pertanyaan dari manusia. Pisahkan setiap pertanyaan dengan baris baru. Pastikan setiap saran pertanyaan berdiri sendiri, tidak saling terhubung, dan tidak menggunakan kata penghubung seperti 'selain itu', 'terus', 'dan' di awal kalimat.\n\n${content}\n\nSaran pertanyaan:`;
               const GEMINI_API_KEY = getGeminiApiKey();
               const response = await fetch(
@@ -144,8 +183,8 @@
               let saran =
                 data?.candidates?.[0]?.content?.parts?.[0]?.text ||
                 "Tidak ada saran pertanyaan.";
-              // Pisahkan saran per baris
-              let saranArr = saran.split(/\n+/).filter(Boolean);
+              // Pisahkan saran per baris dan ambil maksimal 5 saran
+              let saranArr = saran.split(/\n+/).filter(Boolean).slice(0, 5);
               // Tampilkan hasil di bawah tombol
               let saranDiv = rootPaper.querySelector(
                 ".saran-pertanyaan-gemini"
@@ -154,7 +193,7 @@
                 saranDiv = document.createElement("div");
                 saranDiv.className = "saran-pertanyaan-gemini";
                 saranDiv.style =
-                  "margin:10px 0 0 0;padding:10px;background:#fffbe7;color:#000;border-radius:18px;border:1px solid #ffe082;font-size:13px;display:flex;flex-direction:column;gap:8px;";
+                  "margin:10px 0 0 0;padding:10px;;border-radius:18px;border:1px solid rgba(184, 184, 184, 0.3);font-size:13px;display:flex;flex-direction:column;gap:8px;";
                 replyBtn.parentElement.parentElement.appendChild(saranDiv);
               }
               saranDiv.innerHTML = `<b>Saran Pertanyaan:</b>`;
@@ -164,19 +203,20 @@
                   "display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;";
                 // Textbox sebagai card
                 const textBox = document.createElement("div");
-                textBox.textContent = q.trim();
+                const questionText = q.trim();
+                textBox.textContent = questionText;
                 textBox.style =
-                  "flex:1 1 200px;padding:14px 54px 14px 12px;position:relative;border-radius:18px;background:#fff9d8;color:#333;font-size:13px;word-break:break-word;min-height:36px;";
+                  "flex:1 1 200px;padding:14px 80px 14px 12px;position:relative;border-radius:10px;background: rgba(184, 184, 184, 0.3);font-size:13px;word-break:break-word;min-height:36px;text-align:justify;text-justify:inter-word;";
                 // Tombol copy di dalam textbox
                 const copyBtn = document.createElement("button");
                 copyBtn.type = "button";
                 copyBtn.className =
                   "MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall";
                 copyBtn.style =
-                  "position:absolute;right:8px;bottom:8px;min-width:0px;padding:4px 8px;line-height:1.2;font-weight:500;border-radius:9px;background:rgb(255, 179, 0);color:#1e1e1e;border:0;display:flex;align-items:center;gap:4px;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,0.07);";
+                  "position:absolute;right:8px;bottom:8px;min-width:0px;padding:8px;line-height:1.2;font-weight:500;border-radius:9px;background:#79bb7c;color:#fff;border:0;display:flex;align-items:center;gap:4px;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,0.07);";
                 copyBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"></rect><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"></path></svg></span><span class=\"MuiButton-label\">Copy</span>`;
                 copyBtn.onclick = () => {
-                  navigator.clipboard.writeText(textBox.textContent);
+                  navigator.clipboard.writeText(questionText);
                   copyBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"></rect><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"></path></svg></span><span class=\"MuiButton-label\">Copied!</span>`;
                   setTimeout(
                     () =>
@@ -213,31 +253,29 @@
         // Insert sebelum tombol Reply
         replyBtn.parentElement.insertBefore(cariBtn, replyBtn);
 
-        // Event klik
-        cariBtn.addEventListener("click", async (e) => {
-          cariBtn.disabled = true;
-          cariBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"></line></svg></span><span class=\"MuiButton-label\">Mencari...</span>`;
-          const rootPaper = replyBtn.closest(".MuiPaper-root");
-          if (!rootPaper) return;
-          const ckContents = rootPaper.querySelectorAll(".ck-content");
-          let content = "";
-          if (isDosen) {
-            // Jika dosen, gunakan ck-content ke-2 jika ada, jika tidak ada pakai ke-1
-            content =
-              (ckContents[1] && getCkContentWithListNumbering(ckContents[1])) ||
-              (ckContents[0] && getCkContentWithListNumbering(ckContents[0])) ||
-              "";
-          } else {
-            // Mahasiswa: tetap ck-content ke-2
-            content = (ckContents[1] && getCkContentWithListNumbering(ckContents[1])) || "";
-          }
-          if (!content) {
-            alert("Konten diskusi tidak ditemukan!");
-            cariBtn.disabled = false;
-            cariBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"></line></svg></span><span class=\"MuiButton-label\">Cari Jawaban</span>`;
-            return;
-          }
+        // Event listener untuk tombol Cari Jawaban
+        cariBtn.addEventListener("click", async function () {
+          this.disabled = true;
+          this.innerHTML = `
+            <span class="MuiButton-startIcon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="11"></line>
+                <line x1="11" y1="14" x2="11.01" y2="14"></line>
+              </svg>
+            </span>
+            <span class="MuiButton-label">Memproses...</span>
+          `;
+
           try {
+            // Dapatkan konten diskusi menggunakan fungsi extractDiscussionContent
+            const content = extractDiscussionContent(rootPaper);
+
+            if (!content) {
+              throw new Error("Tidak dapat menemukan konten diskusi");
+            }
+
             const jawaban = await askGeminiWithContent(content);
             showJawabanBox(jawaban, replyBtn, rootPaper, content);
           } catch (err) {
@@ -274,12 +312,8 @@
         parts.push(jawaban.slice(i * avgLen, (i + 1) * avgLen));
       }
     }
-    // Format dengan nomor
-    const formatted = parts
-      .slice(0, total)
-      .map((p, i) => `${i + 1}. ${p.trim()}`)
-      .join("\n\n");
-    return formatted;
+    // Return the answer as is without any numbering
+    return parts.slice(0, total).join("\n\n");
   }
 
   // Fungsi untuk menampilkan hasil jawaban Gemini, tombol copy, dan revisi
@@ -289,48 +323,52 @@
       resultDiv = document.createElement("div");
       resultDiv.className = "jawaban-gemini";
       resultDiv.style =
-        "margin:10px 0 0 0;padding:10px;background:#fffbe7;color:#333;border-radius:18px;border:1px solid #ffe082;font-size:13px;display:flex;flex-direction:column;gap:8px;";
+        "margin:10px 0 0 0;padding:10px;border-radius:18px;border:1px solid rgba(184, 184, 184, 0.3);font-size:13px;display:flex;flex-direction:column;gap:8px;text-align:justify;text-justify:inter-word;";
       replyBtn.parentElement.parentElement.appendChild(resultDiv);
     }
-    // Jika ada beberapa soal bernomor, format jawaban
-    let formattedJawaban = jawaban;
-    if (originalContent && /\b1\.[\s\S]*2\./.test(originalContent)) {
-      formattedJawaban = formatNumberedAnswers(originalContent, jawaban);
-    }
-    resultDiv.innerHTML = `<b>Jawaban:</b><div style='margin-bottom:6px;white-space:pre-line;'>${formattedJawaban.replace(
+    // Display the answer as is
+    resultDiv.innerHTML = `<b>Jawaban:</b><div style='margin-bottom:6px;white-space:pre-line;'>${jawaban.replace(
       /\n/g,
       "<br>"
     )}</div>`;
     // Tombol copy dan revisi
     const btnRow = document.createElement("div");
-    btnRow.style = "display:flex;gap:8px;align-items:center;flex-wrap:wrap;";
+    btnRow.style =
+      "display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;";
     // Tombol Copy
     const copyBtn = document.createElement("button");
     copyBtn.type = "button";
     copyBtn.className =
       "MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall";
     copyBtn.style =
-      "margin-right:0;min-width:0px;padding:6px 10px;line-height:1.2;font-weight:500;border-radius:11px;background:rgb(255, 179, 0);color:#1e1e1e;border:0;display:flex;align-items:center;gap:4px;";
+      "margin-right:0;min-width:0px;padding:6px 10px;line-height:1.2;font-weight:500;border-radius:11px;background:#79bb7c;color:#fff;border:0;display:flex;align-items:center;gap:4px;";
     copyBtn.innerHTML = `
       <span class=\"MuiButton-startIcon\" style=\"display:inline-flex;align-items:center;\">
         <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"></rect><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"></path></svg>
       </span>
       <span class=\"MuiButton-label\">Copy</span>`;
-    copyBtn.onclick = () => {
+    copyBtn.onclick = (e) => {
+      e.stopPropagation(); // Prevent event from bubbling up
+      e.preventDefault(); // Prevent default behavior
+
       navigator.clipboard.writeText(jawaban);
-      copyBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"></rect><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"></path></svg></span><span class=\"MuiButton-label\">Copied!</span>`;
-      setTimeout(
-        () =>
-          (copyBtn.innerHTML = `<span class=\"MuiButton-startIcon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\" ry=\"2\"></rect><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"></path></svg></span><span class=\"MuiButton-label\">Copy</span>`),
-        1200
-      );
+      copyBtn.innerHTML = `<span class="MuiButton-startIcon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span><span class="MuiButton-label">Copied!</span>`;
+
+      // Reset button text after 1.2 seconds
+      setTimeout(() => {
+        copyBtn.innerHTML = `<span class="MuiButton-startIcon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span><span class="MuiButton-label">Copy</span>`;
+      }, 1200);
+
+      return false; // Additional safeguard
     };
     btnRow.appendChild(copyBtn);
     // Tombol revisi
     const revisiList = [
       { mode: "shorten", label: "Ringkas" },
+      { mode: "paragraph", label: "1 Paragraf" },
       { mode: "clarify", label: "Perjelas" },
       { mode: "lengthen", label: "Perpanjang" },
+      { mode: "numbered", label: "Nomor" },
     ];
     revisiList.forEach(({ mode, label }) => {
       const btn = document.createElement("button");

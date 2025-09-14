@@ -526,6 +526,16 @@ function addChatbotStyles() {
       background: #444;
     }
 
+    .template-buttons button.selected {
+      background: #0070f3;
+      color: white;
+      border: 1px solid #0070f3;
+    }
+
+    .template-buttons button.selected:hover {
+      background: #0060df;
+    }
+
     /* Input Area */
     .chatbot-input-area {
       padding: 12px;
@@ -723,10 +733,21 @@ function loadChatHistory() {
   }
 }
 
-async function getAnswerFromGemini(apiKey, question) {
-  // Create a simple prompt
+async function getAnswerFromGemini(apiKey, question, conversationHistory = []) {
+  // Build conversation context from history
+  let conversationContext = "";
+  if (conversationHistory.length > 0) {
+    conversationContext = "Riwayat percakapan sebelumnya:\n";
+    conversationHistory.forEach((msg, index) => {
+      const role = msg.sender === "user" ? "User" : "Assistant";
+      conversationContext += `${role}: ${msg.text}\n`;
+    });
+    conversationContext += "\nPertanyaan terbaru: ";
+  }
+
+  // Create prompt with conversation memory
   const prompt = `
-    ${question}
+    ${conversationContext}${question}
 
     jawab pertanyaan diatas, jangan menggunakan huruf tebal ataupun miring dan jangan gunakan karakter khusus seperti (*) pada jawabannya
   `;
@@ -770,16 +791,31 @@ function getGeminiApiKey() {
 }
 
 function setupChatbotEventListeners(encodedApiKey) {
+  // Prevent duplicate event listeners by checking if already set up
+  if (
+    document
+      .getElementById("geminiChatbot")
+      ?.hasAttribute("data-listeners-attached")
+  ) {
+    console.log("Event listeners already attached, skipping setup");
+    return;
+  }
+
   const chatbotToggle = document.getElementById("geminiChatbotToggle");
   const chatbot = document.getElementById("geminiChatbot");
   const closeChatButton = document.getElementById("closeChatButton");
-  const clearChatButton = document.getElementById("clearChatButton");
+  const clearMemoryButton = document.getElementById("clearMemoryButton");
   const questionInput = document.getElementById("questionInput");
   const submitButton = document.getElementById("submitButton");
   const chatHistory = document.getElementById("chatHistory");
   const templateButtons = document.querySelectorAll(".template-buttons button");
   const copyQuestionButton = document.getElementById("copyQuestionButton");
   const apiKeyButton = document.getElementById("apiKeyButton");
+
+  // Mark as listeners attached
+  if (chatbot) {
+    chatbot.setAttribute("data-listeners-attached", "true");
+  }
 
   if (apiKeyButton) {
     apiKeyButton.addEventListener("click", () => {
@@ -830,11 +866,24 @@ function setupChatbotEventListeners(encodedApiKey) {
     chatbot.style.display = "none";
   });
 
-  // Clear chat history
-  clearChatButton.addEventListener("click", () => {
-    if (confirm("Hapus seluruh riwayat chat?")) {
-      chatHistory.innerHTML = "";
-      localStorage.removeItem("gemini_chat_history");
+  // Clear chat memory and history
+  clearMemoryButton.addEventListener("click", () => {
+    if (confirm("Hapus seluruh riwayat chat dan memori percakapan?")) {
+      // Show notification first
+      showChatNotification("Riwayat chat dan memori telah dihapus");
+
+      // Clear everything after a brief delay to ensure notification is shown
+      setTimeout(() => {
+        // Remove any existing notifications first
+        const existingNotifications =
+          chatHistory.querySelectorAll(".chat-notification");
+        existingNotifications.forEach((notification) => notification.remove());
+
+        // Clear chat history and memory
+        chatHistory.innerHTML = "";
+        localStorage.removeItem("gemini_chat_history");
+        clearChatMemory();
+      }, 100);
     }
   });
 
@@ -1034,26 +1083,41 @@ function setupChatbotEventListeners(encodedApiKey) {
     }
   });
 
-  // Template prompt buttons
+  // Template prompt buttons - allow multiple selection
   templateButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const template = button.getAttribute("data-prompt");
-      let currentText = questionInput.value.trim();
+      const currentTemplates =
+        questionInput.getAttribute("data-templates") || "";
+      const templateArray = currentTemplates
+        ? currentTemplates.split("|").filter((t) => t.trim())
+        : [];
 
-      if (currentText) {
-        // Instead of prefixing the text, store the template in a data attribute
-        questionInput.setAttribute("data-template", template);
-        // Keep the original text in the input
-        questionInput.value = currentText;
+      // Toggle selection
+      const index = templateArray.indexOf(template);
+      if (index > -1) {
+        // Remove if already selected
+        templateArray.splice(index, 1);
+        button.classList.remove("selected");
       } else {
-        questionInput.value = "";
-        questionInput.setAttribute("data-template", template);
+        // Add if not selected
+        templateArray.push(template);
+        button.classList.add("selected");
+      }
+
+      // Update data attribute
+      const newTemplates = templateArray.join("|");
+      if (newTemplates) {
+        questionInput.setAttribute("data-templates", newTemplates);
+      } else {
+        questionInput.removeAttribute("data-templates");
       }
 
       questionInput.focus();
 
-      // Show in-chat notification for template selection
-      showChatNotification(`Template "${template}" dipilih`);
+      // Show notification
+      const status = index > -1 ? "dihapus" : "ditambahkan";
+      showChatNotification(`Template "${template}" ${status}`);
     });
   });
 
@@ -1070,15 +1134,26 @@ function setupChatbotEventListeners(encodedApiKey) {
     const question = questionInput.value.trim();
     if (!question) return;
 
-    // Get the selected template if any
-    const template = questionInput.getAttribute("data-template") || "";
+    // Get the selected templates
+    const selectedTemplates =
+      questionInput.getAttribute("data-templates") || "";
+    const templateArray = selectedTemplates
+      ? selectedTemplates.split("|").filter((t) => t.trim())
+      : [];
 
     // Add user message to chat without showing the template
     addMessageToChat("user", question);
 
-    // Clear input and template
+    // Clear input and templates
     questionInput.value = "";
-    questionInput.removeAttribute("data-template");
+    questionInput.removeAttribute("data-templates");
+
+    // Clear selected template buttons
+    document
+      .querySelectorAll(".template-buttons button.selected")
+      .forEach((btn) => {
+        btn.classList.remove("selected");
+      });
 
     // Add the typing indicator
     const typingIndicator = addTypingIndicator();
@@ -1087,13 +1162,21 @@ function setupChatbotEventListeners(encodedApiKey) {
       // Decode the API key
       const apiKey = atob(encodedApiKey);
 
-      // Get answer from Gemini, including template in the actual request
+      // Get conversation history for memory
+      const conversationHistory = getConversationHistory();
+
+      // Build full prompt with templates
       let fullPrompt = question;
-      if (template) {
-        fullPrompt = `${template}: ${question}`;
+      if (templateArray.length > 0) {
+        const combinedTemplates = templateArray.join(". ");
+        fullPrompt = `${combinedTemplates}: ${question}`;
       }
 
-      const answer = await getAnswerFromGemini(apiKey, fullPrompt);
+      const answer = await getAnswerFromGemini(
+        apiKey,
+        fullPrompt,
+        conversationHistory
+      );
 
       // Remove typing indicator
       typingIndicator.remove();
@@ -1278,11 +1361,13 @@ function createChatbotInterface(providedApiKey = null) {
       <div class="chatbot-header">
         <h3>Gemini Assistant</h3>
         <div class="chatbot-actions">
-          <button id="clearChatButton" title="Clear Chat">
+          <button id="clearMemoryButton" title="Clear Memory & Chat">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"></path>
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M9 12l2 2 4-4"></path>
             </svg>
           </button>
           <button id="closeChatButton" title="Close">
@@ -1519,6 +1604,36 @@ function addTypingIndicator() {
 function saveChatHistory() {
   const chatHistory = document.getElementById("chatHistory");
   localStorage.setItem("gemini_chat_history", chatHistory.innerHTML);
+}
+
+// Function to get conversation history for memory
+function getConversationHistory() {
+  const messages = document.querySelectorAll("#chatHistory .message");
+  const history = [];
+
+  messages.forEach((message) => {
+    const isUser = message.classList.contains("user-message");
+    const isBot = message.classList.contains("bot-message");
+
+    if (isUser || isBot) {
+      const text =
+        message.getAttribute("data-original-text") ||
+        message.textContent.trim();
+      history.push({
+        sender: isUser ? "user" : "bot",
+        text: text,
+      });
+    }
+  });
+
+  return history;
+}
+
+// Function to clear chat memory
+function clearChatMemory() {
+  // Clear conversation history from localStorage
+  localStorage.removeItem("gemini_chat_memory");
+  console.log("Chat memory cleared");
 }
 
 // Initialize the chatbot

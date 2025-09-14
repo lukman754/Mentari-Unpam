@@ -46,7 +46,7 @@ function setFullscreenBackground() {
   const fullscreenEls = document.querySelectorAll(".fullscreen");
   fullscreenEls.forEach((el) => {
     el.style.background =
-      "url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExc2JvcThjbTQ1YjcxejBlOXBwdXRrMm41MTE3c2J5c3c2cG03aDVmaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pFxzSbokDeV5mnytFi/giphy.gif) no-repeat 50%";
+      "url(https://images7.alphacoders.com/139/thumb-1920-1393718.jpg) no-repeat 50%";
     el.style.backgroundSize = "cover";
   });
 }

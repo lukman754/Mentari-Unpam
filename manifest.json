@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod v1.8.1",
-  "version": "1.8.1",
+  "name": "Mentari Mod v1.9",
+  "version": "1.9",
   "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
   "permissions": ["scripting", "activeTab"],
   "host_permissions": ["https://mentari.unpam.ac.id/*"],

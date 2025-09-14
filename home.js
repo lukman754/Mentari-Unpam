@@ -6,7 +6,7 @@ const intervalId = setInterval(() => {
   );
   if (personLearnImage) {
     personLearnImage.src =
-      "https://github.com/tonybaloney/vscode-pets/blob/main/media/fox/red_idle_8fps.gif?raw=true";
+      "";
     personLearnImage.style.width = "auto"; // Menambahkan inline style width: auto
     personLearnImage.style.top = "45%";
     personLearnImage.style.left = "25%";
@@ -25,7 +25,7 @@ const intervalId = setInterval(() => {
   // Ganti pengaturan background image
   const bgImage = document.querySelector('img[src*="Background-Dt75uuh7.jpg"]');
   if (bgImage) {
-    bgImage.src = "https://images7.alphacoders.com/112/thumb-1920-1121331.png";
+    bgImage.src = "https://images7.alphacoders.com/139/thumb-1920-1393718.jpg";
 
     // Menggunakan object-fit alih-alih background properties untuk <img>
     bgImage.style.width = "100%";
