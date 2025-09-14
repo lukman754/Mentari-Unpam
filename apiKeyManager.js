@@ -172,11 +172,17 @@ function showApiKeyPopup() {
           
           <div class="gemini_input-section">
             <div style="position:relative;width:100%;">
-              <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan API key Anda..." value="${decodedApiKey}" style="width:100%;padding:8px 12px;background:#2a2a2a;border:1px solid #333;border-radius:4px;color:#fff;font-size:13px;transition:all 0.2s;">
-              <button id="gemini_toggleApiKeyVisibility" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#999;cursor:pointer;padding:4px;transition:color 0.2s;">
+              <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan API key Anda..." value="${decodedApiKey}" style="width:100%;padding:8px 36px 8px 12px;background:#2a2a2a;border:1px solid #333;border-radius:4px;color:#fff;font-size:13px;transition:all 0.2s;">
+              <button id="gemini_toggleApiKeyVisibility" style="position:absolute;right:32px;top:50%;transform:translateY(-50%);background:none;border:none;color:#999;cursor:pointer;padding:4px;transition:color 0.2s;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button id="gemini_pasteApiKey" title="Tempel API key" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#999;cursor:pointer;padding:4px;transition:color 0.2s;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
               </button>
             </div>
@@ -266,6 +272,34 @@ function setupApiKeyPopupEventListeners() {
       } else {
         input.type = "password";
         toggleVisibilityButton.innerHTML = '<i class="fas fa-eye"></i>';
+      }
+    });
+  }
+
+  // Handle paste API key button
+  const pasteApiKeyButton = document.getElementById("gemini_pasteApiKey");
+  if (pasteApiKeyButton && apiKeyInput) {
+    pasteApiKeyButton.addEventListener("click", async function() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          apiKeyInput.value = text.trim();
+          // Beri umpan balik visual
+          const originalColor = pasteApiKeyButton.style.color;
+          pasteApiKeyButton.style.color = '#4CAF50';
+          setTimeout(() => {
+            pasteApiKeyButton.style.color = originalColor;
+          }, 500);
+        }
+      } catch (err) {
+        console.error('Gagal membaca clipboard:', err);
+        // Tampilkan pesan error jika akses clipboard ditolak
+        if (validationMessageElement) {
+          validationMessageElement.textContent = 'Tidak dapat mengakses clipboard. Silakan paste manual (Ctrl+V).';
+          validationMessageElement.style.display = 'block';
+          validationMessageElement.style.backgroundColor = '#ffebee';
+          validationMessageElement.style.color = '#c62828';
+        }
       }
     });
   }
