@@ -456,6 +456,8 @@ console.log('Token.js sedang dijalankan!');
     const style = document.createElement('style')
     style.textContent = `
     #token-runner-popup {
+      max-height: 90vh;
+      overflow: hidden;
       position: fixed;
       left: 15px !important;
       background: #1e1e1e;
@@ -615,7 +617,6 @@ console.log('Token.js sedang dijalankan!');
 
   .popup-content {
     padding-top: 12px;
-    max-height: 500px;
     display: flex;
     flex-direction: column;
     transition: opacity 0.3s ease;
@@ -705,11 +706,14 @@ console.log('Token.js sedang dijalankan!');
 
   .token-tabs {
     display: flex;
-    padding: 0 12px;
-    margin-top: 8px;
+    gap: 6px;
+    overflow: hidden;
+    user-select: none;
+    cursor: grab;
   }
 
   .token-tab {
+    flex: 0 0 auto;
     padding: 6px 12px;
     background: transparent;
     border: none;
@@ -742,7 +746,8 @@ console.log('Token.js sedang dijalankan!');
   .token-tab-content {
     display: none;
     padding: 10px;
-    flex: 1;
+    flex: 1 1 auto;
+    max-height: calc(90vh - 120px);
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
@@ -1068,6 +1073,54 @@ console.log('Token.js sedang dijalankan!');
   `;
     document.head.appendChild(style);
     document.body.appendChild(popup);
+
+    // Enable drag-scroll
+    (function enableDragScroll() {
+      const tabs = document.querySelector('.token-tabs');
+      if (!tabs) return;
+      
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+
+    // PC (mouse)
+    tabs.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - tabs.offsetLeft;
+      scrollLeft = tabs.scrollLeft;
+      tabs.style.cursor = 'grabbing';
+    });
+    tabs.addEventListener('mouseleave', () => {
+    isDown = false;
+    tabs.style.cursor = 'default';
+  });
+  tabs.addEventListener('mouseup', () => {
+    isDown = false;
+    tabs.style.cursor = 'default';
+  });
+  tabs.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - tabs.offsetLeft;
+    const walk = (x - startX) * 1.5; // kecepatan scroll
+    tabs.scrollLeft = scrollLeft - walk;
+  });
+
+  // Mobile (touch)
+let touchStartX = 0;
+let startScrollLeft = 0;
+
+tabs.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].pageX;
+  startScrollLeft = tabs.scrollLeft;
+}, { passive: true });
+
+tabs.addEventListener('touchmove', (e) => {
+  const x = e.touches[0].pageX;
+  const deltaX = x - touchStartX;
+  tabs.scrollLeft = startScrollLeft - deltaX;
+}, { passive: true });
+})();
 
     // EVENT LISTENER BARU UNTUK TOMBOL CATATAN
     document
@@ -1929,13 +1982,13 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     const groupResultsCard = `
     <div class="data-card" id="group-results-card" style="display: none;">
       <div class="card-header">
-        <h3 class="card-title">Hasil Pengelompokan <span id="group-total-info" class="group-total-info"></span></h3>
+        <h3 class="card-title">Hasil kelompok <span id="group-total-info" class="group-total-info"></span></h3>
         <div class="card-actions">
           <button id="copy-all-groups-btn" class="secondary-btn">
-            <i class="fas fa-copy"></i> Copy Data
+            <i class="fas fa-copy"></i>
           </button>
           <button id="delete-groups-btn" class="danger-btn">
-            <i class="fas fa-trash-alt"></i> Hapus Kelompok
+            <i class="fas fa-trash-alt"></i> 
           </button>
         </div>
       </div>
@@ -2042,7 +2095,7 @@ document.querySelectorAll('.forum-topics').forEach(container => {
            .member-name { flex: 1; font-size: 14px; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
            .member-nim { color: #aaa; font-size: 12px; font-family: monospace; margin-left: 8px; flex-shrink: 0; }
            .token-tabs { display: flex; position: sticky; top: 0; z-index: 100; }
-           .token-tab { padding: 8px 16px; background: transparent; border: none; color: #ccc; cursor: pointer; font-weight: 500; border-bottom: 2px solid transparent; }
+           .token-tab { padding: 8px 10px; background: transparent; border: none; color: #ccc; cursor: pointer; font-weight: 500; border-bottom: 2px solid transparent; }
            .token-tab:hover { color: #fff; }
            .token-tab.active { color: #fff; border-bottom: 2px solid #0070f3; background: #1e1e1e; }
            .toast { position: fixed; bottom: 20px; right: 20px; background:#1e1e1e; color:rgb(0, 221, 15); padding: 12px 20px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #333; display: flex; align-items: center; gap: 8px; z-index: 100099; animation: fadeIn 0.3s, fadeOut 0.3s 2.7s; animation-fill-mode: forwards; }
