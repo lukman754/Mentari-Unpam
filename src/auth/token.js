@@ -1650,29 +1650,30 @@ console.log('Token.js sedang dijalankan!');
       html += `</div></div>`;
     });
 
-    if (!html.includes('course-card')) {
-      forumList.innerHTML = `<div class="forum-no-data">Tidak ada forum diskusi yang tersedia</div>`;
-    } else {
-      forumList.innerHTML = html;
-      // Fetch topics for all visible forums after rendering
-      document.querySelectorAll('.forum-topics').forEach(container => {
-        const forumId = container.id.replace('forum-topics-', '');
-        if (forumId) {
-            fetchForumTopics(forumId).then(topics => {
-                if (topics && topics.length > 0) {
-                    container.innerHTML = topics.map(topic =>
-                        `<a href="https://mentari.unpam.ac.id/u-courses/${extractCourseCodeFromUrl(window.location.href)}/forum/${forumId}/topics/${topic.id}" class="topic-badge"><i class="fas fa-comments"></i> ${topic.judul}</a>`
-                    ).join('');
-                } else {
-                    container.innerHTML = '<div class="no-topics">No topics available</div>';
-                }
-            }).catch(() => {
-                container.innerHTML = '<div class="error-topics">Failed to load topics</div>';
-            });
-        }
-      });
-    }
+const hasCourseCards = html.includes('course-card');
 
+if (!hasCourseCards) {
+    html += `<div class="forum-no-data">Tidak ada forum diskusi yang tersedia</div>`;
+}
+
+forumList.innerHTML = html;
+
+document.querySelectorAll('.forum-topics').forEach(container => {
+    const forumId = container.id.replace('forum-topics-', '');
+    if (forumId) {
+        fetchForumTopics(forumId).then(topics => {
+            if (topics && topics.length > 0) {
+                container.innerHTML = topics.map(topic =>
+                    `<a href="https://mentari.unpam.ac.id/u-courses/${extractCourseCodeFromUrl(window.location.href)}/forum/${forumId}/topics/${topic.id}" class="topic-badge"><i class="fas fa-comments"></i> ${topic.judul}</a>`
+                ).join('');
+            } else {
+                container.innerHTML = '<div class="no-topics">No topics available</div>';
+            }
+        }).catch(() => {
+            container.innerHTML = '<div class="error-topics">Failed to load topics</div>';
+        });
+    }
+});
     // Add toggle function to window scope
     window.toggleSection = function (sectionId, courseId) {
       const sectionContent = document.getElementById(sectionId);
