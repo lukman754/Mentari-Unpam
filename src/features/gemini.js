@@ -1744,11 +1744,13 @@ function initChatbot() {
   }
 }
 
-// Untuk mendukung WebView Android dan browser
-try {
-  localStorage.setItem('gemini_enabled', 'true')
-} catch (e) {
-  console.warn('localStorage mungkin tidak tersedia di WebView')
+// Hanya atur nilai default jika belum ada sama sekali
+if (localStorage.getItem('gemini_enabled') === null) {
+  try {
+    localStorage.setItem('gemini_enabled', 'true');
+  } catch (e) {
+    console.warn('localStorage mungkin tidak tersedia di WebView');
+  }
 }
 
 ;(function initializeGemini() {
