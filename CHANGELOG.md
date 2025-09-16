@@ -1,9 +1,9 @@
 # Changelog
 
-## [4.8] - 16 September 2025
+## [4.9] - 17 September 2025
 
 ### Perbaikan
 
-- Memperbaiki bug scroll tabs pada perangkat mobile (Android) agar lebih mulus tanpa patah.
-- Menghapus batasan tinggi 500px pada popup sehingga konten (seperti daftar mahasiswa) tidak lagi terpotong.
-- Menambahkan perhitungan tinggi dinamis pada konten tab agar menyesuaikan layar (max-height 90vh).
+- Menambahkan efek fade kiri dan kanan pada area tabs untuk menunjukkan adanya tab tersembunyi.
+- Efek fade dibuat lebih halus dengan tambahan opacity, blur, dan transisi.
+- Memastikan fade muncul dan hilang secara dinamis sesuai posisi scroll (kiri/kanan).

@@ -704,15 +704,54 @@ console.log('Token.js sedang dijalankan!');
     }
   }
 
-  .token-tabs {
-    display: flex;
-    gap: 6px;
-    overflow: hidden;
-    user-select: none;
-    cursor: grab;
-  }
+.token-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: relative;
+}
+.token-tabs::-webkit-scrollbar { display: none; }
+
+.token-tabs::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(to left, rgba(30,30,30,0.95), rgba(30,30,30,0));
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.token-tabs::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(30,30,30,0.95), rgba(30,30,30,0));
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.token-tab {
+  position: relative;
+  z-index: 2;
+}
+
+.token-tabs.show-left::before { opacity: 1; }
+.token-tabs.show-right::after { opacity: 1; }
 
   .token-tab {
+    position: relative;
+    z-index: 2;
     flex: 0 0 auto;
     padding: 6px 12px;
     background: transparent;
@@ -1073,6 +1112,31 @@ console.log('Token.js sedang dijalankan!');
   `;
     document.head.appendChild(style);
     document.body.appendChild(popup);
+    
+    (function enableTabGradients() {
+      const tabs = document.querySelector('.token-tabs');
+      if (!tabs) return;
+      
+      function updateGradient() {
+        const maxScrollLeft = tabs.scrollWidth - tabs.clientWidth;
+        
+        if (tabs.scrollLeft > 5) {
+          tabs.classList.add('show-left');
+        } else {
+          tabs.classList.remove('show-left');
+        }
+        
+        if (tabs.scrollLeft < maxScrollLeft - 5) {
+          tabs.classList.add('show-right');
+        } else {
+          tabs.classList.remove('show-right');
+        }
+      }
+      
+      updateGradient();
+      tabs.addEventListener('scroll', updateGradient);
+      window.addEventListener('resize', updateGradient);
+})();
 
     // Enable drag-scroll
     (function enableDragScroll() {
