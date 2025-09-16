@@ -71,10 +71,10 @@
 ## 📦 Download
 
 <div style="width: 100%; display: flex; gap: 10px;">
-    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v4.6/MentariEnhancer_v4.6.zip" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v4.7/MentariEnhancer_v4.7.zip" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Extension%20ZIP-FFA000?style=for-the-badge&logo=googlechrome" style="width: 60%;">
     </a>
-    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v4.6/MentariEnhancer_v4.6.apk" style="display: block; width: 60%;">
+    <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/releases/download/v4.7/MentariEnhancer_v4.7.apk" style="display: block; width: 60%;">
         <img src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android" style="width: 60%;">
     </a>
 
