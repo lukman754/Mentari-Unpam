@@ -1,8 +1,10 @@
 # Changelog
 
-## [5.0] - 19 September 2025
+## [5.1] - 19 September 2025
 
-### Added
-
-- **Notifikasi Balasan Dosen**: Menambahkan tab "Notifikasi" baru yang secara otomatis menampilkan daftar balasan terbaru dari dosen pada forum diskusi Anda.
-- **Pemeriksaan Latar Belakang**: Sistem notifikasi secara otomatis memeriksa semua mata kuliah untuk balasan baru setiap kali data dimuat atau di-*refresh*, memastikan Anda tidak ketinggalan informasi.
+* [ui/ux] Implementasi efek "Glassmorphism" (akrilik) pada seluruh antarmuka untuk tampilan modern dan elegan.
+* [ui/ux] Perombakan total Tab Mahasiswa menjadi dashboard interaktif dengan kartu statistik, visualisasi kelompok, dan daftar yang ditingkatkan.
+* [ui/ux] Perombakan total Tab Pengaturan dengan tata letak berbasis kartu yang bersih, header pengguna dinamis, dan kontrol yang didesain ulang.
+* [style] Penambahan animasi gradien pada berbagai elemen (ikon, tombol, teks header) untuk memberikan nuansa yang hidup.
+* [style] Peningkatan palet warna, tipografi, dan spasi di seluruh komponen untuk meningkatkan keterbacaan dan estetika profesional.
+* [style] Desain ulang tombol toggle, input, dan kartu-kartu konten agar lebih konsisten dan menarik secara visual.

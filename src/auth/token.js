@@ -29,7 +29,6 @@ console.log('Token.js sedang dijalankan!');
                 localVersion = tokenScriptElement.dataset.version;
             }
         }
-        console.log(`[Token.js] Versi lokal terdeteksi untuk notifikasi: ${localVersion}`);
       
         const manifestUrl = 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/manifest.json?_=' + new Date().getTime();
         const manifestResponse = await fetch(manifestUrl);
@@ -51,7 +50,6 @@ console.log('Token.js sedang dijalankan!');
         };
 
         if (isOutdated(localVersion, latestVersion)) {
-            console.log(`[Token.js] Notifikasi update untuk v${latestVersion} akan ditampilkan.`);
             return { updateAvailable: latestVersion };
         }
 
@@ -69,7 +67,7 @@ console.log('Token.js sedang dijalankan!');
       try {
           const versionInfoUrl = 'https://raw.githubusercontent.com/AnandaAnugrahHandyanto/mentari_unpam-mod/main/version_info.json?_=' + new Date().getTime();
           const versionResponse = await fetch(versionInfoUrl);
-          if (!versionResponse.ok) return true; // Lanjutkan jika gagal fetch
+          if (!versionResponse.ok) return true;
           
           const versionInfo = await versionResponse.json();
           const minVersion = versionInfo.min_version;
@@ -91,7 +89,6 @@ console.log('Token.js sedang dijalankan!');
           };
 
           if (isOutdated(localVersion, minVersion)) {
-              console.error(`[Token.js] Versi ekstensi usang (${localVersion}). Minimum: ${minVersion}. Memblokir fungsi.`);
               showForceUpdatePopup();
               return false;
           }
@@ -101,7 +98,6 @@ console.log('Token.js sedang dijalankan!');
       return true;
   }
   
-  // Fungsi untuk menampilkan popup paksa update
   function showForceUpdatePopup() {
     const existingPopup = document.getElementById('token-runner-popup');
     if (existingPopup) existingPopup.remove();
@@ -118,7 +114,6 @@ console.log('Token.js sedang dijalankan!');
     document.body.appendChild(overlay);
   }
   
-  // Fungsi untuk membuat modal konfirmasi kustom
   function createConfirmationModal() {
     if (document.getElementById('custom-confirm-modal')) return
 
@@ -153,15 +148,12 @@ console.log('Token.js sedang dijalankan!');
     overlay.onclick = hideModal
   }
 
-  // Fungsi untuk menampilkan modal konfirmasi kustom
   function showConfirmationDialog(message, onConfirm) {
     const modal = document.getElementById('custom-confirm-modal')
     const messageEl = document.getElementById('custom-confirm-message')
     const confirmBtn = document.getElementById('custom-confirm-ok')
 
     if (!modal || !messageEl || !confirmBtn) {
-      console.error('Confirmation modal elements not found!')
-      // Fallback ke confirm bawaan jika modal tidak ada
       if (confirm(message.replace(/<br\s*\/?>/gi, '\n'))) {
         onConfirm()
       }
@@ -171,7 +163,6 @@ console.log('Token.js sedang dijalankan!');
     messageEl.innerHTML = message
     modal.classList.add('visible')
 
-    // Hapus event listener sebelumnya untuk menghindari penumpukan
     confirmBtn.replaceWith(confirmBtn.cloneNode(true))
     document.getElementById('custom-confirm-ok').addEventListener('click', () => {
       onConfirm()
@@ -267,15 +258,13 @@ console.log('Token.js sedang dijalankan!');
     }
   }
 
-  // Fungsi untuk melakukan tracking ulang
   window.refreshAndTrack = function () {
     clearCacheData()
     authToken = null
     userInfo = null
     courseDataList = []
-    studentDataList = []
     checkStorages()
-    fetchCoursesListAndDetails(true) // Force refresh
+    fetchCoursesListAndDetails(true)
   }
 
   function showCustomAlert(message, type = 'error', duration = 5000) {
@@ -284,20 +273,13 @@ console.log('Token.js sedang dijalankan!');
       existingAlert.remove()
     }
 
-    // elemen utama notifikasi
     const alertElement = document.createElement('div')
     alertElement.id = 'custom-alert-mentari'
     alertElement.className = `custom-alert-mentari ${type}`
 
     const icons = {
-      error: `
-      <svg fill="#e74c3c" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm1,15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/>
-      </svg>`,
-      success: `
-      <svg fill="#2ecc71" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm-2,15-5-5,1.41-1.41L10,14.17l7.59-7.59L19,8l-9,9Z"/>
-      </svg>`,
+      error: `<svg fill="#e74c3c" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm1,15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/></svg>`,
+      success: `<svg fill="#2ecc71" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2Zm-2,15-5-5,1.41-1.41L10,14.17l7.59-7.59L19,8l-9,9Z"/></svg>`,
     }
 
     alertElement.innerHTML = `
@@ -308,10 +290,8 @@ console.log('Token.js sedang dijalankan!');
 
     document.body.appendChild(alertElement)
 
-    // Fungsi untuk menghapus notifikasi dengan animasi
     const removeAlert = () => {
       alertElement.classList.add('fade-out')
-      // Tunggu animasi selesai sebelum menghapus elemen dari DOM
       setTimeout(() => {
         if (alertElement) alertElement.remove()
       }, 300)
@@ -319,841 +299,864 @@ console.log('Token.js sedang dijalankan!');
 
     const timeoutId = setTimeout(removeAlert, duration)
 
-    // Tambahkan event listener untuk tombol close
     alertElement.querySelector('.alert-close-btn').addEventListener('click', () => {
-      clearTimeout(timeoutId) // Batalkan auto-remove jika ditutup manual
+      clearTimeout(timeoutId)
       removeAlert()
     })
   }
 
-  // Buat popup UI
   function createPopupUI() {
-    // Check if popup already exists
     if (document.getElementById('token-runner-popup')) return
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+    fontLink.rel = 'stylesheet';
+    document.head.appendChild(fontLink);
 
     let script = document.createElement('script')
     script.src = 'https://kit.fontawesome.com/f59e2d85df.js'
     script.crossOrigin = 'anonymous'
     document.head.appendChild(script)
 
-    // Create main container
     const popup = document.createElement('div')
     popup.id = 'token-runner-popup'
-    popup.className = 'collapsed' // Default to collapsed state
+    popup.className = 'collapsed'
     popup.innerHTML = `
     <div class="popup-toggle" id="popup-toggle">
       <img src="https://github.com/tonybaloney/vscode-pets/blob/main/media/zappy/yellow_idle_8fps.gif?raw=true" alt="Mentaru" />
+      <div class="glow-point"></div>
     </div>
     <div class="token-loading-bar"></div>
     <div class="popup-content">
       <div class="popup-header">
-        <span class="popup-title">MENTARI MOD</span>
+        <span class="popup-title">MENTARI <strong>MOD</strong></span>
         <div class="token-popup-actions">
           <button id="token-reset-btn" title="Reset Cache & Track Ulang"><i class="fa-solid fa-rotate-right fa-fw"></i></button>
         </div>
       </div>
       <div class="token-tabs">
-        <button class="token-tab active" data-tab="forum-data">Forum</button>
-        <button class="token-tab" data-tab="student-data">Mahasiswa</button>
-        <button class="token-tab" data-tab="notifications">Notifikasi</button>
-        <button class="token-tab" data-tab="notes-data">Catatan</button>
-        <button class="token-tab" data-tab="feedback-data">Umpan Balik</button>
-        <button class="token-tab" data-tab="user-info">Setting</button>
+        <button class="token-tab active" data-tab="forum-data"><i class="fas fa-comments fa-fw"></i><span>Forum</span></button>
+        <button class="token-tab" data-tab="student-data"><i class="fas fa-users fa-fw"></i><span>Mahasiswa</span></button>
+        <button class="token-tab" data-tab="notifications"><i class="fas fa-bell fa-fw"></i><span>Notifikasi</span></button>
+        <button class="token-tab" data-tab="notes-data"><i class="fas fa-book-open fa-fw"></i><span>Catatan</span></button>
+        <button class="token-tab" data-tab="feedback-data"><i class="fas fa-paper-plane fa-fw"></i><span>Umpan Balik</span></button>
+        <button class="token-tab" data-tab="user-info"><i class="fas fa-cog fa-fw"></i><span>Setting</span></button>
       </div>
-      <div class="token-tab-content" id="user-info-tab">
+      <div class="tab-content-wrapper">
+        <div class="token-tab-content" id="user-info-tab"></div>
+        <div class="token-tab-content" id="token-data-tab"></div>
+        <div class="token-tab-content active" id="forum-data-tab">
+          <div id="forum-list"></div>
         </div>
-      <div class="token-tab-content" id="token-data-tab">
+        <div class="token-tab-content" id="notifications-tab">
+          <div class="token-info-section"><p>Balasan Dosen Terbaru</p></div>
+          <div id="notifications-list"></div>
         </div>
-      <div class="token-tab-content active" id="forum-data-tab">
-        <div class="token-info-section">
-          <p>Forum Diskusi yang belum dikerjakan</p>
+        <div class="token-tab-content" id="student-data-tab"></div>
+        <div class="token-tab-content" id="notes-data-tab">
+          <div class="token-info-section centered-box">
+            <i class="fas fa-feather-alt big-icon"></i>
+            <p>Buat catatan pribadi untuk mata kuliah yang sedang dibuka.</p>
+            <button id="add-notes-section-btn" class="token-button"><i class="fas fa-plus"></i> Tambahkan Catatan</button>
+          </div>
         </div>
-        <div id="forum-list"></div>
-      </div>
-       <div class="token-tab-content" id="notifications-tab">
-          <div class="token-info-section">
-            <p>Balasan Dosen Terbaru</p>
-        </div>
-        <div id="notifications-list"></div>
-      </div>
-      <div class="token-tab-content" id="student-data-tab">
-        <div id="student-list"></div>
-      </div>
-      <div class="token-tab-content" id="notes-data-tab">
-        <div class="token-info-section" style="text-align:center; padding: 20px;">
-          <p style="margin-bottom: 15px;">Buat catatan pribadi untuk mata kuliah yang sedang dibuka.</p>
-          <button id="add-notes-section-btn" class="token-button" style="width: 100%;"><i class="fas fa-plus"></i> Tambahkan Catatan di Halaman</button>
-        </div>
-      </div>
-      <div class="token-tab-content" id="feedback-data-tab">
-        <div class="feedback-container">
+        <div class="token-tab-content" id="feedback-data-tab">
+          <div class="feedback-container">
             <h3>Beri Masukan untuk Kami</h3>
-            <p>Setiap masukan Anda sangat berarti untuk pengembangan MENTARI MOD agar menjadi lebih baik. Silakan pilih salah satu opsi di bawah ini.</p>
+            <p>Setiap masukan Anda sangat berarti untuk pengembangan MENTARI MOD.</p>
             <div class="feedback-actions">
                 <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues/new?template=bug_report.md&title=[BUG]%20Judul%20Bug" target="_blank" class="feedback-button bug">
                     <i class="fas fa-bug"></i>
-                    <div>
-                        <span>Laporkan Bug</span>
-                        <small>Menemukan sesuatu yang tidak berfungsi?</small>
-                    </div>
+                    <div><span>Laporkan Bug</span><small>Menemukan sesuatu yang tidak berfungsi?</small></div>
                 </a>
                 <a href="https://github.com/AnandaAnugrahHandyanto/mentari_unpam-mod/issues/new?template=feature_request.md&title=[FITUR]%20Saran%20Fitur" target="_blank" class="feedback-button feature">
                     <i class="fas fa-lightbulb"></i>
-                    <div>
-                        <span>Saran Fitur Baru</span>
-                        <small>Punya ide cemerlang untuk kami?</small>
-                    </div>
+                    <div><span>Saran Fitur Baru</span><small>Punya ide cemerlang untuk kami?</small></div>
                 </a>
             </div>
-            <div class="feedback-footer">
-                <p>Anda akan diarahkan ke halaman GitHub Issues. Mohon jelaskan sedetail mungkin agar kami dapat memahaminya dengan baik.</p>
-            </div>
+          </div>
         </div>
       </div>
     </div>
-  `
+  `;
 
-    ;(function addSkeletonLoaderStyles() {
-      const style = document.createElement('style')
+    (function addSkeletonLoaderStyles() {
+      const style = document.createElement('style');
       style.textContent = `
-    .skeleton {
-      background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
-      background-size: 200% 100%;
-      animation: skeleton-loading 1.2s infinite linear;
-      border-radius: 6px;
+        .skeleton {
+          background: linear-gradient(110deg, rgba(255, 255, 255, 0.05) 8%, rgba(255, 255, 255, 0.1) 18%, rgba(255, 255, 255, 0.05) 33%);
+          background-size: 200% 100%;
+          animation: 1.5s skeleton-loading-shine infinite linear;
+          border-radius: 12px;
+        }
+        .skeleton-card { height: 80px; margin-bottom: 12px; width: 100%; }
+        @keyframes skeleton-loading-shine { to { background-position-x: -200%; } }
+      `;
+      document.head.appendChild(style);
+    })();
+
+    function showSkeletonLoading(containerId, count = 4) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = Array.from({ length: count }, () => `<div class="skeleton skeleton-card"></div>`).join('');
     }
 
-    .skeleton-text {
-      height: 14px;
-      margin-bottom: 8px;
-      width: 100%;
-    }
+    showSkeletonLoading('forum-list');
 
-    .skeleton-card {
-      height: 80px;
-      margin-bottom: 12px;
-      width: 100%;
-    }
+    const commonStyles = `
+      .custom-alert-mentari {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            color: #f0f0f0;
+            border: 1px solid #444;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10002;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            animation: fadeInDown 0.3s ease-out forwards;
+            width: auto;
+            max-width: calc(100% - 40px);
+            box-sizing: border-box;
+            text-align: center;
+        }
 
-    @keyframes skeleton-loading {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-  `
-      document.head.appendChild(style)
-    })()
+        .custom-alert-mentari.fade-out {
+            animation: fadeOutUp 0.3s ease-in forwards;
+        }
 
-    function showSkeletonLoading(containerId, count = 3) {
-      const container = document.getElementById(containerId)
-      if (!container) return
+        .custom-alert-mentari.error {
+            border-left: 4px solid #e74c3c;
+        }
+        .custom-alert-mentari.success {
+            border-left: 4px solid #2ecc71;
+        }
 
-      let skeletonHTML = ''
-      for (let i = 0; i < count; i++) {
-        skeletonHTML += `
-      <div class="skeleton skeleton-card"></div>
-    `
+        .custom-alert-mentari .alert-icon {
+            flex-shrink: 0;
+        }
+        .custom-alert-mentari .alert-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .custom-alert-mentari .alert-message {
+            font-size: 14px;
+        }
+
+        .custom-alert-mentari .alert-close-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 0 0 10px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+        .custom-alert-mentari .alert-close-btn:hover {
+            color: #fff;
+        }
+        .tombol-baru { background-color: #ff5722; color: white; border-radius: 20px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
+        input:checked + .slider { background: linear-gradient(90deg, #3498db, #9b59b6, #3498db); background-size: 300% 300%; animation: sliderGradient 3s linear infinite; }
+        @keyframes sliderGradient { 0%   { background-position: 0% 50%; } 50%  { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .slider.round { border-radius: 24px; }
+        .slider.round:before { border-radius: 50%; }
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        #token-runner-popup {
+            position: fixed;
+            left: 15px !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            z-index: 10001;
+            width: 480px;
+            max-width: 95%;
+            border-radius: 18px;
+            overflow: hidden;
+            cursor: move;
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        #token-runner-popup.collapsed {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .popup-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #121212;
+            position: absolute;
+            top: 0; left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10002;
+            transition: transform 0.3s ease;
+        }
+        .popup-toggle:hover { transform: scale(1.1) rotate(5deg); }
+        .popup-toggle img { width: 35px; height: 35px; }
+        .glow-point {
+            width: 12px; height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            position: absolute;
+            top: 6px; right: 6px;
+            border: 2px solid #121212;
+            box-shadow: 0 0 10px #2ecc71, 0 0 20px #2ecc71;
+        }
+
+        .popup-content {
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            height: 600px;
+            max-height: 85vh;
+            transition: opacity 0.3s ease;
+        }
+        #token-runner-popup:not(.collapsed) .popup-content {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 19px 20px 12px 75px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .popup-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f0f0f0;
+        }
+        .popup-title strong {
+            font-weight: 700;
+            background: linear-gradient(90deg, #3498db, #9b59b6, #3498db);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            animation: popupGradient 4s linear infinite;
+        }
+        @keyframes popupGradient {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #token-reset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            color: #3bff05ff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        #token-reset-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: rotate(180deg);
+        }
+        
+        .token-loading-bar {
+            position: absolute;
+            top: 0; left: 0;
+            height: 2px;
+            width: 0%;
+            background: rgba(0, 255, 55, 1);
+            z-index: 10003;
+            display: none;
+        }
+        .token-loading-bar.active { display: block; animation: loading-progress 1.5s ease-in-out infinite; }
+        @keyframes loading-progress { 0%{left:0;width:0} 50%{left:25%;width:75%} 100%{left:100%;width:0} }
+
+        .token-tabs {
+            display: flex;
+            padding: 8px 16px;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .token-tabs::-webkit-scrollbar { display: none; }
+        .token-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .token-tab:hover { background: rgba(255, 255, 255, 0.05); color: #ccc; }
+        .token-tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .token-tab.active i {
+          background: linear-gradient(90deg, #3498db, #9b59b6, #3498db);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: iconGradient 3s linear infinite;
+        }
+
+        @keyframes iconGradient {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .tab-content-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        .token-tab-content {
+            position: absolute;
+            top:0; left:0; right:0; bottom:0;
+            padding: 16px;
+            overflow-y: auto;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+        }
+        .token-tab-content.active {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .token-tab-content::-webkit-scrollbar { width: 6px; }
+        .token-tab-content::-webkit-scrollbar-track { background: transparent; }
+        .token-tab-content::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.15); border-radius: 6px; }
+
+        .token-info-section {
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .centered-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+            color: #888;
+        }
+        .big-icon { font-size: 48px; margin-bottom: 16px; color: rgba(255, 255, 255, 0.1); }
+        .token-button {
+          background: linear-gradient(90deg, #3498db, #8e44ad, #3498db);
+          background-size: 300% 300%;
+          color: #fff;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+          animation: gradientMove 6s ease infinite;
+        }
+
+      .token-button:hover {
+        animation-duration: 3s;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+      .token-button:active {
+        animation-play-state: paused;
+        transform: translateY(1px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.25);
       }
 
-      container.innerHTML = skeletonHTML
-    }
+      @keyframes gradientMove {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+        #forum-list, #notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .course-card, .notification-item, .student-item-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .course-card:hover, .notification-item.clickable:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        .course-header h2 { font-size: 15px; font-weight: 600; color: #eee; margin:0 0 4px 0; }
+        .course-code { font-size: 12px; color: #888; font-family: monospace; }
+        .section-card { margin-top: 16px; background: rgba(0,0,0,0.2); border-radius: 10px; overflow:hidden; }
+        .section-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .section-header h3 { font-size: 13px; font-weight: 500; margin: 0; color: #ccc; }
+        .section-toggle { transition: transform 0.3s; }
+        .section-toggle.collapsed { transform: rotate(-90deg); }
+        .section-content { padding: 0 12px 12px; display: none; }
+        .section-content.active { display: block; animation: fadeIn 0.5s; }
+        
+        .item-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px; padding: 12px; margin-top: 8px;
+        }
+        .item-icon {
+            background: linear-gradient(145deg, #3498db, #8e44ad);
+            width: 36px; height: 36px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; margin-right: 12px;
+            color: white; flex-shrink: 0;
+        }
+
+        .feedback-container { padding: 15px; text-align: center; }
+        .feedback-container h3 { font-size: 18px; color: #fff; }
+        .feedback-container p { font-size: 13px; color: #aaa; max-width: 350px; margin: 10px auto 20px auto; }
+        .feedback-actions { display: flex; flex-direction: column; gap: 12px; }
+        .feedback-button {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-decoration: none;
+            color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: color 0.3s ease;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .feedback-button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            padding: 2px;
+            background: linear-gradient(90deg, #3498db, #9b59b6, #3498db);
+            background-size: 300% 300%;
+            animation: none;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+        }
+        .feedback-button:hover::before {
+            animation: borderGradient 3s linear infinite;
+        }
+        @keyframes borderGradient {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .feedback-button i { font-size: 24px; width: 30px; text-align: center; }
+        .feedback-button.bug i { color: #e74c3c; }
+        .feedback-button.feature i { color: #f1c40f; }
+        .feedback-button div { display: flex; flex-direction: column; text-align: left; }
+        .feedback-button span { font-weight: 600; }
+        .feedback-button small { font-size: 12px; color: #888; }
+        
+        .settings-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .setting-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .animated-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .user-card {
+            text-align: center;
+            padding: 0;
+        }
+        .user-card-header {
+            background: linear-gradient(135deg, #3a3a3a 0%, #1e1e1e 100%);
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+        }
+        .user-card-header .user-initial, .user-card-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid #1a1a1a;
+            background: linear-gradient(145deg, #3498db, #8e44ad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 600;
+            color: white;
+            transform: translateY(50%);
+        }
+        .user-card-header img { object-fit: cover; }
+        .user-card-body {
+            padding: 50px 20px 20px 20px;
+        }
+        .user-name { margin: 0; font-size: 18px; color: #f0f0f0; }
+        .user-nim { margin: 4px 0 8px 0; font-size: 14px; color: #888; }
+        .user-role-badge { background: rgba(255, 255, 255, 0.1); background-clip: padding-box; color: transparent; background-image: linear-gradient(90deg, #3498db, #9b59b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
+        .card-header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .card-header-title h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: #eee;
+        }
+        .card-icon {
+            background: linear-gradient(90deg, #3498db, #9b59b6, #3498db);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textGradient 3s linear infinite;
+        }
+        @keyframes textGradient {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-field label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .settings-input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff; font-size: 14px;
+            padding: 10px 14px;
+            transition: all 0.2s ease;
+        }
+        .settings-input:focus {
+            border-color: #3498db;
+            background: rgba(0,0,0,0.4);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+        }
+        .save-button {
+            width: 100%;
+            margin-top: 8px;
+        }
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .toggle-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .toggle-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toggle-icon {
+            font-size: 16px;
+            color: #888;
+            width: 20px;
+            text-align: center;
+        }
+        .toggle-info h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #eee;
+        }
+        .toggle-info p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            color: #888;
+        }
+        .credits-section .developer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dev-info h4 { margin: 0; font-size: 14px; color: #eee; }
+        .dev-info span { font-size: 12px; color: #888; }
+        .dev-links a {
+            color: #aaa;
+            text-decoration: none;
+            margin-left: 12px;
+            transition: color 0.2s ease;
+        }
+        .dev-links a:hover { color: #3498db; }
+        .love-footer {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .love-footer .fa-heart {
+            color: #e74c3c;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        #student-dashboard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .stats-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .stat-icon {
+          font-size: 20px;
+          margin-bottom: 4px;
+          background: linear-gradient(90deg, #3498db, #9b59b6, #3498db);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: statGradient 3s linear infinite;
+        }
+
+        @keyframes statGradient {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .stat-value { font-size: 24px; font-weight: 700; color: #fff; }
+        .stat-label { font-size: 11px; color: #888; text-transform: uppercase; }
+        .control-card, .results-card, .student-list-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+        }
+        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        .group-input { flex-grow: 1; }
+        .grouping-options { display: flex; gap: 16px; align-items: center; }
+        .radio-container { display: flex; align-items: center; cursor: pointer; color: #ccc; font-size: 13px; }
+        .radio-label { margin-left: 6px; }
+        .results-hidden, .actions-hidden { display: none !important; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
+        #group-results-container, #floating-actions { transition: all 0.3s ease; }
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .group-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .group-card-header { color: white; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .group-card-header h4 { margin: 0; font-size: 14px; }
+        .group-card-header span { font-size: 12px; opacity: 0.8; }
+        .group-card-body { padding: 4px; max-height: 200px; overflow-y: auto; }
+        .group-card-body::-webkit-scrollbar { width: 4px; }
+        .group-card-body::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        .group-member { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; }
+        .member-name { font-size: 13px; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .student-absen-small { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 10px; font-weight: 600; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: #ccc; flex-shrink: 0; }
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+        }
+        .student-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .student-absen {
+            display: flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(145deg, #3498db, #8e44ad);
+            color: white; font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+        .student-details { flex-grow: 1; }
+        .student-name { margin: 0; font-size: 13px; font-weight: 500; color: #eee; }
+        .student-nim { margin: 2px 0 0 0; font-size: 11px; color: #888; font-family: monospace; }
+        #floating-actions {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+        .fab-button {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(145deg, #3498db, #8e44ad);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+        .fab-button:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+        .fab-button.danger {
+            background: #e74c3c;
+        }
+        #custom-confirm-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10005; display: none; align-items: center; justify-content: center; }
+        #custom-confirm-modal.visible { display: flex; }
+        .custom-confirm-overlay { position: absolute; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); animation: fadeIn 0.2s ease-out forwards; }
+        .custom-confirm-box { background-color: #2a2a2a; color: #f0f0f0; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; width: 90%; max-width: 400px; z-index: 1; transform: scale(0.95); opacity: 0; animation: zoomIn 0.2s ease-out forwards; }
+        #custom-confirm-modal.visible .custom-confirm-box { opacity: 1; transform: scale(1); }
+        .custom-confirm-header { padding: 16px 20px; border-bottom: 1px solid #444; }
+        .custom-confirm-header h3 { margin: 0; font-size: 18px; color: #fff; }
+        .custom-confirm-content { padding: 20px; font-size: 15px; line-height: 1.6; color: #ccc; }
+        .custom-confirm-content p { margin: 0; }
+        .custom-confirm-actions { padding: 16px 20px; background-color: #252525; display: flex; justify-content: flex-end; gap: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+        .custom-confirm-btn { border: none; border-radius: 6px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .custom-confirm-btn-cancel { background-color: #444; color: #f0f0f0; }
+        .custom-confirm-btn-cancel:hover { background-color: #555; }
+        .custom-confirm-btn-ok { background-color: #e74c3c; color: #fff; }
+        .custom-confirm-btn-ok:hover { background-color: #c0392b; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .forum-no-data {
+            text-align: center; padding: 40px; color: #888; font-style: italic;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ${commonStyles}
+    `;
 
-    showSkeletonLoading('forum-list', 4)
-
-    // CSS for popup - minimalist Vercel-style
-    const style = document.createElement('style')
-    style.textContent = `
-    #token-runner-popup {
-      max-height: 90vh;
-      overflow: hidden;
-      position: fixed;
-      left: 15px !important;
-      background: #1e1e1e;
-      color: #f0f0f0;
-      border-radius: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      z-index: 10001;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      width: 450px;
-      max-width: 95%;
-      overflow: hidden;
-      cursor: move; /* Indicator for draggable */
-    }
-
-    #token-runner-popup {
-    backdrop-filter: blur(10px);
-    background: rgba(30,30,30,0.85);
-  }
-
-  #token-runner-popup,
-  .popup-content,
-  .token-card-wrapper,
-  .token-tab-content {
-  transition: all 0.3s ease-in-out;
-  }
-
-  #token-runner-popup.collapsed {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    overflow: hidden;
-  }
-
-  /* Minimalist Card Styles */
-  .token-card-wrapper {
-    background: #161616;
-    border-radius: 8px;
-    padding: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-  }
-
-  .token-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    // margin-bottom: 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .token-user-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #fff;
-    margin: 0;
-    letter-spacing: 0.2px;
-  }
-
-  .token-role-badge {
-    background: rgba(0, 112, 243, 0.1);
-    color: #0070f3;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-  }
-
-  .token-data-grid {
-    margin-bottom: 14px;
-  }
-
-  .token-data-item {
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-  }
-
-  .token-info-section {
-    margin: 0;
-  }
-
-  .token-info-section p {
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.5;
-  }
-
-  .token-key {
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: 400;
-  }
-
-  .token-value {
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .token-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    // padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    font-size: 11px;
-    opacity: 0.3;
-  }
-
-  .token-footer a {
-    color: rgba(255, 255, 255, 0.7);
-    transition: color 0.2s ease;
-  }
-
-  .token-footer a:hover {
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .token-github-link {
-    margin-left: 8px;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-  }
-
-  .token-github-link:hover {
-    opacity: 1;
-  }
-
-  .popup-toggle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #1e1e1e;
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10002;
-    transition: transform 0.3s ease;
-  }
-
-  .popup-toggle:hover {
-    transform: scale(1.05);
-  }
-
-  .popup-toggle img {
-    width: 30px;
-    height: 30px;
-  }
-
-  .popup-content {
-    padding-top: 12px;
-    display: flex;
-    flex-direction: column;
-    transition: opacity 0.3s ease;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  #token-runner-popup:not(.collapsed) .popup-content {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .popup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px 12px 60px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .header-top {
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 8px;
-  }
-
-  .popup-title {
-    font-size: 14px;
-    font-weight: bold;
-    background: linear-gradient(90deg, #f0872d, #fff, #f0872d);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmer 3s infinite linear;
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  #token-reset-btn {
-    background: rgba(46, 204, 113, 0.2);
-    border: none;
-    cursor: pointer;
-    color: #2ecc71;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    transition: all 0.2s ease;
-  }
-
-  #token-reset-btn:hover {
-    background: rgba(46, 204, 113, 0.3);
-    transform: rotate(180deg);
-  }
-
-  .token-loading-bar {
-    position: absolute;
-    left: 0;
-    height: 2px;
-    width: 0%;
-    background-color: #2ecc71;
-    top: 0;
-    transition: width 0.3s ease;
-    display: none;
-    z-index: 10003;
-  }
-
-  .token-loading-bar.active {
-    display: block;
-    animation: loading-progress 1.5s ease infinite;
-  }
-
-  @keyframes loading-progress {
-    0% {
-      width: 0%;
-      left: 0;
-    }
-    50% {
-      width: 70%;
-      left: 15%;
-    }
-    100% {
-      width: 0%;
-      left: 100%;
-    }
-  }
-
-.token-tabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  position: relative;
-}
-.token-tabs::-webkit-scrollbar { display: none; }
-
-.token-tabs::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 40px;
-  height: 100%;
-  background: linear-gradient(to left, rgba(30,30,30,0.95), rgba(30,30,30,0));
-  backdrop-filter: blur(2px);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.token-tabs::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 40px;
-  height: 100%;
-  background: linear-gradient(to right, rgba(30,30,30,0.95), rgba(30,30,30,0));
-  backdrop-filter: blur(2px);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.token-tab {
-  position: relative;
-  z-index: 2;
-}
-
-.token-tabs.show-left::before { opacity: 1; }
-.token-tabs.show-right::after { opacity: 1; }
-
-  .token-tab {
-    position: relative;
-    z-index: 2;
-    flex: 0 0 auto;
-    padding: 6px 12px;
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    font-size: 12px;
-    position: relative;
-    transition: color 0.2s ease;
-  }
-
-  .token-tab:hover {
-    color: rgba(255, 255, 255, 0.8);
-  }
-
-  .token-tab.active {
-    color: #fff;
-  }
-
-  .token-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 12px;
-    right: 12px;
-    height: 2px;
-    background: #0070f3;
-    border-radius: 2px;
-  }
-
-  .token-tab-content {
-    display: none;
-    padding: 10px;
-    flex: 1 1 auto;
-    max-height: calc(90vh - 120px);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #333 transparent;
-  }
-
-  .token-tab-content::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .token-tab-content::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .token-tab-content::-webkit-scrollbar-thumb {
-    background-color: #333;
-    border-radius: 4px;
-  }
-
-  .token-tab-content.active {
-    display: block;
-  }
-
-  .token-info-section {
-    margin-bottom: 10px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: rgba(255, 255, 255, 0.8);
-  }
-
-  #forum-list, #student-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .forum-item, .student-item {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.2s ease;
-  }
-
-  .forum-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .forum-item-header, .student-item-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-
-  .forum-item-title, .student-item-title {
-    font-weight: normal;
-    color: rgba(255, 255, 255, 0.95);
-    margin: 0;
-    font-size: 13px;
-  }
-
-  .forum-item-code, .student-item-code {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
-    margin: 0;
-  }
-
-  .forum-item-link, .student-item-link {
-    display: inline-block;
-    color: rgba(255, 255, 255, 0.9);
-    text-decoration: none;
-    border-radius: 3px;
-    font-size: 14px;
-    transition: color 0.2s ease;
-  }
-
-  .forum-item-link:hover {
-    color: #0070f3;
-  }
-
-  .forum-no-data, .student-no-data {
-    color: rgba(255, 255, 255, 0.5);
-    font-style: italic;
-    text-align: center;
-    padding: 12px;
-  }
-
-  .token-badge {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 10px;
-    margin-right: 4px;
-    transition: all 0.2s ease;
-  }
-
-  .forum-item-link:hover .token-badge {
-    background: rgba(0, 112, 243, 0.1);
-    color: #0070f3;
-  }
-
-  pre {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 8px;
-    border-radius: 4px;
-    max-height: 150px;
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.8);
-    overflow: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #333 transparent;
-  }
-
-  pre::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  pre::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 4px;
-  }
-
-  .student-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .student-details {
-    flex: 1;
-  }
-
-  .student-contact {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  .course-header {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 6px 10px;
-    border-radius: 4px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .custom-alert-mentari {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 20px;
-    border-radius: 8px;
-    background-color: #2a2a2a;
-    color: #f0f0f0;
-    border: 1px solid #444;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 10002;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    animation: fadeInDown 0.3s ease-out forwards;
-    width: auto;
-    max-width: calc(100% - 40px);
-    box-sizing: border-box;
-    text-align: center;
-  }
-
-  .custom-alert-mentari.fade-out {
-    animation: fadeOutUp 0.3s ease-in forwards;
-  }
-
-  .custom-alert-mentari.error {
-    border-left: 4px solid #e74c3c;
-  }
-  .custom-alert-mentari.success {
-    border-left: 4px solid #2ecc71;
-  }
-
-  .custom-alert-mentari .alert-icon {
-    flex-shrink: 0;
-  }
-  .custom-alert-mentari .alert-icon svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .custom-alert-mentari .alert-message {
-    font-size: 14px;
-  }
-
-  .custom-alert-mentari .alert-close-btn {
-    background: transparent;
-    border: none;
-    color: #888;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0 0 0 10px;
-    line-height: 1;
-    transition: color 0.2s ease;
-  }
-  .custom-alert-mentari .alert-close-btn:hover {
-    color: #fff;
-  }
-
-  @keyframes fadeInDown {
-    from { opacity: 0; transform: translate(-50%, -20px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
-  }
-
-  @keyframes fadeOutUp {
-    from { opacity: 1; transform: translate(-50%, 0); }
-    to { opacity: 0; transform: translate(-50%, -20px); }
-  }
-
-  .tombol-baru {
-  background-color: #ff5722;
-  color: white;
-  border-radius: 20px;
-  }
-
-  .feedback-container {
-      padding: 15px;
-      text-align: center;
-      color: #f0f0f0;
-  }
-  .feedback-container h3 {
-      margin-top: 0;
-      font-size: 18px;
-      color: #fff;
-  }
-  .feedback-container p {
-      font-size: 13px;
-      color: #aaa;
-      line-height: 1.6;
-      max-width: 350px;
-      margin: 10px auto 20px auto;
-  }
-  .feedback-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-  }
-  .feedback-button {
-      background-color: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 8px;
-      padding: 15px;
-      text-decoration: none;
-      color: #f0f0f0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s ease;
-  }
-  .feedback-button:hover {
-      border-color: #0070f3;
-      background-color: #333;
-      transform: translateY(-2px);
-  }
-  .feedback-button i {
-      font-size: 20px;
-  }
-  .feedback-button.bug i {
-      color: #e74c3c;
-  }
-  .feedback-button.feature i {
-      color: #f1c40f;
-  }
-  .feedback-button div {
-      display: flex;
-      flex-direction: column;
-      text-align: left;
-  }
-  .feedback-button span {
-      font-weight: 600;
-  }
-  .feedback-button small {
-      font-size: 12px;
-      color: #888;
-  }
-  .feedback-footer {
-      margin-top: 20px;
-      border-top: 1px solid #333;
-      padding-top: 15px;
-  }
-  .feedback-footer p {
-      font-size: 11px;
-      color: #666;
-  }
-  .settings-input {
-    width: 100%;
-    padding: 8px 12px;
-    background: #2a2a2a;
-    border: 1px solid #333;
-    border-radius: 4px;
-    color: #fff;
-    font-size: 13px;
-    margin-top: 4px;
-  }
-  .token-button {
-    background: #0070f3;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.2s;
-  }
-  .token-button:hover {
-    background: #0060df;
-    transform: translateY(-1px);
-  }
-  `;
     document.head.appendChild(style);
     document.body.appendChild(popup);
-    
+
     (function enableTabGradients() {
       const tabs = document.querySelector('.token-tabs');
       if (!tabs) return;
       
       function updateGradient() {
         const maxScrollLeft = tabs.scrollWidth - tabs.clientWidth;
-        
-        if (tabs.scrollLeft > 5) {
-          tabs.classList.add('show-left');
-        } else {
-          tabs.classList.remove('show-left');
-        }
-        
-        if (tabs.scrollLeft < maxScrollLeft - 5) {
-          tabs.classList.add('show-right');
-        } else {
-          tabs.classList.remove('show-right');
-        }
+        tabs.classList.toggle('show-left', tabs.scrollLeft > 5);
+        tabs.classList.toggle('show-right', tabs.scrollLeft < maxScrollLeft - 5);
       }
       
       updateGradient();
       tabs.addEventListener('scroll', updateGradient);
       window.addEventListener('resize', updateGradient);
-})();
+    })();
 
-    // Enable drag-scroll
     (function enableDragScroll() {
       const tabs = document.querySelector('.token-tabs');
       if (!tabs) return;
@@ -1162,51 +1165,25 @@ console.log('Token.js sedang dijalankan!');
       let startX;
       let scrollLeft;
 
-    // PC (mouse)
-    tabs.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - tabs.offsetLeft;
-      scrollLeft = tabs.scrollLeft;
-      tabs.style.cursor = 'grabbing';
-    });
-    tabs.addEventListener('mouseleave', () => {
-    isDown = false;
-    tabs.style.cursor = 'default';
-  });
-  tabs.addEventListener('mouseup', () => {
-    isDown = false;
-    tabs.style.cursor = 'default';
-  });
-  tabs.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - tabs.offsetLeft;
-    const walk = (x - startX) * 1.5; // kecepatan scroll
-    tabs.scrollLeft = scrollLeft - walk;
-  });
+      tabs.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - tabs.offsetLeft;
+        scrollLeft = tabs.scrollLeft;
+        tabs.style.cursor = 'grabbing';
+      });
+      tabs.addEventListener('mouseleave', () => { isDown = false; tabs.style.cursor = 'grab'; });
+      tabs.addEventListener('mouseup', () => { isDown = false; tabs.style.cursor = 'grab'; });
+      tabs.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - tabs.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        tabs.scrollLeft = scrollLeft - walk;
+      });
+    })();
 
-  // Mobile (touch)
-let touchStartX = 0;
-let startScrollLeft = 0;
-
-tabs.addEventListener('touchstart', (e) => {
-  touchStartX = e.touches[0].pageX;
-  startScrollLeft = tabs.scrollLeft;
-}, { passive: true });
-
-tabs.addEventListener('touchmove', (e) => {
-  const x = e.touches[0].pageX;
-  const deltaX = x - touchStartX;
-  tabs.scrollLeft = startScrollLeft - deltaX;
-}, { passive: true });
-})();
-
-    // EVENT LISTENER BARU UNTUK TOMBOL CATATAN
-    document
-      .getElementById('add-notes-section-btn')
-      .addEventListener('click', injectNotesUI);
-
-    // Enhanced refresh function with loading animation
+    document.getElementById('add-notes-section-btn').addEventListener('click', injectNotesUI);
+    
     function refreshAndTrackWithLoading() {
       const loadingBar = document.querySelector('.token-loading-bar');
       loadingBar.classList.add('active');
@@ -1214,10 +1191,9 @@ tabs.addEventListener('touchmove', (e) => {
       if (typeof window.refreshAndTrack === 'function') {
         const result = window.refreshAndTrack();
         if (result && typeof result.then === 'function') {
-          result
-            .finally(() => {
-              setTimeout(() => loadingBar.classList.remove('active'), 500);
-            });
+          result.finally(() => {
+            setTimeout(() => loadingBar.classList.remove('active'), 500);
+          });
         } else {
           setTimeout(() => loadingBar.classList.remove('active'), 1500);
         }
@@ -1226,82 +1202,51 @@ tabs.addEventListener('touchmove', (e) => {
       }
     }
 
-    // Make popup draggable with touch/mouse
-    let isDragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
+    let isDragging = false, offsetX = 0, offsetY = 0;
+    const header = popup.querySelector('.popup-header');
 
     function startDrag(clientX, clientY) {
-        isDragging = true;
-        offsetX = clientX - popup.getBoundingClientRect().left;
-        offsetY = clientY - popup.getBoundingClientRect().top;
+      if (popup.classList.contains('collapsed')) return;
+      isDragging = true;
+      offsetX = clientX - popup.getBoundingClientRect().left;
+      offsetY = clientY - popup.getBoundingClientRect().top;
+      popup.style.transition = 'none';
     }
 
     function onDrag(clientX, clientY) {
-        if (!isDragging) return;
-        const x = clientX - offsetX;
-        const y = clientY - offsetY;
-
-        if (x > 0 && x < window.innerWidth - popup.offsetWidth && y > 0 && y < window.innerHeight - popup.offsetHeight) {
-            popup.style.left = x + 'px';
-            popup.style.top = y + 'px';
-            popup.style.right = 'auto';
-            popup.style.bottom = 'auto';
-        }
+      if (!isDragging) return;
+      const x = clientX - offsetX;
+      const y = clientY - offsetY;
+      popup.style.left = `${Math.max(0, Math.min(x, window.innerWidth - popup.offsetWidth))}px`;
+      popup.style.top = `${Math.max(0, Math.min(y, window.innerHeight - popup.offsetHeight))}px`;
     }
 
     function stopDrag() {
-        isDragging = false;
+      if (!isDragging) return;
+      isDragging = false;
+      popup.style.transition = '';
     }
 
-    const header = popup.querySelector('.popup-header');
-    header.addEventListener('mousedown', (e) => {
-        if (e.target.closest('button, a')) return;
-        startDrag(e.clientX, e.clientY);
-        e.preventDefault();
-    });
-
+    header.addEventListener('mousedown', (e) => { if (!e.target.closest('button, a')) startDrag(e.clientX, e.clientY); });
     document.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
     document.addEventListener('mouseup', stopDrag);
     
-    header.addEventListener('touchstart', (e) => {
-        if (e.target.closest('button, a')) return;
-        startDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-
-    document.addEventListener('touchmove', (e) => {
-        if (isDragging) {
-            e.preventDefault();
-            onDrag(e.touches[0].clientX, e.touches[0].clientY);
-        }
-    }, { passive: false });
-    
+    header.addEventListener('touchstart', (e) => { if (!e.target.closest('button, a')) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    document.addEventListener('touchmove', (e) => { if (isDragging) onDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
     document.addEventListener('touchend', stopDrag);
 
-    // Special handling for toggle button
     const toggle = popup.querySelector('.popup-toggle');
     toggle.addEventListener('click', (e) => {
-      // Logic to differentiate between a click and a drag end
-      if (!isDragging || popup.classList.contains('collapsed')) {
-        toggleCollapse();
-      }
-      isDragging = false; // Reset drag state after click/drag
+      e.stopPropagation();
+      popup.classList.toggle('collapsed');
     });
 
-    // Handle event listeners
-    document
-      .getElementById('token-reset-btn')
-      .addEventListener('click', refreshAndTrackWithLoading);
+    document.getElementById('token-reset-btn').addEventListener('click', refreshAndTrackWithLoading);
 
-    // Tab switching
     document.querySelectorAll('.token-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
-        document
-          .querySelectorAll('.token-tab')
-          .forEach((t) => t.classList.remove('active'));
-        document
-          .querySelectorAll('.token-tab-content')
-          .forEach((c) => c.classList.remove('active'));
+        document.querySelectorAll('.token-tab').forEach((t) => t.classList.remove('active'));
+        document.querySelectorAll('.token-tab-content').forEach((c) => c.classList.remove('active'));
 
         tab.classList.add('active');
         const tabId = tab.dataset.tab + '-tab';
@@ -1310,17 +1255,14 @@ tabs.addEventListener('touchmove', (e) => {
     });
 
     addPositionToggleToPopup();
-    
-    // Initialize the position for when page loads
-    applyDefaultPosition();
+  applyDefaultPosition();
   }
 
   function addPositionToggleToPopup() {
     const popup = document.getElementById('token-runner-popup');
     if (!popup) return;
 
-    // Define possible positions
-    const positions = [
+  const positions = [
       { bottom: '20px', right: '20px', top: 'auto', left: 'auto' },
       { bottom: '20px', right: 'auto', top: 'auto', left: '20px' },
       { bottom: 'auto', right: 'auto', top: '20px', left: '20px' },
@@ -1334,7 +1276,6 @@ tabs.addEventListener('touchmove', (e) => {
       Object.assign(popup.style, pos);
     }
     
-    // Panggil fungsi ini untuk menerapkan posisi awal
     window.applyDefaultPosition = function() {
         applyPosition(currentPosition);
     }
@@ -1347,8 +1288,7 @@ tabs.addEventListener('touchmove', (e) => {
     }
   }
 
-  // Decode JWT token
-  function decodeToken(token) {
+    function decodeToken(token) {
     try {
       if (!token) return null;
       if (token.startsWith('Bearer ')) token = token.substring(7);
@@ -1375,8 +1315,7 @@ tabs.addEventListener('touchmove', (e) => {
     }
   }
 
-  // Extract course code from URL
-  function extractCourseCodeFromUrl(url) {
+function extractCourseCodeFromUrl(url) {
     const courseCodeRegex =
       /\/api\/user-course\/([0-9]{5}-[0-9A-Z]+(?:-[0-9A-Z]+)?)/;
     const match = url.match(courseCodeRegex);
@@ -1389,20 +1328,17 @@ tabs.addEventListener('touchmove', (e) => {
     return null;
   }
 
-  // Create custom URL
   function createCustomUrl(courseCode) {
     return courseCode
       ? `https://mentari.unpam.ac.id/u-courses/${courseCode}`
       : null;
   }
 
-  // Update token tab UI
   function updateTokenUI(token, tokenInfo) {
     const tokenTab = document.getElementById('token-data-tab');
     if (!tokenTab) return;
 
     let tokenDisplay = token;
-    // Jika token panjang, buat versi disingkat
     if (tokenDisplay && tokenDisplay.length > 40) {
       tokenDisplay =
         tokenDisplay.substring(0, 15) +
@@ -1425,7 +1361,6 @@ tabs.addEventListener('touchmove', (e) => {
       </div>
     `;
 
-    // Add copy functionality
     tokenTab.querySelectorAll('.token-copy-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const textToCopy = btn.getAttribute('data-copy');
@@ -1440,67 +1375,86 @@ tabs.addEventListener('touchmove', (e) => {
     });
   }
 
-  // Update user info UI
   function updateUserInfoUI(tokenInfo) {
-  const userInfoTab = document.getElementById('user-info-tab');
-  if (!userInfoTab || !tokenInfo) return;
+    const userInfoTab = document.getElementById('user-info-tab');
+    if (!userInfoTab || !tokenInfo) return;
 
-  userInfoTab.innerHTML = `
-    <div class="token-card-wrapper">
-      <div class="token-card-header">
-        <h3 class="token-user-title">${tokenInfo.fullname}</h3>
-        <div class="token-role-badge">${tokenInfo.role}</div>
-      </div>
+    const userInitial = tokenInfo.fullname.charAt(0).toUpperCase();
+    const userImage = tokenInfo.foto_profil ? `<img src="${tokenInfo.foto_profil}" alt="Profile Picture">` : `<div class="user-initial">${userInitial}</div>`;
 
-      <div class="token-data-grid">
-        <div class="token-data-item">
-          <div class="token-info-section">
-            <p><span class="token-key">NIM :</span> <span class="token-value">${tokenInfo.username}</span></p>
+    userInfoTab.innerHTML = `
+      <div class="settings-grid">
+        <div class="setting-card user-card animated-card">
+          <div class="user-card-header">
+            ${userImage}
+          </div>
+          <div class="user-card-body">
+            <h3 class="user-name">${tokenInfo.fullname}</h3>
+            <p class="user-nim">${tokenInfo.username}</p>
+            <span class="user-role-badge">${tokenInfo.role}</span>
           </div>
         </div>
-
-        <div class="token-data-item">
-          <div class="token-info-section">
-            <label for="activation-key-input" class="token-key">KEY Aktivasi:</label>
-            <input type="password" id="activation-key-input" class="settings-input" placeholder="Masukkan KEY Aktivasi">
+        <div class="setting-card animated-card" style="animation-delay: 0.1s;">
+          <div class="card-header-title">
+            <i class="fas fa-key card-icon"></i>
+            <h3>Kunci & Integrasi</h3>
+          </div>
+          <div class="card-body">
+            <div class="input-field">
+              <label for="activation-key-input">
+                <i class="fas fa-shield-alt"></i> Kunci Aktivasi
+              </label>
+              <input type="password" id="activation-key-input" class="settings-input" placeholder="Masukkan Kunci Aktivasi Anda">
+            </div>
+            <div class="input-field">
+              <label for="gemini-api-key-input">
+                <i class="fab fa-google"></i> Kunci API Gemini
+              </label>
+              <input type="password" id="gemini-api-key-input" class="settings-input" placeholder="Opsional: Masukkan Kunci API Gemini">
+            </div>
+            <button id="save-keys-btn" class="token-button save-button"><i class="fas fa-save"></i> Simpan Kunci</button>
           </div>
         </div>
-        <div class="token-data-item">
-          <div class="token-info-section">
-            <label for="gemini-api-key-input" class="token-key">API KEY Gemini:</label>
-            <input type="password" id="gemini-api-key-input" class="settings-input" placeholder="Masukkan API KEY Gemini">
+        <div class="setting-card animated-card" style="animation-delay: 0.2s;">
+          <div class="card-header-title">
+            <i class="fas fa-toggle-on card-icon"></i>
+            <h3>Pengaturan Fitur</h3>
           </div>
-        </div>
-        <div class="token-data-item">
-          <button id="save-keys-btn" class="token-button" style="width: 100%;"><i class="fas fa-save"></i> Simpan KEY</button>
-        </div>
-
-        <div class="token-data-item">
-          <div class="token-info-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <p class="token-key">Auto Selesai Quiz :</p>
+          <div class="card-body">
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <i class="fas fa-tasks toggle-icon"></i>
+                <div>
+                  <h4>Auto Selesai Kuis</h4>
+                  <p>Otomatis menyelesaikan kuis.</p>
+                </div>
+              </div>
               <label class="switch">
                 <input type="checkbox" id="auto-finish-quiz-toggle" ${localStorage.getItem('auto_finish_quiz') === 'true' ? 'checked' : ''}>
                 <span class="slider round"></span>
               </label>
             </div>
-          </div>
-        </div>
-        <div class="token-data-item">
-          <div class="token-info-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <p class="token-key">Auto Isi Kuisioner :</p>
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <i class="fas fa-poll-h toggle-icon"></i>
+                <div>
+                  <h4>Auto Isi Kuesioner</h4>
+                  <p>Otomatis mengisi kuesioner.</p>
+                </div>
+              </div>
               <label class="switch">
                 <input type="checkbox" id="auto-fill-questionnaire-toggle" ${localStorage.getItem('auto_fill_questionnaire') === 'true' ? 'checked' : ''}>
                 <span class="slider round"></span>
               </label>
             </div>
-          </div>
-        </div>
-        <div class="token-data-item">
-          <div class="token-info-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <p class="token-key">Gemini AI :</p>
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <i class="fas fa-robot toggle-icon"></i>
+                <div>
+                  <h4>Asisten AI Gemini</h4>
+                  <p>Aktifkan chatbot AI di halaman.</p>
+                </div>
+              </div>
               <label class="switch">
                 <input type="checkbox" id="gemini-toggle" ${localStorage.getItem('gemini_enabled') === 'true' ? 'checked' : ''}>
                 <span class="slider round"></span>
@@ -1508,104 +1462,101 @@ tabs.addEventListener('touchmove', (e) => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="token-footer" style="display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 0.85rem; color: #ccc; line-height: 1.6;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span>Made with</span>
-            <img src="https://img.icons8.com/?size=100&id=H5H0mqCCr5AV&format=png&color=000000" style="width: 15px;" alt="love" />
+        <div class="setting-card animated-card" style="animation-delay: 0.3s;">
+          <div class="card-header-title">
+            <i class="fas fa-code card-icon"></i>
+            <h3>Kredit & Pengembang</h3>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
-            <span>Lukman Muludin</span>
-            <a href="https://instagram.com/_.chopin" target="_blank">
-              <img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" alt="Instagram" />
-            </a>
-            <a href="https://facebook.com/lukman.mauludin.754" target="_blank">
-              <img src="https://img.icons8.com/?size=100&id=118467&format=png&color=ffffff" width="18" alt="Facebook" />
-            </a>
-            <a href="https://github.com/Lukman754" target="_blank">
-              <img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" alt="GitHub" />
-            </a>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-            <span>Ananda Anugrah H</span>
-                <a href="https://instagram.com/nando_fiingerstyle" target="_blank">
-              <img src="https://img.icons8.com/?size=100&id=dz63urxyxSdO&format=png&color=ffffff" width="18" alt="Instagram" />
-            </a>
-            <a href="https://t.me/Vynix77" target="_blank">
-              <img src="https://img.icons8.com/?size=100&id=lUktdBVdL4Kb&format=png&color=ffffff" width="18" alt="Telegram" />
-            </a>
-                <a href="https://github.com/AnandaAnugrahHandyanto" target="_blank">
-              <img src="https://img.icons8.com/?size=100&id=62856&format=png&color=ffffff" width="18" alt="GitHub" />
-            </a>
+          <div class="card-body credits-section">
+              <div class="developer">
+                  <div class="dev-info">
+                      <h4>Lukman Muludin</h4>
+                      <span>Lead Dev</span>
+                  </div>
+                  <div class="dev-links">
+                      <a href="https://instagram.com/_.chopin" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                      <a href="https://facebook.com/lukman.mauludin.754" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>
+                      <a href="https://github.com/Lukman754" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                  </div>
+              </div>
+              <div class="developer">
+                  <div class="dev-info">
+                      <h4>Ananda Anugrah H</h4>
+                      <span>Backend & Logic Dev</span>
+                  </div>
+                  <div class="dev-links">
+                      <a href="https://instagram.com/nando_fiingerstyle" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                      <a href="https://t.me/Vynix77" target="_blank" title="Telegram"><i class="fab fa-telegram"></i></a>
+                      <a href="https://github.com/AnandaAnugrahHandyanto" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                  </div>
+              </div>
+              <div class="love-footer">
+                  Dibuat dengan <i class="fas fa-heart"></i> untuk mahasiswa UNPAM
+              </div>
           </div>
         </div>
-    </div>
-  `;
+      </div>
+    `;
 
-  const activationKeyInput = document.getElementById('activation-key-input');
-  const geminiApiKeyInput = document.getElementById('gemini-api-key-input');
-  const saveKeysBtn = document.getElementById('save-keys-btn');
-  const autoFinishQuizToggle = document.getElementById('auto-finish-quiz-toggle');
-  const autoFillQuestionnaireToggle = document.getElementById('auto-fill-questionnaire-toggle');
-  const geminiToggle = document.getElementById('gemini-toggle');
+    const activationKeyInput = document.getElementById('activation-key-input');
+    const geminiApiKeyInput = document.getElementById('gemini-api-key-input');
+    const saveKeysBtn = document.getElementById('save-keys-btn');
+    const autoFinishQuizToggle = document.getElementById('auto-finish-quiz-toggle');
+    const autoFillQuestionnaireToggle = document.getElementById('auto-fill-questionnaire-toggle');
+    const geminiToggle = document.getElementById('gemini-toggle');
 
-  // Muat kunci yang tersimpan saat UI dimuat
-  activationKeyInput.value = localStorage.getItem(STORAGE_KEYS.ACTIVATION_KEY) || '';
-  const storedApiKey = localStorage.getItem('geminiApiKey');
-  geminiApiKeyInput.value = storedApiKey ? atob(storedApiKey) : '';
+    activationKeyInput.value = localStorage.getItem(STORAGE_KEYS.ACTIVATION_KEY) || '';
+    const storedApiKey = localStorage.getItem('geminiApiKey');
+    geminiApiKeyInput.value = storedApiKey ? atob(storedApiKey) : '';
 
-  // Event listener untuk tombol simpan
-  saveKeysBtn.addEventListener('click', async () => {
-    saveKeysBtn.disabled = true;
-    saveKeysBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memvalidasi...';
+    saveKeysBtn.addEventListener('click', async () => {
+      saveKeysBtn.disabled = true;
+      saveKeysBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memvalidasi...';
 
-    const activationKey = activationKeyInput.value.trim();
-    const geminiApiKey = geminiApiKeyInput.value.trim();
+      const activationKey = activationKeyInput.value.trim();
+      const geminiApiKey = geminiApiKeyInput.value.trim();
 
-    if (activationKey) {
-        // Validasi kunci aktivasi sebelum menyimpan
-        const isValid = await validateActivationKeyOnServer(activationKey);
-        if (isValid) {
-            localStorage.setItem(STORAGE_KEYS.ACTIVATION_KEY, activationKey);
-            showCustomAlert('Kunci Aktivasi berhasil divalidasi dan disimpan!', 'success');
-        } else {
-            showCustomAlert('Kunci Aktivasi tidak valid. Silakan periksa kembali.', 'error');
-            saveKeysBtn.disabled = false;
-            saveKeysBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Kunci';
-            return; // Hentikan proses jika kunci aktivasi tidak valid
-        }
-    }
+      if (activationKey) {
+          const isValid = await validateActivationKeyOnServer(activationKey);
+          if (isValid) {
+              localStorage.setItem(STORAGE_KEYS.ACTIVATION_KEY, activationKey);
+              showCustomAlert('Kunci Aktivasi berhasil divalidasi dan disimpan!', 'success');
+          } else {
+              showCustomAlert('Kunci Aktivasi tidak valid. Silakan periksa kembali.', 'error');
+              saveKeysBtn.disabled = false;
+              saveKeysBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Kunci';
+              return;
+          }
+      }
 
-    if (geminiApiKey) {
-      localStorage.setItem('geminiApiKey', btoa(geminiApiKey));
-    }
-    
-    showCustomAlert('Pengaturan berhasil disimpan!', 'success');
-    saveKeysBtn.disabled = false;
-    saveKeysBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Kunci';
-  });
+      if (geminiApiKey) {
+        localStorage.setItem('geminiApiKey', btoa(geminiApiKey));
+      }
+      
+      showCustomAlert('Pengaturan berhasil disimpan!', 'success');
+      saveKeysBtn.disabled = false;
+      saveKeysBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Kunci';
+    });
 
-  // Event listener untuk toggle
-  autoFinishQuizToggle.addEventListener('change', function () {
-    localStorage.setItem('auto_finish_quiz', this.checked);
-  });
-  autoFillQuestionnaireToggle.addEventListener('change', function () {
-    localStorage.setItem('auto_fill_questionnaire', this.checked);
-  });
-  geminiToggle.addEventListener('change', function () {
-    const isEnabled = this.checked;
-    localStorage.setItem('gemini_enabled', isEnabled);
-    const geminiPopup = document.getElementById('geminiChatbot');
-    const geminiToggleBtn = document.getElementById('geminiChatbotToggle');
-    if (geminiToggleBtn) {
-      geminiToggleBtn.style.display = isEnabled ? 'flex' : 'none';
-    }
-    if (geminiPopup) {
-      geminiPopup.style.display = 'none';
-    }
-  });
-}
+    autoFinishQuizToggle.addEventListener('change', function () {
+      localStorage.setItem('auto_finish_quiz', this.checked);
+    });
+    autoFillQuestionnaireToggle.addEventListener('change', function () {
+      localStorage.setItem('auto_fill_questionnaire', this.checked);
+    });
+    geminiToggle.addEventListener('change', function () {
+      const isEnabled = this.checked;
+      localStorage.setItem('gemini_enabled', isEnabled);
+      const geminiPopup = document.getElementById('geminiChatbot');
+      const geminiToggleBtn = document.getElementById('geminiChatbotToggle');
+      if (geminiToggleBtn) {
+        geminiToggleBtn.style.display = isEnabled ? 'flex' : 'none';
+      }
+      if (geminiPopup) {
+        geminiPopup.style.display = 'none';
+      }
+    });
+  }
 
   function updateNotificationsUI() {
     const notificationsTab = document.getElementById("notifications-tab");
@@ -1635,7 +1586,7 @@ tabs.addEventListener('touchmove', (e) => {
     }
 
     let html = "";
-    recentNotifications.forEach((notification, index) => {
+    recentNotifications.forEach((notification) => {
       const createdDate = new Date(notification.createdAt).toLocaleString(
         "id-ID",
         {
@@ -1655,32 +1606,13 @@ tabs.addEventListener('touchmove', (e) => {
       const topicId =
         notification.topicId || notification.id || "unknown-topic";
       const topicUrl = `https://mentari.unpam.ac.id/u-courses/${courseCode}/forum/${forumId}/topics/${topicId}`;
-      const isClickable = true;
-
+      
       const notificationId = `notification-${notification.id}`;
-
-      if (isClickable) {
-        html += `
-        <div class="notification-item clickable" id="${notificationId}" style="cursor: pointer; position: relative;">
-          <a href="${topicUrl}" class="notification-link" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; text-decoration: none;"></a>
-          <div style="position: relative; z-index: 2; pointer-events: none;">
-            <div class="notification-header">
-              <div class="notification-icon">
-                <i class="fas fa-user-graduate"></i>
-              </div>
-              <div class="notification-meta">
-                <div class="notification-lecturer">${notification.lecturerName}</div>
-                <div class="notification-time">${createdDate}</div>
-              </div>
-            </div>
-            <div class="notification-content">
-              <div class="notification-text">${notification.content}</div>
-            </div>
-          </div>
-        </div>`;
-      } else {
-        html += `
-        <div class="notification-item" id="${notificationId}">
+      
+      html += `
+      <div class="notification-item clickable" id="${notificationId}" style="cursor: pointer; position: relative;">
+        <a href="${topicUrl}" class="notification-link" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; text-decoration: none;"></a>
+        <div style="position: relative; z-index: 2; pointer-events: none;">
           <div class="notification-header">
             <div class="notification-icon">
               <i class="fas fa-user-graduate"></i>
@@ -1693,15 +1625,15 @@ tabs.addEventListener('touchmove', (e) => {
           <div class="notification-content">
             <div class="notification-text">${notification.content}</div>
           </div>
-        </div>`;
-      }
+        </div>
+      </div>`;
     });
 
     notificationsList.innerHTML = html;
 
     document
       .querySelectorAll(".notification-item.clickable")
-      .forEach((item, index) => {
+      .forEach((item) => {
         item.addEventListener("click", function (e) {
           if (e.target.closest("a.notification-link")) {
             e.preventDefault();
@@ -1745,8 +1677,22 @@ tabs.addEventListener('touchmove', (e) => {
     }
   }
 
-  // Update forum data UI
+  function processAndSortCourses(courseList) {
+    const dayOrderMap = { 'Minggu': 0, 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6 };
+    return courseList
+      .map(course => {
+        if (!course || !course.data) return null;
+        const courseName = course.coursename || '';
+        const dayMatch = courseName.match(/\(([^)]+)\)/);
+        const dayOfWeek = dayMatch ? dayMatch[1] : '';
+        return { ...course, dayOfWeek, dayOrder: dayOrderMap[dayOfWeek] ?? 7 };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.dayOrder - b.dayOrder);
+  }
+
   async function updateForumUI(courseDataList) {
+    const processedCourses = processAndSortCourses(courseDataList);
     const forumTab = document.getElementById('forum-data-tab');
     if (!forumTab) return;
 
@@ -1786,25 +1732,13 @@ tabs.addEventListener('touchmove', (e) => {
     }
 
     html += `
-  <div class="copy-links-container">
-    <a href="https://my.unpam.ac.id/presensi/" target="_blank" id="presensi" class="presensi-button">
-      <i class="fas fa-clipboard-list"></i> Lihat Presensi
-    </a>
-  </div>
-  `;
-
-    const processedCourses = courseDataList
-      .map((courseData) => {
-        if (!courseData || !courseData.data) return null;
-        const courseName = courseData.coursename || '';
-        const dayMatch = courseName.match(/\(([^)]+)\)/);
-        const dayOfWeek = dayMatch ? dayMatch[1] : '';
-        const dayOrderMap = { 'Minggu': 0, 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6 };
-        return { ...courseData, dayOfWeek, dayOrder: dayOrderMap[dayOfWeek] ?? 7 };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.dayOrder - b.dayOrder);
-
+    <div class="copy-links-container">
+      <a href="https://my.unpam.ac.id/presensi/" target="_blank" id="presensi" class="presensi-button">
+        <i class="fas fa-clipboard-list"></i> Lihat Presensi
+      </a>
+    </div>
+    `;
+  
     processedCourses.forEach((courseData) => {
       const { kode_course, coursename, data } = courseData;
 
@@ -1825,35 +1759,35 @@ tabs.addEventListener('touchmove', (e) => {
       const courseUrl = `https://mentari.unpam.ac.id/u-courses/${kode_course}`;
 
       html += `
-  <div class="course-card" data-course-name="${coursename}" data-course-url="${courseUrl}">
-    <div class="course-header">
-      <a href="${courseUrl}" class="course-header-link">
-        <h2>${coursename}</h2>
-        <p class="course-code">${kode_course}</p>
-      </a>
-    </div>
-    <div class="course-content" id="${courseId}">
-  `;
+        <div class="course-card" data-course-name="${coursename}" data-course-url="${courseUrl}">
+          <div class="course-header">
+            <a href="${courseUrl}" class="course-header-link">
+              <h2>${coursename}</h2>
+              <p class="course-code">${kode_course}</p>
+            </a>
+          </div>
+          <div class="course-content" id="${courseId}">
+      `;
 
       validSections.forEach((section, sectionIndex) => {
         const sectionId = `section-${kode_course}-${sectionIndex}`;
         const sectionUrl = `https://mentari.unpam.ac.id/u-courses/${kode_course}?accord_pertemuan=${section.kode_section}`;
         
         html += `
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection('${sectionId}', '${courseId}')">
-        <h3>${section.nama_section}</h3>
-        <span class="section-toggle collapsed" id="toggle-${sectionId}">
-          <i class="fas fa-chevron-down"></i>
-        </span>
-      </div>
-      <div class="section-content" id="${sectionId}">
-        <div class="section-direct-link">
-          <a href="${sectionUrl}" class="section-link-button">
-            <i class="fas fa-external-link-alt"></i> Buka Pertemuan
-          </a>
-        </div>
-    `;
+          <div class="section-card">
+            <div class="section-header" onclick="toggleSection('${sectionId}', '${courseId}')">
+              <h3>${section.nama_section}</h3>
+              <span class="section-toggle collapsed" id="toggle-${sectionId}">
+                <i class="fas fa-chevron-down"></i>
+              </span>
+            </div>
+            <div class="section-content" id="${sectionId}">
+              <div class="section-direct-link">
+                <a href="${sectionUrl}" class="section-link-button">
+                  <i class="fas fa-external-link-alt"></i> Buka Pertemuan
+                </a>
+              </div>
+        `;
 
         const materialTypes = ['BUKU_ISBN', 'VIDEO_AJAR', 'POWER_POINT', 'ARTIKEL_RISET', 'MATERI_LAINNYA'];
         const learningMaterials = section.sub_section.filter(sub => materialTypes.includes(sub.kode_template) && sub.link);
@@ -1898,54 +1832,54 @@ tabs.addEventListener('touchmove', (e) => {
           const dataAttrs = validUrl ? `data-item-name="${judul}" data-item-url="${url}" data-item-type="${getItemTypeText(kode_template)}"` : '';
 
           html += `
-    <div class="item-card ${completion ? 'completed' : ''} ${warningAlert ? 'has-warning' : ''}" ${dataAttrs}>
-      <div class="item-header">
-        <div class="item-icon">${getItemIcon(kode_template)}</div>
-        <div class="item-details"><h4>${judul} ${durationText}</h4>${completion ? '<span class="completion-badge">Selesai</span>' : ''}</div>
-      </div>
-      ${konten ? `<div class="item-content responsive-content">${konten}</div>` : ''}
-      ${kode_template === 'FORUM_DISKUSI' ? `<div class="forum-topics" id="forum-topics-${id_trx_course_sub_section || id}"><div class="loading-topics">Loading topics...</div></div>` : ''}
-      ${warningAlert ? `<div class="warning-message">${warningAlert}</div>` : ''}
-      ${file ? `<div class="item-file"><a href="https://mentari.unpam.ac.id/api/file/${file}"><i class="fas fa-file-download"></i> Lampiran</a></div>` : ''}
-      <div class="item-action">
-        ${validUrl && !warningAlert
-          ? `<a href="${url}" class="action-button">${getActionText(kode_template)}</a>`
-          : `<span class="action-button disabled">${getActionText(kode_template)} (Tidak Tersedia)</span>`
-        }
-      </div>
-    </div>`;
+            <div class="item-card ${completion ? 'completed' : ''} ${warningAlert ? 'has-warning' : ''}" ${dataAttrs}>
+              <div class="item-header">
+                <div class="item-icon">${getItemIcon(kode_template)}</div>
+                <div class="item-details"><h4>${judul} ${durationText}</h4>${completion ? '<span class="completion-badge">Selesai</span>' : ''}</div>
+              </div>
+              ${konten ? `<div class="item-content responsive-content">${konten}</div>` : ''}
+              ${kode_template === 'FORUM_DISKUSI' ? `<div class="forum-topics" id="forum-topics-${id_trx_course_sub_section || id}"><div class="loading-topics">Loading topics...</div></div>` : ''}
+              ${warningAlert ? `<div class="warning-message">${warningAlert}</div>` : ''}
+              ${file ? `<div class="item-file"><a href="https://mentari.unpam.ac.id/api/file/${file}"><i class="fas fa-file-download"></i> Lampiran</a></div>` : ''}
+              <div class="item-action">
+                ${validUrl && !warningAlert
+                  ? `<a href="${url}" class="action-button">${getActionText(kode_template)}</a>`
+                  : `<span class="action-button disabled">${getActionText(kode_template)} (Tidak Tersedia)</span>`
+                }
+              </div>
+            </div>`;
         });
         html += `</div></div>`;
       });
       html += `</div></div>`;
     });
 
-const hasCourseCards = html.includes('course-card');
+    const hasCourseCards = html.includes('course-card');
 
-if (!hasCourseCards) {
-    html += `<div class="forum-no-data">Tidak ada forum diskusi yang tersedia</div>`;
-}
-
-forumList.innerHTML = html;
-
-document.querySelectorAll('.forum-topics').forEach(container => {
-    const forumId = container.id.replace('forum-topics-', '');
-    if (forumId) {
-        fetchForumTopics(forumId).then(topics => {
-            if (topics && topics.length > 0) {
-                const currentCourseCode = extractCourseCodeFromUrl(window.location.href) || 'default-course';
-                container.innerHTML = topics.map(topic =>
-                    `<a href="https://mentari.unpam.ac.id/u-courses/${topic.kode_course || currentCourseCode}/forum/${forumId}/topics/${topic.id}" class="topic-badge"><i class="fas fa-comments"></i> ${topic.judul}</a>`
-                ).join('');
-            } else {
-                container.innerHTML = '<div class="no-topics">No topics available</div>';
-            }
-        }).catch(() => {
-            container.innerHTML = '<div class="error-topics">Failed to load topics</div>';
-        });
+    if (!hasCourseCards) {
+        html += `<div class="forum-no-data">Tidak ada forum diskusi yang tersedia</div>`;
     }
-});
-    // Add toggle function to window scope
+
+    forumList.innerHTML = html;
+
+    document.querySelectorAll('.forum-topics').forEach(container => {
+        const forumId = container.id.replace('forum-topics-', '');
+        if (forumId) {
+            fetchForumTopics(forumId).then(topics => {
+                if (topics && topics.length > 0) {
+                    const currentCourseCode = extractCourseCodeFromUrl(window.location.href) || 'default-course';
+                    container.innerHTML = topics.map(topic =>
+                        `<a href="https://mentari.unpam.ac.id/u-courses/${topic.kode_course || currentCourseCode}/forum/${forumId}/topics/${topic.id}" class="topic-badge"><i class="fas fa-comments"></i> ${topic.judul}</a>`
+                    ).join('');
+                } else {
+                    container.innerHTML = '<div class="no-topics">No topics available</div>';
+                }
+            }).catch(() => {
+                container.innerHTML = '<div class="error-topics">Failed to load topics</div>';
+            });
+        }
+    });
+
     window.toggleSection = function (sectionId, courseId) {
       const sectionContent = document.getElementById(sectionId);
       const toggleIcon = document.getElementById(`toggle-${sectionId}`);
@@ -1967,12 +1901,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
             const styleElement = document.createElement('style');
             styleElement.id = 'forum-ui-styles';
             styleElement.textContent = `
-                .update-notification { background-color: #2c3e50; color: #ecf0f1; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #34495e; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
-                .update-info { display: flex; flex-direction: column; }
-                .update-info strong { font-weight: bold; font-size: 14px; }
-                .update-info span { font-size: 12px; opacity: 0.9; }
-                .update-button { background-color: #3498db; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 13px; transition: background-color 0.2s ease; white-space: nowrap; }
-                .update-button:hover { background-color: #2980b9; }
                 .course-card { background: #1e1e1e; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin-bottom: 8px; overflow: hidden; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; border: 1px solid #333; box-sizing: border-box; }
                 .course-header { padding: 8px; background: #252525; border-left: 4px solid #0070f3; margin-bottom: 0; width: 100%; box-sizing: border-box; }
                 .course-header-link { display: block; text-decoration: none; cursor: pointer; color: inherit; transition: all 0.2s; }
@@ -1981,7 +1909,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
                 .course-code { color: #aaa; font-size: 10px; margin: 0; }
                 .course-content { padding: 0 8px 8px; }
                 .section-card { background: #252525; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); overflow: hidden; width: 100%; margin-top: 8px; border: 1px solid #333; box-sizing: border-box; transition: opacity 0.5s ease-out; }
-                .section-hiding { opacity: 0; }
                 .section-header { background: #333; color: white; padding: 6px 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
                 .section-header h3 { margin: 0; font-size: 12px; }
                 .section-toggle { color: white; transition: transform 0.3s; }
@@ -2001,7 +1928,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
                 .material-details { flex: 1; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
                 .item-card { background: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 12px; margin-bottom: 8px; width: 100%; box-sizing: border-box; }
                 .item-header { display: flex; align-items: center; margin-bottom: 10px; }
-                .item-icon { background: #252525; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: #0070f3; flex-shrink: 0; }
                 .item-details { flex: 1; display: flex; justify-content: space-between; align-items: center; }
                 .item-details h4 { margin: 0; font-size: 14px; color: #eee; }
                 .item-content { border-left: 3px solid #333; padding-left: 12px; margin: 12px 0; color: #aaa; font-size: 13px; }
@@ -2016,33 +1942,52 @@ document.querySelectorAll('.forum-topics').forEach(container => {
                 .warning-message { background: #332b00; color: #ffd166; padding: 10px; border-radius: 4px; margin: 10px 0; font-size: 13px; border: 1px solid #554800; }
                 .completed { border-left: 3px solid #00a550; }
                 .has-warning { border-left: 3px solid #ffd166; }
-                .forum-no-data { padding: 20px; text-align: center; color: #999; font-style: italic; max-width: 500px; margin: 0 auto; }
                 #forum-list { max-width: 500px; margin: 0 auto; box-sizing: border-box; width: 100%; margin-bottom: 125px; }
                 .copy-links-container { text-align: center; display: flex; gap: 0.5em; }
-                .copy-links-button { background: #0070f3; color: white; border: none; width: 100%; border-radius: 4px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
-                .copy-links-button:hover { background: #0060df; transform: translateY(-2px); }
-                .copy-links-button.copied { background: #00a550; }
-                .presensi-button { background:rgb(0, 160, 32); color: white; border: none; width: 100%; border-radius: 4px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; }
-                .presensi-button:hover { background:rgb(0, 122, 2); transform: translateY(-2px); }
-                .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-                .switch input { opacity: 0; width: 0; height: 0; }
-                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
-                .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
-                input:checked + .slider { background-color: #0070f3; }
-                input:checked + .slider:before { transform: translateX(26px); }
-                .slider.round { border-radius: 24px; }
-                .slider.round:before { border-radius: 50%; }
-                .token-button { background: #0070f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
-                .token-button:hover { background: #0060df; transform: translateY(-1px); }
+                .presensi-button {
+  background: linear-gradient(90deg, rgb(0,160,32), rgb(0,200,100), rgb(0,160,32));
+  background-size: 300% 300%;
+  color: #fff;
+  border: none;
+  width: 100%;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  animation: presensiGradient 6s ease infinite;
+}
+
+/* Hover → animasi lebih cepat + tombol naik */
+.presensi-button:hover {
+  animation-duration: 3s;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 160, 32, 0.4);
+}
+
+/* Active → stop animasi sejenak + tombol turun */
+.presensi-button:active {
+  animation-play-state: paused;
+  transform: translateY(1px);
+  box-shadow: 0 3px 8px rgba(0, 160, 32, 0.4);
+}
+
+@keyframes presensiGradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
                 .forum-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
                 .loading-topics, .no-topics, .error-topics { color: #666; font-size: 12px; font-style: italic; }
                 .error-topics { color: #f43f5e; }
                 .topic-badge { background:rgb(0, 51, 0); color:rgb(163, 255, 163); padding: 10px; border-radius: 4px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: all 0.2s ease; text-decoration: none; display: inline-block; cursor: pointer; margin: 10px 0; border: 1px solid rgb(0, 85, 4); }
                 .topic-badge:hover { background: rgba(80, 129, 0, 0.48); transform: translateY(-1px); color:rgb(157, 255, 0); text-decoration: none; box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2); }
-                #notifications-list { display: flex; flex-direction: column; gap: 8px; }
-                .notification-item { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease; }
-                .notification-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
-                .notification-item.clickable:hover { background: rgba(0, 112, 243, 0.1); border-color: rgba(0, 112, 243, 0.3); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 112, 243, 0.2); }
                 .notification-item.clickable:hover { background: rgba(0, 112, 243, 0.1); border-color: rgba(0, 112, 243, 0.3); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 112, 243, 0.2); }
                 .notification-header { display: flex; align-items: center; margin-bottom: 8px; }
                 .notification-icon { background: rgba(0, 112, 243, 0.1); color: #0070f3; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 14px; flex-shrink: 0; }
@@ -2061,7 +2006,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     
     addStyles();
 
-    // Helper functions for UI rendering
     function getMaterialIcon(template) {
         const icons = { BUKU_ISBN: 'fa-book', VIDEO_AJAR: 'fa-video', POWER_POINT: 'fa-file-powerpoint', ARTIKEL_RISET: 'fa-file-alt', MATERI_LAINNYA: 'fa-folder-open' };
         return `<i class="fas ${icons[template] || 'fa-file'}"></i>`;
@@ -2080,53 +2024,77 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     }
   }
 
-  // Fungsi baru untuk menampilkan grup dan menambahkan event listener
+  function showToast(message) {
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<style>
+        .toast { position: fixed; bottom: 20px; right: 20px; background:#1e1e1e; color:rgb(0, 221, 15); padding: 12px 20px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #333; display: flex; align-items: center; gap: 8px; z-index: 100099; animation: fadeIn 0.3s, fadeOut 0.3s 2.7s; animation-fill-mode: forwards; }
+        .toast i { color: #2ecc71; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+    </style>
+    <i class="fas fa-check-circle"></i><span>${message}</span>`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  function copyToClipboard(text, message) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast(message))
+      .catch((err) => showToast('Gagal menyalin: ' + err));
+  }
+
   function displayGroups(groups) {
-    const groupResultsDiv = document.getElementById('group-results');
-    const groupResultsCard = document.getElementById('group-results-card');
-    const groupTotalInfoEl = document.getElementById('group-total-info');
-    if (!groupResultsDiv || !groupResultsCard) return;
+    const groupResultsContainer = document.getElementById('group-results-container');
+    const floatingActions = document.getElementById('floating-actions');
+    if (!groupResultsContainer || !floatingActions) return;
 
     const groupCount = groups.length;
+    const totalStudents = groups.reduce((acc, group) => acc + group.length, 0);
+    const avgMembers = totalStudents > 0 ? (totalStudents / groupCount).toFixed(1) : 0;
 
-    // Tampilkan jumlah total kelompok di judul
-    if (groupTotalInfoEl) {
-      groupTotalInfoEl.textContent = `- ${groupCount} Kelompok`;
-    }
+    document.getElementById('total-groups-stat').textContent = groupCount;
+    document.getElementById('avg-members-stat').textContent = avgMembers;
 
-    // Generate HTML
-    let html = '';
-    groups.forEach((group, index) => {
-      html += `
-        <div class="group-container">
-          <div class="group-header">
-            <div>Kelompok ${index + 1}</div>
-            <div class="group-count">${group.length} mahasiswa</div>
-          </div>
-          <div class="group-members">
-      `;
-      group.forEach((student) => {
-        html += `
-          <div class="group-member">
-            <div class="member-absen">${student.absen}</div>
-            <div class="member-name">${student.nama_mahasiswa}</div>
-            <div class="member-nim">${student.nim}</div>
-          </div>
-        `;
-      });
-      html += `
+    const groupColors = ['#3498db', '#9b59b6', '#e74c3c', '#2ecc71', '#f1c40f', '#1abc9c'];
+    let html = `
+      <div class="results-card animated-card">
+        <div class="card-header-title">
+          <i class="fas fa-layer-group card-icon"></i>
+          <h3>Hasil Pengelompokan</h3>
+        </div>
+        <div class="card-body">
+          <div class="groups-grid">
+            ${groups.map((group, index) => `
+              <div class="group-card">
+                <div class="group-card-header" style="background-color: ${groupColors[index % groupColors.length]};">
+                  <h4>Kelompok ${index + 1}</h4>
+                  <span>${group.length} Anggota</span>
+                </div>
+                <div class="group-card-body">
+                  ${group.map(student => `
+                    <div class="group-member">
+                      <span class="student-absen-small">${student.absen}</span>
+                      <p class="member-name">${student.nama_mahasiswa}</p>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>
-      `;
-    });
+      </div>
+    `;
 
-    groupResultsDiv.innerHTML = html;
-    groupResultsCard.style.display = 'block';
+    groupResultsContainer.innerHTML = html;
+    groupResultsContainer.classList.remove('results-hidden');
+    floatingActions.classList.remove('actions-hidden');
 
-    // Event listener untuk menyalin data semua kelompok
-    document
-      .getElementById('copy-all-groups-btn')
-      .addEventListener('click', () => {
+    document.getElementById('copy-all-groups-btn').addEventListener('click', () => {
         let groupsData = '';
         groups.forEach((group, index) => {
           groupsData += `KELOMPOK ${index + 1} (${group.length} mahasiswa)\n`;
@@ -2138,39 +2106,26 @@ document.querySelectorAll('.forum-topics').forEach(container => {
         copyToClipboard(groupsData, 'Data kelompok berhasil disalin');
       });
 
-    // Event listener untuk menghapus kelompok dengan konfirmasi custom modal
-    document
-      .getElementById('delete-groups-btn')
-      .addEventListener('click', () => {
-        const confirmationMessage = `Anda akan menghapus <br><b>${groupCount} kelompok</b> yang sudah dibuat. <br>Apakah Anda yakin?`;
-
+    document.getElementById('delete-groups-btn').addEventListener('click', () => {
+        const confirmationMessage = `Anda akan menghapus <b>${groupCount} kelompok</b>. <br>Tindakan ini tidak dapat diurungkan.`;
         showConfirmationDialog(confirmationMessage, () => {
-          // Hapus dari local storage
           localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS);
-
-          // Sembunyikan card dan hapus isinya
-          groupResultsCard.style.display = 'none';
-          groupResultsDiv.innerHTML = '';
-          if (groupTotalInfoEl) {
-            groupTotalInfoEl.textContent = ''; // Hapus info jumlah
-          }
-
+          groupResultsContainer.classList.add('results-hidden');
+          floatingActions.classList.add('actions-hidden');
+          document.getElementById('total-groups-stat').textContent = '0';
+          document.getElementById('avg-members-stat').textContent = '0';
+          setTimeout(() => { groupResultsContainer.innerHTML = ''; }, 300);
           showToast('Data kelompok berhasil dihapus');
         });
       });
   }
 
-  // Update student data UI
   function updateStudentUI(courseDataList) {
     const studentTab = document.getElementById('student-data-tab');
     if (!studentTab) return;
 
-    const studentList = document.getElementById('student-list');
-    if (!studentList) return;
-
-    // Extract unique students from all courses
     const allUniqueStudents = [];
-    const studentMap = new Map(); // Use Map to track unique students by NIM
+    const studentMap = new Map();
 
     courseDataList.forEach((course) => {
       if (course && course.peserta && course.peserta.length > 0) {
@@ -2178,7 +2133,7 @@ document.querySelectorAll('.forum-topics').forEach(container => {
           if (!studentMap.has(student.nim)) {
             studentMap.set(student.nim, {
               ...student,
-              absen: allUniqueStudents.length + 1, // Add sequential absen number
+              absen: allUniqueStudents.length + 1,
             });
             allUniqueStudents.push(studentMap.get(student.nim));
           }
@@ -2187,80 +2142,83 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     });
 
     if (allUniqueStudents.length === 0) {
-      studentList.innerHTML = `<div class="student-no-data">Tidak ada data mahasiswa</div>`;
+      studentTab.innerHTML = `<div class="student-no-data">Tidak ada data mahasiswa yang ditemukan.</div>`;
       return;
     }
 
-    // Create grouping interface
-    const groupingForm = `
-    <div class="data-card grouping-form">
-      <h3 class="card-title">Pengelompokan Mahasiswa</h3>
-      <div class="input-group">
-        <input type="number" id="group-count" min="1" max="${allUniqueStudents.length}" value="1" class="group-input" placeholder="Jumlah Kelompok">
-        <button id="create-groups-btn" class="primary-btn">Buat Kelompok</button>
-      </div>
-      <div class="grouping-options">
-        <label class="radio-container">
-          <input type="radio" name="grouping-method" value="sequential" checked>
-          <span class="radio-label">Berurutan</span>
-        </label>
-        <label class="radio-container">
-          <input type="radio" name="grouping-method" value="random">
-          <span class="radio-label">Acak</span>
-        </label>
-      </div>
-    </div>
-  `;
+    studentTab.innerHTML = `
+      <div id="student-dashboard-container">
+        <div class="stats-header">
+          <div class="stat-card">
+            <i class="fas fa-users stat-icon"></i>
+            <div class="stat-value" id="total-students-stat">${allUniqueStudents.length}</div>
+            <div class="stat-label">Total Mahasiswa</div>
+          </div>
+          <div class="stat-card">
+            <i class="fas fa-layer-group stat-icon"></i>
+            <div class="stat-value" id="total-groups-stat">0</div>
+            <div class="stat-label">Jumlah Kelompok</div>
+          </div>
+          <div class="stat-card">
+            <i class="fas fa-user-friends stat-icon"></i>
+            <div class="stat-value" id="avg-members-stat">0</div>
+            <div class="stat-label">Anggota/Kelompok</div>
+          </div>
+        </div>
 
-    const groupResultsCard = `
-    <div class="data-card" id="group-results-card" style="display: none;">
-      <div class="card-header">
-        <h3 class="card-title">Hasil kelompok <span id="group-total-info" class="group-total-info"></span></h3>
-        <div class="card-actions">
-          <button id="copy-all-groups-btn" class="secondary-btn">
+        <div class="control-card animated-card">
+          <div class="card-header-title">
+            <i class="fas fa-cogs card-icon"></i>
+            <h3>Buat Kelompok</h3>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <input type="number" id="group-count" min="1" max="${allUniqueStudents.length}" value="1" class="group-input" placeholder="Jumlah Kelompok">
+              <button id="create-groups-btn" class="token-button"><i class="fas fa-play"></i> Buat</button>
+            </div>
+            <div class="grouping-options">
+              <label class="radio-container">
+                <input type="radio" name="grouping-method" value="sequential" checked> <span class="radio-label">Berurutan</span>
+              </label>
+              <label class="radio-container">
+                <input type="radio" name="grouping-method" value="random"> <span class="radio-label">Acak</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div id="group-results-container" class="results-hidden"></div>
+
+        <div class="student-list-card animated-card">
+           <div class="card-header-title">
+            <i class="fas fa-list-ul card-icon"></i>
+            <h3>Daftar Semua Mahasiswa</h3>
+          </div>
+          <div class="card-body">
+            <div class="students-grid">
+              ${allUniqueStudents.map(student => `
+                <div class="student-card">
+                  <span class="student-absen">${student.absen}</span>
+                  <div class="student-details">
+                    <p class="student-name">${student.nama_mahasiswa}</p>
+                    <p class="student-nim">${student.nim}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        
+        <div id="floating-actions" class="actions-hidden">
+          <button id="copy-all-groups-btn" class="fab-button" title="Salin Semua Data Kelompok">
             <i class="fas fa-copy"></i>
           </button>
-          <button id="delete-groups-btn" class="danger-btn">
-            <i class="fas fa-trash-alt"></i> 
+          <button id="delete-groups-btn" class="fab-button danger" title="Hapus Kelompok">
+            <i class="fas fa-trash-alt"></i>
           </button>
-        </div>
-      </div>
-      <div id="group-results"></div>
-    </div>
-  `;
-
-    let studentsHtml = `
-    ${groupingForm}
-    ${groupResultsCard}
-    <div class="data-card">
-      <div class="card-header">
-        <h3 class="card-title">Daftar Mahasiswa</h3>
-        <div class="card-actions">
-          <button id="copy-all-students-btn" class="secondary-btn">
-            <i class="fas fa-copy"></i> Copy Data
-          </button>
-        </div>
-      </div>
-      <div class="student-count">Total Mahasiswa: ${allUniqueStudents.length}</div>
-      <div class="students-container">
-  `;
-
-    allUniqueStudents.forEach((student) => {
-      studentsHtml += `
-      <div class="student-item" data-nim="${student.nim}">
-        <div class="student-info">
-          <div class="student-inline">
-            <span class="student-absen">${student.absen}</span>
-            <p class="student-item-title">${student.nama_mahasiswa}</p>
-            <span class="token-badge">${student.nim}</span>
-          </div>
         </div>
       </div>
     `;
-    });
-
-    studentsHtml += `</div></div>`;
-    studentList.innerHTML = studentsHtml;
 
     const savedGroups = getFromLocalStorage(STORAGE_KEYS.STUDENT_GROUPS);
     if (savedGroups && savedGroups.length > 0) {
@@ -2271,86 +2229,12 @@ document.querySelectorAll('.forum-topics').forEach(container => {
         const groupCount = parseInt(document.getElementById('group-count').value, 10);
         const groupingMethod = document.querySelector('input[name="grouping-method"]:checked').value;
 
-        if (groupCount >= 1 && groupCount <= allUniqueStudents.length) {
-            createGroups(allUniqueStudents, groupCount, groupingMethod);
-        } else {
-            alert(`Jumlah kelompok harus antara 1 dan ${allUniqueStudents.length}`);
+        if (isNaN(groupCount) || groupCount < 1 || groupCount > allUniqueStudents.length) {
+            showCustomAlert(`Jumlah kelompok harus antara 1 dan ${allUniqueStudents.length}`, 'error');
+            return;
         }
+        createGroups(allUniqueStudents, groupCount, groupingMethod);
     });
-
-    document.getElementById('copy-all-students-btn').addEventListener('click', () => {
-        const studentData = allUniqueStudents
-          .map(s => `${s.absen}. ${s.nama_mahasiswa} (${s.nim})`).join('\n');
-        copyToClipboard(studentData, 'Data mahasiswa berhasil disalin');
-    });
-
-    if (!document.getElementById('enhanced-styles')) {
-      const style = document.createElement('style');
-      style.id = 'enhanced-styles';
-      style.textContent = `
-           .data-card { background: #1e1e1e; border-radius: 8px; margin-bottom: 9rem; padding: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); border: 1px solid #333; }
-           #group-results-card{ margin-bottom: 1rem; }
-           .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #333; }
-           .card-title { font-size: 16px; font-weight: 600; color: #eee; margin: 0; display: flex; align-items: center; gap: 8px; }
-           .group-total-info { font-size: 14px; font-weight: 500; color: #888; }
-           .card-actions { display: flex; gap: 8px; }
-           .primary-btn { background: #0070f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
-           .primary-btn:hover { background: #0060df; }
-           .secondary-btn { background: #333; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
-           .secondary-btn:hover { background: #444; }
-           .danger-btn { background-color: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background-color 0.2s; display: flex; align-items: center; gap: 6px; }
-           .danger-btn:hover { background-color: #c0392b; }
-           .grouping-form { margin-bottom: 1rem; }
-           .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-           .group-input { flex: 1; background: #252525; border: 1px solid #333; color: #eee; padding: 8px 12px; border-radius: 4px; font-size: 14px; }
-           .grouping-options { display: flex; gap: 16px; }
-           .radio-container { display: flex; align-items: center; cursor: pointer; }
-           .radio-label { margin-left: 4px; font-size: 14px; color: #ccc; }
-           .students-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 12px; }
-           .student-item { background: #252525; border-radius: 6px; padding: 10px; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #333; }
-           .student-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
-           .student-inline { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; width: 100%; }
-           .student-absen { display: flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; background:rgb(182, 243, 0); color: #252525; border-radius: 5px; font-size: 10px; font-weight: bold; flex-shrink: 0; }
-           .student-item-title { font-weight: 500; margin: 0; font-size: 14px; color: #eee; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-           .token-badge { background: #333; color: #aaa; font-size: 12px; padding: 2px 6px; border-radius: 4px; font-family: monospace; flex-shrink: 0; }
-           .student-count { color: #999; font-size: 13px; margin-top: 4px; }
-           #group-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 16px; }
-           .group-container { background: #252525; border-radius: 6px; overflow: hidden; border: 1px solid #333; }
-           .group-header { background: #333; padding: 10px 12px; font-weight: bold; display: flex; justify-content: space-between; color: #eee; }
-           .group-count { font-size: 12px; color: #aaa; }
-           .group-members { padding: 8px; }
-           .group-member { display: flex; padding: 8px; border-bottom: 1px solid #333; align-items: center; }
-           .group-member:last-child { border-bottom: none; }
-           .member-absen { min-width: 20px; height: 20px; background:rgb(45, 143, 255); color: #252525; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 10px; color: white; flex-shrink: 0; }
-           .member-name { flex: 1; font-size: 14px; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-           .member-nim { color: #aaa; font-size: 12px; font-family: monospace; margin-left: 8px; flex-shrink: 0; }
-           .token-tabs { display: flex; position: sticky; top: 0; z-index: 100; }
-           .token-tab { padding: 8px 10px; background: transparent; border: none; color: #ccc; cursor: pointer; font-weight: 500; border-bottom: 2px solid transparent; }
-           .token-tab:hover { color: #fff; }
-           .token-tab.active { color: #fff; border-bottom: 2px solid #0070f3; background: #1e1e1e; }
-           .toast { position: fixed; bottom: 20px; right: 20px; background:#1e1e1e; color:rgb(0, 221, 15); padding: 12px 20px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #333; display: flex; align-items: center; gap: 8px; z-index: 100099; animation: fadeIn 0.3s, fadeOut 0.3s 2.7s; animation-fill-mode: forwards; }
-           .toast i { color: #2ecc71; }
-           @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-           @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
-           #custom-confirm-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10005; display: none; align-items: center; justify-content: center; }
-           #custom-confirm-modal.visible { display: flex; }
-           .custom-confirm-overlay { position: absolute; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); animation: fadeIn 0.2s ease-out forwards; }
-           .custom-confirm-box { background-color: #2a2a2a; color: #f0f0f0; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; width: 90%; max-width: 400px; z-index: 1; transform: scale(0.95); opacity: 0; animation: zoomIn 0.2s ease-out forwards; }
-           #custom-confirm-modal.visible .custom-confirm-box { opacity: 1; transform: scale(1); }
-           .custom-confirm-header { padding: 16px 20px; border-bottom: 1px solid #444; }
-           .custom-confirm-header h3 { margin: 0; font-size: 18px; color: #fff; }
-           .custom-confirm-content { padding: 20px; font-size: 15px; line-height: 1.6; color: #ccc; }
-           .custom-confirm-content p { margin: 0; }
-           .custom-confirm-actions { padding: 16px 20px; background-color: #252525; display: flex; justify-content: flex-end; gap: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
-           .custom-confirm-btn { border: none; border-radius: 6px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-           .custom-confirm-btn-cancel { background-color: #444; color: #f0f0f0; }
-           .custom-confirm-btn-cancel:hover { background-color: #555; }
-           .custom-confirm-btn-ok { background-color: #e74c3c; color: #fff; }
-           .custom-confirm-btn-ok:hover { background-color: #c0392b; }
-           @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-      `;
-      document.head.appendChild(style);
-    }
   }
 
   function createGroups(students, groupCount, method) {
@@ -2370,24 +2254,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     displayGroups(groups);
   }
 
-  function copyToClipboard(text, message) {
-    navigator.clipboard.writeText(text)
-      .then(() => showToast(message))
-      .catch((err) => showToast('Gagal menyalin: ' + err));
-  }
-
-  function showToast(message) {
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `<i class="fas fa-check-circle"></i><span>${message}</span>`;
-    document.body.appendChild(toast);
-
-    setTimeout(() => toast.remove(), 3000);
-  }
-
   function saveToken(token) {
     if (!token) return;
     if (token.startsWith('Bearer ')) token = token.substring(7);
@@ -2398,7 +2264,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     authToken = token;
     userInfo = tokenInfo;
 
-    console.log('Token baru ditangkap:', tokenInfo.username);
     saveToLocalStorage(STORAGE_KEYS.AUTH_TOKEN, token);
     saveToLocalStorage(STORAGE_KEYS.USER_INFO, tokenInfo);
 
@@ -2419,7 +2284,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       });
       if (!response.ok) throw new Error(`API error: ${response.status}`);
       const data = await response.json();
-      console.log(`Data course diterima: ${courseCode}`);
       return data;
     } catch (error) {
       console.error(`Gagal mengambil data course ${courseCode}:`, error);
@@ -2430,7 +2294,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
   async function fetchCoursesListAndDetails(forceRefresh = false) {
     const cachedData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA);
     if (!forceRefresh && cachedData?.length > 0) {
-      console.log('Menggunakan data course dari cache.');
       courseDataList = cachedData;
       await updateForumUI(courseDataList);
       updateStudentUI(courseDataList);
@@ -2449,13 +2312,11 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       });
       if (!response.ok) throw new Error(`API error: ${response.status}`);
       const data = await response.json();
-
-      console.log(`Total courses ditemukan: ${data.data.length}`);
       
       courseDataList = await Promise.all(
         data.data.map(course => fetchAndDisplayIndividualCourseData(course.kode_course))
       );
-      courseDataList = courseDataList.filter(Boolean); // Hapus hasil null dari fetch yang gagal
+      courseDataList = courseDataList.filter(Boolean);
 
       await fetchAllForumReplies(courseDataList);
       saveToLocalStorage('mentari_lecturer_notifications', lecturerNotifications);
@@ -2525,14 +2386,10 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       .find(span => span.textContent === 'Dashboard')?.closest('button');
 
     if (dashboardButton) {
-      console.log('Tombol Dashboard ditemukan, mengklik...');
       dashboardButton.click();
-    } else {
-      console.warn('Tombol Dashboard tidak ditemukan.');
     }
   }
 
-  // Expose functions to window
   window.toggleTokenPopup = function () {
     const popup = document.getElementById('token-runner-popup');
     if (!popup) createPopupUI();
@@ -2541,7 +2398,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
   window.getAuthToken = () => authToken || 'Belum ada token terdeteksi';
   window.checkCourse = () => {
     const courseCode = extractCourseCodeFromUrl(window.location.href);
-    console.log(courseCode ? `Kode Course: ${courseCode}` : 'Tidak ada kode course pada URL ini');
   };
   window.fetchCourse = (courseCode) => {
     if (!courseCode) return console.log("Masukkan kode course.");
@@ -2551,14 +2407,12 @@ document.querySelectorAll('.forum-topics').forEach(container => {
   window.fetchCoursesList = () => fetchCoursesListAndDetails(true);
   window.fetchForumReplies = fetchForumReplies;
   
-  // Fungsi clear cache yang benar (menghapus duplikat)
   window.clearCacheData = function () {
     localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_INFO);
     localStorage.removeItem(STORAGE_KEYS.COURSE_DATA);
     localStorage.removeItem(STORAGE_KEYS.LAST_UPDATE);
     localStorage.removeItem(STORAGE_KEYS.STUDENT_GROUPS);
-    console.log('Cache data dan info user berhasil dihapus. Refresh untuk mengambil data baru.');
   };
 
   async function init() {
@@ -2681,7 +2535,6 @@ async function fetchForumReplies(topicId) {
   }
 
   async function fetchAllForumReplies(courses) {
-      console.log("Memulai pengambilan balasan forum untuk notifikasi...");
       const topicPromises = [];
       
       courses.forEach(course => {
@@ -2703,9 +2556,8 @@ async function fetchForumReplies(topicId) {
           });
       });
 
-      try {
+        try {
           await Promise.all(topicPromises);
-          console.log("Selesai mengambil semua balasan forum.");
       } catch (error) {
           console.error("Terjadi error saat mengambil balasan forum secara massal:", error);
       }
