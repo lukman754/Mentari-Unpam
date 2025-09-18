@@ -1,9 +1,8 @@
 # Changelog
 
-## [4.9] - 17 September 2025
+## [5.0] - 19 September 2025
 
-### Perbaikan
+### Added
 
-- Menambahkan efek fade kiri dan kanan pada area tabs untuk menunjukkan adanya tab tersembunyi.
-- Efek fade dibuat lebih halus dengan tambahan opacity, blur, dan transisi.
-- Memastikan fade muncul dan hilang secara dinamis sesuai posisi scroll (kiri/kanan).
+- **Notifikasi Balasan Dosen**: Menambahkan tab "Notifikasi" baru yang secara otomatis menampilkan daftar balasan terbaru dari dosen pada forum diskusi Anda.
+- **Pemeriksaan Latar Belakang**: Sistem notifikasi secara otomatis memeriksa semua mata kuliah untuk balasan baru setiap kali data dimuat atau di-*refresh*, memastikan Anda tidak ketinggalan informasi.

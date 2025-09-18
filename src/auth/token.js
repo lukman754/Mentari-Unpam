@@ -6,7 +6,8 @@ console.log('Token.js sedang dijalankan!');
   let isHandlingCourseApiRequest = false;
   let courseDataList = [];
   let userInfo = null;
-  let studentDataList = [];
+  let lecturerNotifications = getFromLocalStorage('mentari_lecturer_notifications') || [];
+
 
   const STORAGE_KEYS = {
     AUTH_TOKEN: 'mentari_auth_token',
@@ -251,7 +252,6 @@ console.log('Token.js sedang dijalankan!');
   function saveToLocalStorage(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data))
-      console.log(`Data berhasil disimpan ke ${key}`)
     } catch (error) {
       console.error(`Error menyimpan data ke ${key}:`, error)
     }
@@ -355,6 +355,7 @@ console.log('Token.js sedang dijalankan!');
       <div class="token-tabs">
         <button class="token-tab active" data-tab="forum-data">Forum</button>
         <button class="token-tab" data-tab="student-data">Mahasiswa</button>
+        <button class="token-tab" data-tab="notifications">Notifikasi</button>
         <button class="token-tab" data-tab="notes-data">Catatan</button>
         <button class="token-tab" data-tab="feedback-data">Umpan Balik</button>
         <button class="token-tab" data-tab="user-info">Setting</button>
@@ -368,6 +369,12 @@ console.log('Token.js sedang dijalankan!');
           <p>Forum Diskusi yang belum dikerjakan</p>
         </div>
         <div id="forum-list"></div>
+      </div>
+       <div class="token-tab-content" id="notifications-tab">
+          <div class="token-info-section">
+            <p>Balasan Dosen Terbaru</p>
+        </div>
+        <div id="notifications-list"></div>
       </div>
       <div class="token-tab-content" id="student-data-tab">
         <div id="student-list"></div>
@@ -635,6 +642,14 @@ console.log('Token.js sedang dijalankan!');
     align-items: center;
     padding: 0 16px 12px 60px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .header-top {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
   }
 
   .popup-title {
@@ -1592,6 +1607,144 @@ tabs.addEventListener('touchmove', (e) => {
   });
 }
 
+  function updateNotificationsUI() {
+    const notificationsTab = document.getElementById("notifications-tab");
+    if (!notificationsTab) return;
+
+    const notificationsList = document.getElementById("notifications-list");
+    if (!notificationsList) return;
+
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+    const recentNotifications = lecturerNotifications.filter((notification) => {
+      const notificationDate = new Date(notification.createdAt);
+      return notificationDate >= fiveDaysAgo;
+    });
+
+    if (recentNotifications.length === 0) {
+      notificationsList.innerHTML = `
+        <div class="notification-item no-notifications">
+          <div class="notification-content">
+            <p>Belum ada balasan dosen</p>
+            <small>Ketika dosen membalas postingan Anda, notifikasi akan muncul di sini</small>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = "";
+    recentNotifications.forEach((notification, index) => {
+      const createdDate = new Date(notification.createdAt).toLocaleString(
+        "id-ID",
+        {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }
+      );
+
+      const courseCode = notification.kode_course || "unknown-course";
+      const forumId =
+        notification.forumId ||
+        notification.id_trx_course_sub_section ||
+        "unknown-forum";
+      const topicId =
+        notification.topicId || notification.id || "unknown-topic";
+      const topicUrl = `https://mentari.unpam.ac.id/u-courses/${courseCode}/forum/${forumId}/topics/${topicId}`;
+      const isClickable = true;
+
+      const notificationId = `notification-${notification.id}`;
+
+      if (isClickable) {
+        html += `
+        <div class="notification-item clickable" id="${notificationId}" style="cursor: pointer; position: relative;">
+          <a href="${topicUrl}" class="notification-link" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; text-decoration: none;"></a>
+          <div style="position: relative; z-index: 2; pointer-events: none;">
+            <div class="notification-header">
+              <div class="notification-icon">
+                <i class="fas fa-user-graduate"></i>
+              </div>
+              <div class="notification-meta">
+                <div class="notification-lecturer">${notification.lecturerName}</div>
+                <div class="notification-time">${createdDate}</div>
+              </div>
+            </div>
+            <div class="notification-content">
+              <div class="notification-text">${notification.content}</div>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        html += `
+        <div class="notification-item" id="${notificationId}">
+          <div class="notification-header">
+            <div class="notification-icon">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="notification-meta">
+              <div class="notification-lecturer">${notification.lecturerName}</div>
+              <div class="notification-time">${createdDate}</div>
+            </div>
+          </div>
+          <div class="notification-content">
+            <div class="notification-text">${notification.content}</div>
+          </div>
+        </div>`;
+      }
+    });
+
+    notificationsList.innerHTML = html;
+
+    document
+      .querySelectorAll(".notification-item.clickable")
+      .forEach((item, index) => {
+        item.addEventListener("click", function (e) {
+          if (e.target.closest("a.notification-link")) {
+            e.preventDefault();
+            const href = e.target
+              .closest("a.notification-link")
+              .getAttribute("href");
+
+            const notificationId = item.id.replace("notification-", "");
+            sessionStorage.setItem("scrollToNotificationId", notificationId);
+
+            window.location.href = href;
+          }
+        });
+      });
+
+    function scrollToElement() {
+      const notificationId = sessionStorage.getItem("scrollToNotificationId");
+      if (!notificationId) return;
+      sessionStorage.removeItem("scrollToNotificationId");
+      const element = document.getElementById(`notification-${notificationId}`);
+
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          element.style.transition = "background-color 1s ease";
+          element.style.backgroundColor = "rgba(255, 221, 0, 0.3)";
+          setTimeout(() => {
+            element.style.backgroundColor = "";
+          }, 2000);
+        }, 100);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", scrollToElement);
+    } else {
+      setTimeout(scrollToElement, 0);
+    }
+  }
+
   // Update forum data UI
   async function updateForumUI(courseDataList) {
     const forumTab = document.getElementById('forum-data-tab');
@@ -1780,8 +1933,9 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     if (forumId) {
         fetchForumTopics(forumId).then(topics => {
             if (topics && topics.length > 0) {
+                const currentCourseCode = extractCourseCodeFromUrl(window.location.href) || 'default-course';
                 container.innerHTML = topics.map(topic =>
-                    `<a href="https://mentari.unpam.ac.id/u-courses/${extractCourseCodeFromUrl(window.location.href)}/forum/${forumId}/topics/${topic.id}" class="topic-badge"><i class="fas fa-comments"></i> ${topic.judul}</a>`
+                    `<a href="https://mentari.unpam.ac.id/u-courses/${topic.kode_course || currentCourseCode}/forum/${forumId}/topics/${topic.id}" class="topic-badge"><i class="fas fa-comments"></i> ${topic.judul}</a>`
                 ).join('');
             } else {
                 container.innerHTML = '<div class="no-topics">No topics available</div>';
@@ -1883,8 +2037,23 @@ document.querySelectorAll('.forum-topics').forEach(container => {
                 .forum-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
                 .loading-topics, .no-topics, .error-topics { color: #666; font-size: 12px; font-style: italic; }
                 .error-topics { color: #f43f5e; }
-                .topic-badge { background: rgba(255, 255, 255, 0.71); color: #252525; padding: 4px 8px; border-radius: 5px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: all 0.2s ease; text-decoration: none; display: inline-block; cursor: pointer; }
-                .topic-badge:hover { background: rgba(56, 56, 56, 0.65); transform: translateY(-1px); color:rgb(255, 255, 255); text-decoration: none; box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2); }
+                .topic-badge { background:rgb(0, 51, 0); color:rgb(163, 255, 163); padding: 10px; border-radius: 4px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; transition: all 0.2s ease; text-decoration: none; display: inline-block; cursor: pointer; margin: 10px 0; border: 1px solid rgb(0, 85, 4); }
+                .topic-badge:hover { background: rgba(80, 129, 0, 0.48); transform: translateY(-1px); color:rgb(157, 255, 0); text-decoration: none; box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2); }
+                #notifications-list { display: flex; flex-direction: column; gap: 8px; }
+                .notification-item { background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease; }
+                .notification-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
+                .notification-item.clickable:hover { background: rgba(0, 112, 243, 0.1); border-color: rgba(0, 112, 243, 0.3); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 112, 243, 0.2); }
+                .notification-item.clickable:hover { background: rgba(0, 112, 243, 0.1); border-color: rgba(0, 112, 243, 0.3); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 112, 243, 0.2); }
+                .notification-header { display: flex; align-items: center; margin-bottom: 8px; }
+                .notification-icon { background: rgba(0, 112, 243, 0.1); color: #0070f3; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 14px; flex-shrink: 0; }
+                .notification-meta { flex: 1; }
+                .notification-lecturer { font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 2px; }
+                .notification-time { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
+                .notification-title { font-weight: 500; color: #eee; font-size: 13px; margin-bottom: 4px; line-height: 1.4; }
+                .notification-text { font-size: 12px; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
+                .no-notifications { text-align: left; padding: 20px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 8px; }
+                .no-notifications p { margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; }
+                .no-notifications small { color: rgba(255, 255, 255, 0.5); font-size: 12px; }
             `;
             document.head.appendChild(styleElement);
         }
@@ -2119,9 +2288,6 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       const style = document.createElement('style');
       style.id = 'enhanced-styles';
       style.textContent = `
-        /* ALL THE CSS FROM THE ORIGINAL SCRIPT'S student UI section GOES HERE */
-        /* NOTE: To keep this response manageable, the full CSS is not repeated. 
-           It's identical to the CSS in your provided file. */
            .data-card { background: #1e1e1e; border-radius: 8px; margin-bottom: 9rem; padding: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); border: 1px solid #333; }
            #group-results-card{ margin-bottom: 1rem; }
            .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #333; }
@@ -2268,6 +2434,9 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       courseDataList = cachedData;
       await updateForumUI(courseDataList);
       updateStudentUI(courseDataList);
+      await fetchAllForumReplies(courseDataList);
+      saveToLocalStorage('mentari_lecturer_notifications', lecturerNotifications);
+      updateNotificationsUI();
       return;
     }
 
@@ -2288,11 +2457,15 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       );
       courseDataList = courseDataList.filter(Boolean); // Hapus hasil null dari fetch yang gagal
 
+      await fetchAllForumReplies(courseDataList);
+      saveToLocalStorage('mentari_lecturer_notifications', lecturerNotifications);
+      
       saveToLocalStorage(STORAGE_KEYS.COURSE_DATA, courseDataList);
       saveToLocalStorage(STORAGE_KEYS.LAST_UPDATE, new Date().toLocaleString());
 
       await updateForumUI(courseDataList);
       updateStudentUI(courseDataList);
+      updateNotificationsUI();
     } catch (error) {
       console.error(`Gagal mengambil daftar course:`, error);
     } finally {
@@ -2313,8 +2486,11 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       const cachedCourseData = getFromLocalStorage(STORAGE_KEYS.COURSE_DATA);
       if (cachedCourseData?.length > 0) {
         courseDataList = cachedCourseData;
+        await fetchAllForumReplies(courseDataList);
+        saveToLocalStorage('mentari_lecturer_notifications', lecturerNotifications);
         await updateForumUI(courseDataList);
         updateStudentUI(courseDataList);
+        updateNotificationsUI();
       }
       return true;
     }
@@ -2373,6 +2549,7 @@ document.querySelectorAll('.forum-topics').forEach(container => {
     return fetchAndDisplayIndividualCourseData(courseCode);
   };
   window.fetchCoursesList = () => fetchCoursesListAndDetails(true);
+  window.fetchForumReplies = fetchForumReplies;
   
   // Fungsi clear cache yang benar (menghapus duplikat)
   window.clearCacheData = function () {
@@ -2416,5 +2593,121 @@ document.querySelectorAll('.forum-topics').forEach(container => {
       console.error('Gagal mengambil topik forum:', error);
       return [];
     }
+  }
+
+async function fetchForumReplies(topicId) {
+    try {
+      const response = await fetch(
+        `https://mentari.unpam.ac.id/api/forum/reply/${topicId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch replies");
+      }
+
+      const data = await response.json();
+      const currentUserNIM = userInfo?.username;
+      let allReplies = [];
+      let mainTopic = null;
+
+      if (Array.isArray(data)) {
+        allReplies = data;
+      } else if (data.data && Array.isArray(data.data)) {
+        allReplies = data.data;
+        if (data.id && data.post_type === "TOPIC") {
+          mainTopic = data;
+        }
+      }
+
+      if (allReplies.length > 0 && currentUserNIM) {
+        const mainTopicId = mainTopic?.id || topicId;
+        const studentPosts = allReplies.filter(
+          (reply) =>
+            reply.nim === currentUserNIM &&
+            reply.post_type === "REPLY" &&
+            reply.id_parent === mainTopicId
+        );
+        const lecturerReplies = allReplies.filter(
+          (reply) =>
+            reply.id_dosen &&
+            reply.post_type === "REPLY" &&
+            studentPosts.some((post) => post.id === reply.id_parent)
+        );
+
+        lecturerReplies.forEach((reply) => {
+          const notification = {
+            id: reply.id,
+            kode_course: reply.kode_course,
+            id_trx_course_sub_section: reply.id_trx_course_sub_section,
+            judul: reply.judul || "Balasan Dosen",
+            post_type: reply.post_type,
+            createdAt: reply.createdAt,
+            lecturerName:
+              reply.dosen?.nama_gelar || reply.dosen?.nama_dosen || "Dosen",
+            topicId: topicId,
+            forumId: mainTopic?.id_trx_course_sub_section || topicId,
+            content: reply.konten
+              ? reply.konten.substring(0, 150) +
+                (reply.konten.length > 150 ? "..." : "")
+              : "Tidak ada konten",
+          };
+
+          const existingIndex = lecturerNotifications.findIndex(
+            (n) => n.id === reply.id
+          );
+          if (existingIndex === -1) {
+            lecturerNotifications.unshift({
+              ...notification,
+              type: "lecturer_reply",
+              title: notification.judul,
+              parentId: reply.id_parent,
+              courseCode: reply.kode_course,
+            });
+          }
+        });
+        if (lecturerNotifications.length > 50) {
+          lecturerNotifications = lecturerNotifications.slice(0, 50);
+        }
+      }
+    } catch (error) {
+      console.error("Error in fetchForumReplies:", error);
+    }
+  }
+
+  async function fetchAllForumReplies(courses) {
+      console.log("Memulai pengambilan balasan forum untuk notifikasi...");
+      const topicPromises = [];
+      
+      courses.forEach(course => {
+          if (!course || !course.data) return;
+          course.data.forEach(section => {
+              if (!section.sub_section) return;
+              section.sub_section.forEach(sub => {
+                  if (sub.kode_template === 'FORUM_DISKUSI' && sub.id) {
+                      const topicPromise = fetchForumTopics(sub.id).then(topics => {
+                          if (topics && topics.length > 0) {
+                              const replyPromises = topics.map(topic => fetchForumReplies(topic.id));
+                              return Promise.all(replyPromises);
+                          }
+                          return Promise.resolve();
+                      });
+                      topicPromises.push(topicPromise);
+                  }
+              });
+          });
+      });
+
+      try {
+          await Promise.all(topicPromises);
+          console.log("Selesai mengambil semua balasan forum.");
+      } catch (error) {
+          console.error("Terjadi error saat mengambil balasan forum secara massal:", error);
+      }
   }
 })();
