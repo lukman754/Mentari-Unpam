@@ -55,6 +55,18 @@
 7️. Ekstensi siap digunakan! 
 ```
 
+### Windows/macOS/Linux (Firefox, Zen-browser, Librewolf)
+```
+1️. Unduh file ekstensi mentari-mod.zip
+2️. Ekstrak file zip ke folder di komputer Anda
+3️. Buka browser Gecko (Firefox, Zen-browser, Librewolf)
+4️. Masuk ke "about:config" dan cari "xpinstall.signatures.required" ubah ke dari "true" ke "false"
+5️. Masuk ke "about:debugging" cari opsi This Zen atau This Firefox
+6️. Klik "Load Temporary Add-on..."
+7️. Cari folder yang sudah di ekstrak dan cari file "manifest.json" dan klik file tersebut
+8️. Ekstensi siap digunakan!
+```
+
 ### Mises Browser (iOS/Android)
 ```
 1️. Download Mises Browser (AppStore/PlayStore)
