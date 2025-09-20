@@ -1,1881 +1,439 @@
+function formatBotMessage(text) {
+    const escapeHtml = (unsafe) => {
+        if (typeof unsafe !== 'string') return '';
+        return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    };
+    let html = text;
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        const escapedCode = escapeHtml(code);
+        let highlightedCode = escapedCode
+            .replace(/\b(const|let|var|function|return|if|else|for|while|import|export|from)\b/g, '<span class="code-keyword">$1</span>')
+            .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="code-string">$1</span>')
+            .replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1</span>');
+        return `<pre><code class="language-${lang || 'plaintext'}">${highlightedCode}</code></pre>`;
+    });
+    html = '\n' + html.replace(/<pre>[\s\S]*?<\/pre>/g, '\n') + '\n';
+    html = html
+        .replace(/\n\s*[\*-.](.*)/g, '\n<ul><li>$1</li></ul>')
+        .replace(/\n\s*\d+\.(.*)/g, '\n<ol><li>$1</li></ol>')
+        .replace(/<\/ul>\n<ul>/g, '').replace(/<\/ol>\n<ol>/g, '')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>').replace(/<br><br>/g, '<p>').trim();
+    text.match(/```(\w*)\n([\s\S]*?)```/g)?.forEach((block, i) => {
+        html = html.replace(/<pre>[\s\S]*?<\/pre>/, block);
+    });
+    return formatBotMessageWithAllFeatures(text);
+}
+
+function formatBotMessageWithAllFeatures(text) {
+    const escapeHtml = (unsafe) => unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const codeBlocks = [];
+    let processedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        const highlightedCode = escapeHtml(code)
+            .replace(/\b(const|let|var|function|return|if|else|for|while|import|export|from)\b/g, '<span class="code-keyword">$1</span>')
+            .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="code-string">$1</span>')
+            .replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, '<span class="code-comment">$1</span>');
+        codeBlocks.push(`<pre><code class="language-${lang || 'plaintext'}">${highlightedCode}</code></pre>`);
+        return `__CODEBLOCK_${codeBlocks.length - 1}__`;
+    });
+    
+    // Format Markdown
+    processedText = processedText
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/^\s*[\*-.](.*)/gm, '<ul><li>$1</li></ul>').replace(/^\s*\d+\.(.*)/gm, '<ol><li>$1</li></ol>')
+        .replace(/<\/ul>\n<ul>/g, '').replace(/<\/ol>\n<ol>/g, '')
+        .replace(/\n/g, '<br>');
+    // Re-insert code blocks
+    codeBlocks.forEach((block, i) => {
+        processedText = processedText.replace(`__CODEBLOCK_${i}__`, block);
+    });
+    return processedText;
+}
+
 function addMessageToChat(sender, text) {
-  const chatHistory = document.getElementById('chatHistory')
+    const chatHistory = document.getElementById('chatHistory');
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${sender}-message`;
+    messageElement.setAttribute('data-original-text', text);
+    let formattedContent = (sender === 'user') ? text.replace(/\n/g, '<br>') : formatBotMessageWithAllFeatures(text);
 
-  const messageElement = document.createElement('div')
-  messageElement.className = `message ${sender}-message`
-
-  // Store original text with line breaks for copy operations
-  messageElement.setAttribute('data-original-text', text)
-
-  // Format for display while preserving line breaks
-  // Handle text content properly to avoid double parsing of <p> tags
-  const formattedText = text
-    .split('\n')
-    .map((line) => {
-      if (/^[-*•]/.test(line.trim())) {
-        return `<li>${line.replace(/^[-*•]\s*/, '')}</li>`
-      } else {
-        return `<p>${line}</p>`
-      }
-    })
-    .join('')
-    .replace(/<\/p><p>/g, '<br>')
-
-  let finalFormattedText = formattedText
-  if (formattedText.includes('<li>')) {
-    finalFormattedText = `<ul style="padding-left: 20px; margin-top: 5px;">${formattedText}</ul>`
-  }
-
-  if (sender === 'user') {
-    messageElement.innerHTML = `
-      <div class="message-controls">
-        <button class="edit-message" title="Edit">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="user-avatar">
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Fox.webp" alt="User" width="24" height="24">
-      </div>
-      <div class="message-content">${finalFormattedText}</div>
-    `
-
-    // Add edit functionality to user messages
-    // Edit functionality for user messages
-    setTimeout(() => {
-      const editBtn = messageElement.querySelector('.edit-message')
-      if (editBtn) {
-        editBtn.addEventListener('click', function (event) {
-          // Prevent any default actions or event bubbling
-          event.preventDefault()
-          event.stopPropagation()
-
-          // Get the text input field
-          const questionInput = document.getElementById('questionInput')
-
-          // Set the value to the original message text
-          const originalText = messageElement.getAttribute('data-original-text')
-          questionInput.value = originalText
-
-          // Focus the input field
-          questionInput.focus()
-
-          // Find and remove this message and all messages after it
-          let currentMessage = messageElement
-          let messagesToRemove = []
-
-          // Add the current message to the removal list
-          messagesToRemove.push(currentMessage)
-
-          // Add all subsequent messages to the removal list
-          while (currentMessage.nextElementSibling) {
-            messagesToRemove.push(currentMessage.nextElementSibling)
-            currentMessage = currentMessage.nextElementSibling
-          }
-
-          // Remove all messages in the list
-          messagesToRemove.forEach((msg) => msg.remove())
-
-          // Save the updated chat history
-          saveChatHistory()
-          function getPreviousMessages(limit = 6) {
-            const chatHistory = document.getElementById('chatHistory')
-            const messages = chatHistory.querySelectorAll('.message')
-            const history = []
-
-            for (
-              let i = Math.max(0, messages.length - limit);
-              i < messages.length;
-              i++
-            ) {
-              const el = messages[i]
-              const role = el.classList.contains('user-message')
-                ? 'user'
-                : 'bot'
-              const content =
-                el.getAttribute('data-original-text') || el.textContent.trim()
-
-              history.push({ role, content })
+    if (sender === 'user') {
+        messageElement.innerHTML = `
+            <div class="message-controls"><button class="edit-message" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83l3.75 3.75M3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"/></svg></button></div>
+            <div class="message-content">${formattedContent}</div>`;
+        setTimeout(() => {
+            const editBtn = messageElement.querySelector('.edit-message');
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const input = document.getElementById('questionInput');
+                    input.value = messageElement.getAttribute('data-original-text');
+                    input.focus();
+                    let current = messageElement;
+                    while (current) { let next = current.nextElementSibling; current.remove(); current = next; }
+                    saveChatHistory();
+                });
             }
-            return history
-          }
-        })
-      }
-    }, 10)
-  } else {
-    // Bot message with robot icon and distinct copy buttons
-    messageElement.innerHTML = `
-      <div class="message-controls">
-        <button class="copy-to-textarea" title="Copy to Textarea">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3"></path>
-            <path d="M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3"></path>
-            <rect x="9" y="9" width="6" height="6"></rect>
-          </svg>
-        </button>
-        <button class="copy-to-clipboard" title="Copy to Clipboard">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="bot-avatar">
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Bot" width="24" height="24">
-      </div>
-      <div class="message-content">${formattedText}</div>
-    `
-
-    // Add functionality to bot message buttons
-
-    // Copy functionality for bot messages
-    setTimeout(() => {
-      // Copy to textarea button
-      const copyToTextareaBtn =
-        messageElement.querySelector('.copy-to-textarea')
-      if (copyToTextareaBtn) {
-        copyToTextareaBtn.addEventListener('click', function (event) {
-          // Prevent any default actions or event bubbling
-          event.preventDefault()
-          event.stopPropagation()
-
-          // Get the original text with line breaks
-          const originalText = messageElement.getAttribute('data-original-text')
-
-          // Find the external textarea
-          const externalTextarea = document.querySelector(
-            '.MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])'
-          )
-
-          if (externalTextarea) {
-            // Set the value and trigger input event
-            externalTextarea.value = originalText
-            externalTextarea.dispatchEvent(
-              new Event('input', { bubbles: true })
-            )
-
-            // Show success notification
-            showChatNotification('Teks berhasil disalin ke textarea!')
-
-            // Show visual feedback
-            this.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        `
-
-            // Store reference to button for timeout
-            const btn = this
-
-            // Reset icon after 2 seconds
-            setTimeout(() => {
-              btn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3"></path>
-              <path d="M8 21H5a2 2 0 0 1-2-2v-3m18 0v3a2 2 0 0 1-2 2h-3"></path>
-              <rect x="9" y="9" width="6" height="6"></rect>
-            </svg>
-          `
-            }, 2000)
-          } else {
-            showChatNotification('Textarea tidak ditemukan!')
-          }
-        })
-      }
-
-      // Copy to clipboard button
-      const copyToClipboardBtn =
-        messageElement.querySelector('.copy-to-clipboard')
-      if (copyToClipboardBtn) {
-        copyToClipboardBtn.addEventListener('click', function (event) {
-          // Prevent any default actions or event bubbling
-          event.preventDefault()
-          event.stopPropagation()
-
-          // Get the original text with line breaks
-          const originalText = messageElement.getAttribute('data-original-text')
-
-          // Use clipboard API to copy text
-          navigator.clipboard
-            .writeText(originalText)
-            .then(() => {
-              showChatNotification('Teks berhasil disalin ke clipboard!')
-
-              // Show visual feedback
-              this.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          `
-
-              // Store reference to button for timeout
-              const btn = this
-
-              // Reset icon after 2 seconds
-              setTimeout(() => {
-                btn.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            `
-              }, 2000)
-            })
-            .catch((err) => {
-              showChatNotification('Gagal menyalin teks: ' + err)
-            })
-        })
-      }
-    }, 10)
-  }
-  // Memperbaiki masalah tag <p> yang tertangkap dua kali
-  // Menghapus tag <p> yang terbentuk secara otomatis jika sudah ada di dalam teks
-  setTimeout(() => {
-    const messageContent = messageElement.querySelector('.message-content')
-    if (messageContent) {
-      // Jika konten dimulai dengan <p> dan diakhiri dengan </p>, tetapi teks asli tidak mengandung tag ini
-      const originalText = messageElement.getAttribute('data-original-text')
-      if (
-        messageContent.innerHTML.trim().startsWith('<p>') &&
-        messageContent.innerHTML.trim().endsWith('</p>') &&
-        !originalText.includes('<p>')
-      ) {
-        // Hapus tag <p> yang tidak diinginkan
-        messageContent.innerHTML = messageContent.innerHTML
-          .replace(/^<p>/g, '')
-          .replace(/<\/p>$/g, '')
-      }
+        }, 10);
+    } else {
+        messageElement.innerHTML = `
+            <div class="message-controls"><button class="copy-to-clipboard" title="Copy to Clipboard"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m-3-4H4c-1.1 0-2 .9-2 2v14h2V3h12z"/></svg></button></div>
+            <div class="message-content">${formattedContent}</div>`;
+        setTimeout(() => {
+            const copyBtn = messageElement.querySelector('.copy-to-clipboard');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(messageElement.getAttribute('data-original-text')).then(() => {
+                        showChatNotification('Teks berhasil disalin!');
+                        copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M21 7L9 19l-5.5-5.5l1.41-1.41L9 16.17L19.59 5.59z"/></svg>`;
+                        setTimeout(() => { copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m-3-4H4c-1.1 0-2 .9-2 2v14h2V3h12z"/></svg>`; }, 2000);
+                    });
+                });
+            }
+        }, 10);
     }
-  }, 10)
-
-  chatHistory.appendChild(messageElement)
-  chatHistory.scrollTop = chatHistory.scrollHeight
+    chatHistory.appendChild(messageElement);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
 function showChatNotification(message) {
-  const chatHistory = document.getElementById('chatHistory')
-
-  // Create notification element
-  const notificationElement = document.createElement('div')
-  notificationElement.className = 'chat-notification'
-  notificationElement.textContent = message
-
-  // Add to chat
-  chatHistory.appendChild(notificationElement)
-  chatHistory.scrollTop = chatHistory.scrollHeight
-
-  // Remove after delay
+  const existingNotif = document.querySelector('.chat-notification');
+  if (existingNotif) existingNotif.remove();
+  const notificationElement = document.createElement('div');
+  notificationElement.className = 'chat-notification';
+  notificationElement.textContent = message;
+  const chatHistory = document.getElementById('chatHistory');
+  chatHistory.appendChild(notificationElement);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
   setTimeout(() => {
-    notificationElement.classList.add('fade-out')
-    setTimeout(() => {
-      notificationElement.remove()
-    }, 500)
-  }, 2000)
+    notificationElement.classList.add('fade-out');
+    setTimeout(() => notificationElement.remove(), 500);
+  }, 2500);
 }
 
 function addChatbotStyles() {
-  function handleKeyboardOverlap() {
-    const chatbot = document.getElementById('geminiChatbot')
-    const input = document.getElementById('questionInput')
-    const chatContainer = document.getElementById('chatContainer')
-
-    if (!chatbot || !input || !chatContainer) return
-
-    const initialBottom = '20px'
-    const keyboardBuffer = 60 // Jarak buffer antara input dan keyboard
-    const chatContainerPadding = 60 // Jarak buffer tambahan pada container saat keyboard muncul
-
-    // Mengatur scroll percakapan agar tetap bisa digulir
-    const scrollChat = () => {
-      chatContainer.scrollTop = chatContainer.scrollHeight
+  const styleElement = document.createElement('style');
+  styleElement.innerHTML = `
+    :root {
+      --chatbot-bg: rgba(18, 18, 18, 0.8);
+      --glass-bg: rgba(35, 35, 40, 0.7);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --text-primary: #f0f0f0;
+      --text-secondary: #a0a0a5;
+      --accent-purple: #9333ea;
+      --accent-cyan: #0891b2;
+      --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
     }
-
-    // Ketika input fokus, geser chatbot ke atas dan pastikan input terlihat
-    input.addEventListener('focus', () => {
-      chatbot.style.bottom = `${
-        window.innerHeight -
-        input.getBoundingClientRect().bottom +
-        keyboardBuffer
-      }px`
-
-      // Geser chatContainer agar tidak terhalang keyboard
-      chatContainer.style.transform = `translateY(-${chatContainerPadding}px)`
-
-      // Scroll percakapan ke bawah saat input fokus
-      setTimeout(scrollChat, 200)
-      setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 100)
-    })
-
-    // Ketika input kehilangan fokus, kembalikan posisi chatbot dan kontainer
-    input.addEventListener('blur', () => {
-      setTimeout(() => {
-        chatbot.style.bottom = initialBottom
-        chatContainer.style.transform = 'translateY(0)'
-      }, 200)
-    })
-
-    // Deteksi perubahan ukuran viewport untuk menangani keyboard pada perangkat Android
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => {
-        const windowHeight = window.innerHeight
-        const viewportHeight = window.visualViewport.height
-
-        // Jika keyboard muncul (viewport menyusut)
-        if (viewportHeight < windowHeight) {
-          chatbot.style.bottom = `${
-            windowHeight - viewportHeight + keyboardBuffer
-          }px`
-          chatContainer.style.transform = `translateY(-${chatContainerPadding}px)` // Geser kontainer ke atas
-        } else {
-          chatbot.style.bottom = initialBottom // Kembalikan chatbot jika keyboard hilang
-          chatContainer.style.transform = 'translateY(0)' // Kembalikan posisi chatContainer
-        }
-      })
-    }
-
-    // Event listener untuk percakapan baru
-    const chatForm = document.getElementById('chatForm')
-    if (chatForm) {
-      chatForm.addEventListener('submit', (e) => {
-        e.preventDefault()
-        // Tambahkan percakapan baru ke kontainer
-        setTimeout(scrollChat, 200)
-      })
-    }
-  }
-
-  handleKeyboardOverlap()
-
-  const styleElement = document.createElement('style')
-  styleElement.textContent = `
-    /* Toggle Button */
-    /* Toggle Button */
     .chatbot-toggle {
-      position: fixed;
-      padding-right: 10px;
-
-      right: 0;
-      width: 85px;
-      height: 60px;
-      border-radius: 50px 0 0 50px; /* Hanya buat sisi kiri membulat */
-      background-color: rgba(48, 48, 48, 0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      z-index: 99998;
-      transition: all 0.3s ease;
+        position: fixed; bottom: 24px; right: 20px; left: auto;
+        width: 50px; height: 50px;
+        background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 9998;
+        box-shadow: 0 0 25px var(--accent-purple);
+        transition: all 0.3s ease;
     }
-
-  #chatContainer {
-  max-height: calc(100vh - 120px);  /* Menyesuaikan dengan ruang keyboard dan input */
-  overflow-y: auto;  /* Agar percakapan bisa digulir */
-  padding-right: 10px;
-}
-
-  #geminiChatbot {
-  position: fixed;
-  bottom: 20px;  /* Posisi default chatbot */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 600px;
-  background-color: rgba(48, 48, 48, 0.9);
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  z-index: 99999;
-  }
-
-
-    .chatbot-toggle:hover {
-      transform: scale(1.1);
-    }
-
-    .bot-message {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .bot-avatar {
-      margin-right: 8px;
-      align-self: flex-start;
-    }
-
-     .user-message {
-      display: flex;
-      flex-wrap: wrap;
-      flex-direction: row-reverse;
-    }
-
-    .user-avatar {
-      margin-left: 8px;
-      align-self: flex-start;
-    }
-
-    .message-content {
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
-    }
-
-    .tooltip {
-      position: absolute;
-      top: -10px;
-      right: 70px;
-      background-color: rgba(226, 226, 226, 0.82);
-      backdrop-filter: blur(8px);
-      color: black;
-      padding: 5px 10px;
-      border-radius: 20px 20px 0 20px;
-      font-size: 9px;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-
-    /* Remove the hover requirement for tooltip display */
-    /* .chatbot-toggle:hover .tooltip {
-      opacity: 1;
-    } */
-
-    /* Add animation for tooltip */
-    @keyframes tooltipPulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .tooltip {
-      animation: tooltipPulse 2s infinite;
-    }
-
-    /* Chatbot Container */
+    .chatbot-toggle:hover { transform: scale(1.15) rotate(15deg); box-shadow: 0 0 40px var(--accent-cyan); }
+    .chatbot-toggle img { width: 30px; height: 30px; }
     .chatbot-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 90%;
-      max-width: 600px;
-      height: 80vh;
-      max-height: 650px;
-      background-color: rgba(48, 48, 48, 0.5);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      z-index: 99999;
-      overflow: hidden;
-      border: 1px solid #333;
-      color: #eee;
-      font-family: Arial, sans-serif;
+        position: fixed; z-index: 9999; right: 20px; bottom: 85px; left: auto;
+        width: 450px; height: 75vh; max-height: 700px;
+        background: var(--chatbot-bg);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(24px) saturate(180%);
+        border-radius: 24px; overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        display: flex; flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        transform: none;
     }
-
-    /* Chatbot Header */
+    .chatbot-container.hidden { opacity: 0; transform: translateY(30px) scale(0.98); pointer-events: none; }
     .chatbot-header {
-      padding: 12px;
-      background: #252525;
-      border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+        padding: 16px 20px; background: rgba(0,0,0,0.25);
+        display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        border-bottom: 1px solid var(--border-color);
     }
-
-    .chatbot-header h3 {
-      margin: 0;
-      font-size: 14px;
-      color: #eee;
-    }
-
-    .chatbot-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .chatbot-actions button {
-      background: transparent;
-      border: none;
-      color: #aaa;
-      cursor: pointer;
-      padding: 3px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .chatbot-actions button:hover {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-    }
-
-    /* Chat History */
-    .chat-history {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .message {
-      max-width: 90%;
-      padding: 10px 14px;
-      border-radius: 12px;
-      line-height: 1.5;
-      font-size: 14px;
-      position: relative;
-      word-wrap: break-word;
-    }
-
-    .user-message {
-      align-self: flex-end;
-      background: #0070f3;
-      color: white;
-      border-radius: 12px 12px 0 12px;
-    }
-
-    .bot-message {
-      align-self: flex-start;
-      background: #252525;
-      color: #eee;
-      border-radius: 12px 12px 12px 0;
-      border: 1px solid #333;
-    }
-
-    .message-controls {
-      display: flex;
-      gap: 6px;
-      position: absolute;
-      right: 8px;
-      bottom: -5px;
-      opacity: 0;
-      z-index: 999;
-      transition: opacity 0.2s;
-    }
-
-    .message:hover .message-controls {
-      opacity: 1;
-    }
-
-    .message-controls button {
-      background: #252525;
-      border: 1px solid #333;
-      color: #aaa;
-      border-radius: 4px;
-      padding: 2px 4px;
-      font-size: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-    }
-
-    .message-controls button:hover {
-      background: #333;
-      color: #fff;
-    }
-
-    .message-controls button svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-left: 10px;
-    }
-
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      background: #aaa;
-      border-radius: 50%;
-      animation: typing-animation 1.5s infinite ease-in-out;
-    }
-
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes typing-animation {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1); }
-    }
-
-    /* Template Prompts */
-    .template-prompts {
-      padding: 8px 12px;
-      border-top: 1px solid #333;
-      background: #25252582;
-    }
-
-    .template-label {
-      font-size: 11px;
-      color: #aaa;
-      margin-bottom: 4px;
-    }
-
-    .template-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .template-buttons button {
-      padding: 4px 8px;
-      background: #333;
-      border: none;
-      border-radius: 16px;
-      font-size: 11px;
-      color: #eee;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .template-buttons button:hover {
-      background: #444;
-    }
-
-    /* Input Area */
-    .chatbot-input-area {
-      padding: 12px;
-      border-top: 1px solid #333;
-      display: flex;
-      background: #1e1e1e;
-      gap: 8px;
-    }
-
-    .chatbot-input-area textarea {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #333;
-      border-radius: 8px;
-      background: #252525;
-      color: #eee;
-      font-size: 14px;
-      resize: none;
-      min-height: 40px;
-      max-height: 80px;
-      overflow-y: auto;
-    }
-
-    .chatbot-input-area textarea:focus {
-      outline: none;
-      border-color: #0070f3;
-    }
-
-    .chatbot-input-area button {
-      width: 36px;
-      height: 36px;
-      background: #0070f3;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      align-self: flex-end;
-    }
-
-    .chatbot-input-area button:hover {
-      background: #0060df;
-    }
-
-    .chatbot-input-area button:disabled {
-      background: #333;
-      cursor: not-allowed;
-    }
-
-    /* Chat notification */
-    .chat-notification {
-      align-self: center;
-      background: rgba(0, 112, 243, 0.8);
-      color: white;
-      padding: 6px 10px;
-      border-radius: 16px;
-      font-size: 11px;
-      margin: 6px 0;
-      animation: fadeIn 0.3s ease-in-out;
-      opacity: 1;
-      transition: opacity 0.5s;
-    }
-
-    .chat-notification.fade-out {
-      opacity: 0;
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Media Queries for Responsive Design */
-    @media (max-width: 768px) {
-      .chatbot-container {
-        width: 98%;
-        height: 85vh;
-        right: 5px;
-        bottom: 5px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .chatbot-container {
-        width: 98%;
-        height: 75vh;
-        right: 4px;
-        bottom: 5px;
-        border-radius: 5px;
-      }
-
-      .message {
-        max-width: 95%;
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-
-      .template-buttons button {
-        padding: 3px 6px;
-        font-size: 10px;
-      }
-
-      .chatbot-input-area {
-        padding: 8px;
-      }
-
-      .chatbot-input-area textarea {
-        padding: 6px;
-        font-size: 13px;
-      }
-    }
-  `
-  document.head.appendChild(styleElement)
-}
-
-function loadChatHistory() {
-  const chatHistory = document.getElementById('chatHistory')
-  const savedHistory = localStorage.getItem('gemini_chat_history')
-
-  if (savedHistory) {
-    chatHistory.innerHTML = savedHistory
-
-    // Re-attach event listeners to buttons
-    setTimeout(() => {
-      // Re-attach edit buttons
-      const editBtns = document.querySelectorAll('.edit-message')
-      editBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const questionInput = document.getElementById('questionInput')
-          const messageText = btn.closest('.message').textContent.trim()
-          questionInput.value = messageText
-          questionInput.focus()
-
-          // Find and remove this message and all messages after it
-          let currentElement = btn.closest('.message')
-          let elementsToRemove = []
-
-          while (currentElement.nextElementSibling) {
-            elementsToRemove.push(currentElement.nextElementSibling)
-            currentElement = currentElement.nextElementSibling
-          }
-
-          // Also add the current message to remove
-          elementsToRemove.push(btn.closest('.message'))
-
-          // Remove all marked elements
-          elementsToRemove.forEach((el) => el.remove())
-
-          // Save updated chat history
-          saveChatHistory()
-        })
-      })
-
-      // Re-attach copy buttons with the new functionality
-      const copyBtns = document.querySelectorAll('.copy-message')
-      copyBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const messageText = btn.closest('.message').textContent.trim()
-
-          // Try to find Claude's textarea
-          const externalTextarea = document.querySelector(
-            '.MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])'
-          )
-
-          if (externalTextarea) {
-            externalTextarea.value = messageText
-            externalTextarea.dispatchEvent(
-              new Event('input', { bubbles: true })
-            )
-
-            // Show in-chat notification
-            showChatNotification('Teks berhasil disalin ke textarea!')
-          } else {
-            // Fallback to clipboard if textarea not found
-            navigator.clipboard.writeText(messageText).then(() => {
-              showChatNotification('Teks berhasil disalin ke clipboard!')
-            })
-          }
-
-          // Visual feedback for button
-          const originalText = btn.innerHTML
-          btn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          `
-          setTimeout(() => {
-            btn.innerHTML = originalText
-          }, 2000)
-        })
-      })
-    }, 0)
-  }
-}
-
-function getPreviousMessages(limit = 6) {
-  const chatHistory = document.getElementById('chatHistory')
-  const messages = chatHistory.querySelectorAll('.message')
-  const history = []
-
-  for (let i = Math.max(0, messages.length - limit); i < messages.length; i++) {
-    const el = messages[i]
-    const role = el.classList.contains('user-message') ? 'user' : 'model'
-    const content =
-      el.getAttribute('data-original-text') || el.textContent.trim()
-    history.push({ role, content })
-  }
-
-  return history
-}
-
-async function getAnswerFromGemini(apiKey, question) {
-  const history = getPreviousMessages()
-
-  const parts = history.map((entry) => {
-    return {
-      role: entry.role === 'user' ? 'user' : 'model',
-      parts: [{ text: entry.content }],
-    }
-  })
-
-  parts.push({
-    role: 'user',
-    parts: [{ text: question }],
-  })
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: parts,
-        generationConfig: {
-          temperature: 0.9,
-          maxOutputTokens: 4536,
-          topP: 0.95,
-          topK: 40,
-        },
-      }),
-    }
-  )
-
-  const result = await response.json()
-
-  if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-    if (result.error) {
-      throw new Error(`API error: ${result.error.message || 'Unknown error'}`)
-    }
-    throw new Error('Gagal mendapatkan jawaban')
-  }
-
-  return result.candidates[0].content.parts[0].text
-}
-
-console.log('gemini.js loaded')
-
-// Fungsi untuk mendapatkan API key dari localStorage
-function getGeminiApiKey() {
-  const storedKey = localStorage.getItem('geminiApiKey')
-  return storedKey ? atob(storedKey) : null
-}
-
-function setupChatbotEventListeners(encodedApiKey) {
-  const chatbotToggle = document.getElementById('geminiChatbotToggle')
-  const chatbot = document.getElementById('geminiChatbot')
-  const closeChatButton = document.getElementById('closeChatButton')
-  const clearChatButton = document.getElementById('clearChatButton')
-  const refreshChatButton = document.getElementById('refreshChatButton')
-  const questionInput = document.getElementById('questionInput')
-  const submitButton = document.getElementById('submitButton')
-  const chatHistory = document.getElementById('chatHistory')
-  const templateButtons = document.querySelectorAll('.template-buttons button')
-  const copyQuestionButton = document.getElementById('copyQuestionButton')
-  const apiKeyButton = document.getElementById('apiKeyButton')
-
-  if (apiKeyButton) {
-    apiKeyButton.addEventListener('click', () => {
-      // Show the API key popup for updating
-      if (typeof showApiKeyPopup === 'function') {
-        showApiKeyPopup()
-      } else {
-        console.error('showApiKeyPopup function not found!')
-      }
-    })
-  }
-
-  // Check if elements exist
-  if (!chatbotToggle || !chatbot) {
-    console.error('Chatbot toggle or container not found!')
-    return
-  }
-
-  // Make the toggle button draggable vertically
-  makeDraggableVertically(chatbotToggle)
-
-  // Toggle chatbot visibility with debugging
-  chatbotToggle.addEventListener('click', (e) => {
-    // Prevent click event if we're dragging
-    if (chatbotToggle.getAttribute('data-dragging') === 'true') {
-      return
-    }
-    chatbot.style.display = chatbot.style.display === 'none' ? 'flex' : 'none'
-  })
-
-  // Close chatbot when clicking outside
-  document.addEventListener('click', (e) => {
-    const isClickInsideToggle = chatbotToggle.contains(e.target)
-    const isClickInsideChatbot = chatbot.contains(e.target)
-
-    // If chatbot is visible and user clicks outside both the toggle and chatbot
-    if (
-      chatbot.style.display !== 'none' &&
-      !isClickInsideToggle &&
-      !isClickInsideChatbot
-    ) {
-      chatbot.style.display = 'none'
-    }
-  })
-
-  // Close chatbot
-  closeChatButton.addEventListener('click', () => {
-    chatbot.style.display = 'none'
-  })
-
-  // Clear chat history
-  clearChatButton.addEventListener('click', () => {
-    const modal = document.getElementById('customConfirmModal')
-    if (!modal) {
-      console.error('Modal konfirmasi tidak ditemukan!')
-      return
-    }
-
-    modal.classList.remove('hidden')
-
-    const cancelBtn = document.getElementById('cancelClearChat')
-    const confirmBtn = document.getElementById('confirmClearChat')
-
-    cancelBtn.onclick = () => modal.classList.add('hidden')
-
-    confirmBtn.onclick = () => {
-      const messages = chatHistory.querySelectorAll('.message')
-
-      messages.forEach((msg, i) => {
-        msg.classList.add('fade-out-chat')
-      })
-
-      setTimeout(() => {
-        chatHistory.innerHTML = ''
-        localStorage.removeItem('gemini_chat_history')
-        chatHistory.scrollTop = 0
-        showChatNotification('Riwayat chat dihapus!')
-      }, 800)
-      modal.classList.add('hidden')
-    }
-  })
-
-  if (refreshChatButton) {
-    refreshChatButton.addEventListener('click', () => {
-      localStorage.removeItem('gemini_chat_history')
-      document.getElementById('chatHistory').innerHTML = ''
-      saveChatHistory()
-      showChatNotification('Chat telah di-refresh!')
-    })
-  }
-
-  // Copy question from DOM to input
-  copyQuestionButton.addEventListener('click', async () => {
-    try {
-      // Get token from localStorage for API access
-      const localStorageData = localStorage.getItem('access')
-      if (!localStorageData) {
-        showChatNotification('Tidak dapat menemukan token akses.')
-        return
-      }
-
-      const accessData = JSON.parse(localStorageData)
-      if (
-        !Array.isArray(accessData) ||
-        accessData.length === 0 ||
-        !accessData[0].token
-      ) {
-        showChatNotification('Token tidak valid.')
-        return
-      }
-
-      const token = accessData[0].token
-
-      // Get the quiz ID from the URL
-      const quizId = window.location.href.split('/').pop()
-      const apiUrl = `https://mentari.unpam.ac.id/api/quiz/soal/${quizId}`
-
-      // Show loading notification
-      showChatNotification('Sedang mengambil semua soal quiz...')
-
-      // Fetch all quiz data
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      // Format quiz data
-      function formatQuiz(quizData) {
-        if (!quizData || !quizData.data) {
-          return 'Data kuis tidak tersedia.'
+    .chatbot-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .chatbot-actions button { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; transition: all 0.2s; }
+    .chatbot-actions button:hover { color: var(--accent-cyan); transform: scale(1.2); }
+    .chat-history { flex: 1 1 auto; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; transition: height 0.2s ease-out; }
+    .message { padding: 14px 20px; border-radius: 18px; line-height: 1.6; font-size: 14px; max-width: 85%; box-shadow: 0 4px 12px rgba(0,0,0,0.25); animation: messagePop 0.5s cubic-bezier(0.25, 1, 0.5, 1); position: relative; font-family: var(--font-primary); }
+    @keyframes messagePop { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .user-message { align-self: flex-end; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; border-radius: 18px 4px 18px 18px; }
+    .bot-message { align-self: flex-start; background: #27272a; color: var(--text-primary); border-radius: 4px 18px 18px 18px; }
+    .message-controls { position: absolute; top: 50%; transform: translateY(-50%); display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s; z-index: 10; }
+    .message:hover .message-controls { opacity: 1; }
+    .user-message .message-controls { left: -40px; }
+    .bot-message .message-controls { right: -40px; }
+    .message-controls button { background: rgba(50, 50, 50, 0.8); backdrop-filter: blur(5px); border: 1px solid var(--border-color); color: white; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .message-controls button:hover { background: var(--accent-cyan); transform: scale(1.1); }
+    .bot-message .message-content strong { color: var(--accent-cyan); font-weight: 600; }
+    .bot-message .message-content ul, .bot-message .message-content ol { padding-left: 20px; }
+    .bot-message pre { background-color: #111827; border-radius: 8px; padding: 12px; margin: 1em 0; overflow-x: auto; border: 1px solid var(--border-color); }
+    .bot-message code { font-family: var(--font-mono); font-size: 13px; color: #d1d5db; }
+    .bot-message .code-keyword { color: #c084fc; }
+    .bot-message .code-string { color: #a5b4fc; }
+    .bot-message .code-comment { color: #6b7280; font-style: italic; }
+    .typing { padding: 18px 20px; }
+    .typing-indicator { display: flex; align-items: center; gap: 5px; }
+    .typing-indicator .typing-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--text-secondary); animation: typing-bounce 1.4s infinite ease-in-out both; }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; } .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing-bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); background-color: var(--accent-cyan); } }
+    .chatbot-input-area-wrapper { flex-shrink: 0; padding: 10px 20px 20px 20px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.25); }
+    .template-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .template-buttons button { background: var(--glass-bg); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 11px; font-family: var(--font-primary); padding: 4px 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+    .template-buttons button:hover { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
+    .chatbot-input-area { display: flex; gap: 10px; align-items: flex-end; }
+    .chatbot-input-area textarea { flex-grow: 1; background: var(--glass-bg); border-radius: 16px; padding: 12px 16px; border: 1px solid var(--border-color); color: var(--text-primary); resize: none; font-family: var(--font-primary); font-size: 14px; transition: all 0.3s ease; max-height: 150px; }
+    .chatbot-input-area textarea:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.4); }
+    .input-buttons { display: flex; gap: 8px; align-items: center; }
+    .input-buttons button { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan)); color: white; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s; }
+    .input-buttons button:hover { transform: scale(1.1); box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+    .chat-notification { background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan)); color: white; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; align-self: center; margin-bottom: 10px; animation: fadeInOut 3s ease forwards; }
+    @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(10px); } 10%, 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-10px); } }
+
+    @media (max-width: 600px) {
+        .chatbot-container {
+            width: 100%; height: 100%;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 0; max-height: 100%;
         }
-
-        let result = `Judul Kuis: ${quizData.judul}\nDurasi: ${quizData.duration} detik\n\n`
-
-        quizData.data.forEach((soal, index) => {
-          // Include both title and description as they may contain question information
-          result += `${index + 1}. ${soal.judul.replace(/<[^>]*>/g, '')}\n`
-
-          // Add description if it's different from the title
-          const cleanDescription = soal.deskripsi.replace(/<[^>]*>/g, '').trim()
-          if (
-            cleanDescription &&
-            cleanDescription !== 'Kerjakan soal dg baik ?'
-          ) {
-            result += `   ${cleanDescription}\n`
-          }
-
-          result += '\n'
-
-          if (soal.list_jawaban) {
-            const pilihan = 'abcdefghijklmnopqrstuvwxyz'
-            soal.list_jawaban.forEach((jawaban, i) => {
-              result += `${pilihan[i]}. ${jawaban.jawaban.replace(
-                /<[^>]*>/g,
-                ''
-              )}\n`
-            })
-          }
-
-          result += '\n'
-        })
-
-        return result
-      }
-
-      const formattedQuiz = formatQuiz(data)
-
-      // Set the formatted quiz text directly into the input
-      questionInput.value = formattedQuiz
-
-      // Show notification
-      showChatNotification('Semua soal quiz berhasil disalin!')
-
-      // Focus on the input
-      questionInput.focus()
-
-      // Copy to clipboard if supported
-      try {
-        await navigator.clipboard.writeText(formattedQuiz)
-        showChatNotification('Semua soal juga disalin ke clipboard!')
-      } catch (err) {
-        console.error('Tidak dapat menyalin ke clipboard:', err)
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      showChatNotification('Tidak ditemukan Soal Quiz')
-
-      // Fall back to original functionality if API fetch fails
-      try {
-        const contentElement = document.querySelector('.ck-content')
-        let questionText = ''
-        let titleText = ''
-
-        // Try to capture the h6 title
-        const titleElement = document.querySelector(
-          'h6.MuiTypography-subtitle1'
-        )
-        if (titleElement) {
-          titleText = titleElement.textContent.trim()
+        .chatbot-container.hidden { transform: translateY(100%); opacity: 1; }
+        .chatbot-container.keyboard-mode {
+             height: calc(100% - var(--keyboard-height, 0px));
         }
-
-        // Try to get content from radio form controls
-        const formLabels = document.querySelectorAll(
-          '.MuiFormControlLabel-root'
-        )
-        let optionsText = []
-
-        if (formLabels && formLabels.length > 0) {
-          formLabels.forEach((label) => {
-            // Extract option information more accurately based on the DOM structure
-            const optionStack = label.querySelector('.MuiStack-root')
-
-            if (optionStack) {
-              // Get the option letter (A, B, C, etc.)
-              const optionLetter = optionStack
-                .querySelector('p')
-                .textContent.trim()
-
-              // Get the option content directly from .ck-content
-              const optionContentEl = optionStack.querySelector('.ck-content')
-              const optionContent = optionContentEl
-                ? optionContentEl.textContent.trim()
-                : ''
-
-              // Check if this option is selected/checked
-              const isChecked = label.querySelector('.Mui-checked') !== null
-
-              if (optionLetter && optionContent) {
-                optionsText.push(`${optionLetter}${optionContent}`)
-              }
-            }
-          })
-        }
-
-        // Process standard content if available
-        if (contentElement) {
-          // Use textContent to get all text without duplicating
-          questionText = contentElement.textContent.trim()
-        }
-
-        // Combine all the captured content
-        let fullText = ''
-
-        if (titleText) {
-          fullText += `${titleText}\n\n`
-        }
-
-        if (questionText) {
-          fullText += `${questionText}\n\n`
-        }
-
-        if (optionsText.length > 0) {
-          fullText += optionsText.join('\n')
-        }
-
-        // Set the combined text into the input
-        questionInput.value = fullText.trim()
-
-        // Show in-chat notification
-        showChatNotification('Pertanyaan berhasil disalin!')
-
-        // Focus on the input
-        questionInput.focus()
-
-        if (!contentElement && optionsText.length === 0 && !titleText) {
-          showChatNotification('Tidak dapat menemukan pertanyaan.')
-        }
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError)
-        showChatNotification('Tidak dapat menyalin pertanyaan.')
-      }
+        .chatbot-toggle { bottom: 20px; right: 15px; }
     }
-  })
-
-  // Template prompt buttons
-  templateButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const template = button.getAttribute('data-prompt')
-      let currentText = questionInput.value.trim()
-
-      if (currentText) {
-        // Instead of prefixing the text, store the template in a data attribute
-        questionInput.setAttribute('data-template', template)
-        // Keep the original text in the input
-        questionInput.value = currentText
-      } else {
-        questionInput.value = ''
-        questionInput.setAttribute('data-template', template)
-      }
-
-      questionInput.focus()
-
-      // Show in-chat notification for template selection
-      showChatNotification(`Template "${template}" dipilih`)
-    })
-  })
-
-  // Submit on Enter (but allow Shift+Enter for new lines)
-  questionInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      submitButton.click()
-    }
-  })
-
-  // Submit button click
-  submitButton.addEventListener('click', async () => {
-    const question = questionInput.value.trim()
-    if (!question) return
-
-    // Get the selected template if any
-    const template = questionInput.getAttribute('data-template') || ''
-
-    // Add user message to chat without showing the template
-    addMessageToChat('user', question)
-
-    // Clear input and template
-    questionInput.value = ''
-    questionInput.removeAttribute('data-template')
-
-    // Add the typing indicator
-    const typingIndicator = addTypingIndicator()
-
-    try {
-      // Decode the API key
-      const apiKey = atob(encodedApiKey)
-
-      // Get answer from Gemini, including template in the actual request
-      let fullPrompt = question
-      if (template) {
-        fullPrompt = `${template}: ${question}`
-      }
-
-      const answer = await getAnswerFromGemini(apiKey, fullPrompt)
-
-      // Remove typing indicator
-      typingIndicator.remove()
-
-      // Add bot message to chat
-      addMessageToChat('bot', answer)
-
-      // Save chat history
-      saveChatHistory()
-    } catch (error) {
-      // Remove typing indicator
-      typingIndicator.remove()
-
-      // Add error message
-      addMessageToChat(
-        'bot',
-        `Maaf, terjadi kesalahan: <span style="color: red; font-weight: bold;">${error.message}</span>. Untuk mengganti API key klik icon <span style="color: yellow; font-weight: bold;">Kunci</span> yang ada di kanan atas dan masukkan API key yang benar.
-`
-      )
-
-      // Save chat history
-      saveChatHistory()
-    }
-  })
-}
-
-// Function to make an element draggable vertically
-function makeDraggableVertically(element) {
-  let pos1 = 0,
-    pos3 = 0
-  let isDragging = false
-  let dragTimeout
-
-  element.onmousedown = dragMouseDown
-  element.ontouchstart = dragTouchStart
-
-  function dragMouseDown(e) {
-    e = e || window.event
-    e.preventDefault()
-
-    // Get the mouse cursor position at startup
-    pos3 = e.clientY
-
-    // Set dragging flag
-    isDragging = false
-    element.setAttribute('data-dragging', 'false')
-
-    document.onmouseup = closeDragElement
-    document.onmousemove = elementDrag
-  }
-
-  function dragTouchStart(e) {
-    e = e || window.event
-    if (e.touches && e.touches[0]) {
-      // Get the touch position at startup
-      pos3 = e.touches[0].clientY
-
-      // Set dragging flag
-      isDragging = false
-      element.setAttribute('data-dragging', 'false')
-
-      document.ontouchend = closeDragElement
-      document.ontouchmove = elementTouchDrag
-    }
-  }
-
-  function elementDrag(e) {
-    e = e || window.event
-    e.preventDefault()
-
-    // FIXED: Instead of calculating movement, set position directly based on cursor
-    const newY = e.clientY - element.offsetHeight / 2
-
-    // Ensure toggle stays within viewport bounds
-    const maxTop = window.innerHeight - element.offsetHeight
-    const boundedTop = Math.max(0, Math.min(newY, maxTop))
-
-    // Apply position directly
-    element.style.top = boundedTop + 'px'
-
-    // Set dragging state
-    isDragging = true
-    element.setAttribute('data-dragging', 'true')
-
-    // Clear any previous timeout
-    if (dragTimeout) clearTimeout(dragTimeout)
-
-    // Set timeout to reset dragging flag after dragging stops
-    dragTimeout = setTimeout(() => {
-      element.setAttribute('data-dragging', 'false')
-    }, 200)
-  }
-
-  function elementTouchDrag(e) {
-    e = e || window.event
-
-    if (e.touches && e.touches[0]) {
-      // FIXED: Instead of calculating movement, set position directly based on touch point
-      const newY = e.touches[0].clientY - element.offsetHeight / 2
-
-      // Ensure toggle stays within viewport bounds
-      const maxTop = window.innerHeight - element.offsetHeight
-      const boundedTop = Math.max(0, Math.min(newY, maxTop))
-
-      // Apply position directly
-      element.style.top = boundedTop + 'px'
-
-      // Set dragging state
-      isDragging = true
-      element.setAttribute('data-dragging', 'true')
-
-      // Clear any previous timeout
-      if (dragTimeout) clearTimeout(dragTimeout)
-
-      // Set timeout to reset dragging flag after dragging stops
-      dragTimeout = setTimeout(() => {
-        element.setAttribute('data-dragging', 'false')
-      }, 200)
-    }
-  }
-
-  function closeDragElement() {
-    // Stop moving when mouse/touch is released
-    document.onmouseup = null
-    document.onmousemove = null
-    document.ontouchend = null
-    document.ontouchmove = null
-
-    // Reset dragging flag immediately on release
-    setTimeout(() => {
-      element.setAttribute('data-dragging', 'false')
-      isDragging = false
-    }, 10)
-  }
+  `;
+  document.head.appendChild(styleElement);
 }
 
 function createChatbotInterface(providedApiKey = null) {
-  console.log('Creating chatbot interface...')
-  // Check if chatbot already exists
-  if (document.getElementById('geminiChatbot')) {
-    console.log('Chatbot already exists')
-    return
-  }
-
-  // Get API key from parameter or manager
-  let apiKey = providedApiKey
-
-  // If no API key provided, try to get it from manager
+  if (document.getElementById('geminiChatbot')) return;
+  let apiKey = providedApiKey || (typeof getGeminiApiKey === 'function' ? getGeminiApiKey() : null);
   if (!apiKey) {
-    console.log('No API key provided, checking manager...')
-    if (typeof getGeminiApiKey === 'function') {
-      apiKey = getGeminiApiKey()
-    } else {
-      console.error('getGeminiApiKey function not found!')
-    }
-
-    // If still no API key, show popup and return
-    if (!apiKey) {
-      console.log('No API key found, showing popup...')
-      if (typeof showApiKeyPopup === 'function') {
-        showApiKeyPopup()
-      } else {
-        console.error('showApiKeyPopup function not found!')
-      }
-      return
-    }
+      if (typeof showApiKeyPopup === 'function') showApiKeyPopup();
+      return;
   }
-
-  // Encode the API key for setupChatbotEventListeners
-  const encodedApiKey = btoa(apiKey)
-
-  console.log('API key available, continuing with chatbot setup...')
-  // Create chatbot elements with enhanced structure
+  const encodedApiKey = btoa(apiKey);
   const chatbotHtml = `
-    <div id="geminiChatbotToggle" class="chatbot-toggle" style="display: none;">
-      <div class="drag-handle"></div>
-      <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Robot" width="50" height="50" />
-      <div class="tooltip" id="geminiTooltip">Hai, aku Gemini Assistant!</div>
+    <div id="geminiChatbotToggle" class="chatbot-toggle">
+      <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Smileys/Robot.webp" alt="Robot" />
     </div>
-
-    <div id="geminiChatbot" class="chatbot-container" style="display: none;">
+    <div id="geminiChatbot" class="chatbot-container hidden">
       <div class="chatbot-header">
         <h3>Gemini Assistant</h3>
         <div class="chatbot-actions">
-          <button id="refreshChatButton" title="Refresh Chat">
-            <img src="https://img.icons8.com/?size=100&id=69347&format=png&color=00FF00" alt="Refresh" style="width: 20px; height: 20px;" />
-          </button>
-          <button id="clearChatButton" title="Clear Chat">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-            </svg>
-          </button>
-          <button id="closeChatButton" title="Close">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+           <button id="refreshChatButton" title="Refresh Chat"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg></button>
+          <button id="clearChatButton" title="Clear Chat"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg></button>
+          <button id="closeChatButton" title="Close"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/></svg></button>
         </div>
       </div>
-
       <div id="chatHistory" class="chat-history"></div>
-
-      <div class="template-prompts">
-        <div class="template-label">Template Prompts:</div>
-        <div class="template-buttons">
+      <div class="chatbot-input-area-wrapper">
+         <div class="template-buttons">
             <button data-prompt="Jelaskan secara singkat dan jelas">Singkat & Jelas</button>
             <button data-prompt="Jelaskan dalam 1 paragraf">1 Paragraf</button>
-            <button data-prompt="Jelaskan dalam 2 paragraf">2 Paragraf</button>
-            <button data-prompt="Jawab pilihan ganda berikut hanya dengan huruf dan teks misal Jawaban yang benar adalah A. ..., dan beri penjelasan singkat ">Pilihan ganda</button>
-            <button data-prompt="Sebutkan 3 poin utama yang perlu diketahui secara singkat">3 Poin Utama</button>
-            <button data-prompt="Jelaskan dengan cara yang mudah dimengerti dengan singkat">Sederhana</button>
-            <button data-prompt="Berikan contoh nyata atau kasus penggunaan dengan singkat">Contoh Nyata</button>
-            <button data-prompt="Beri langkah-langkah atau panduan praktis">Panduan Langkah</button>
-            <button data-prompt="Jelaskan dengan bahasa yang lebih teknis">Teknis</button>
-            <button data-prompt="Sederhanakan dalam bentuk analogi yang mudah dibayangkan">Analogi</button>
-            <button data-prompt="Beri penjelasan secara mendalam dan detail">Mendalam</button>
+            <button data-prompt="Jawab pilihan ganda berikut hanya dengan huruf dan teks misal Jawaban yang benar adalah A. ..., dan beri penjelasan singkat ">Pilihan Ganda</button>
+            <button data-prompt="Sebutkan 3 poin utama">3 Poin Utama</button>
+        </div>
+        <div class="chatbot-input-area">
+          <textarea id="questionInput" placeholder="Tanyakan pada Gemini..." rows="1"></textarea>
+          <div class="input-buttons">
+              <button id="submitButton" title="Kirim"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12L2.01 3L2 10l15 2l-15 2z"/></svg></button>
+          </div>
         </div>
       </div>
-
-      <div class="chatbot-input-area">
-        <textarea
-          id="questionInput"
-          placeholder="Tulis pertanyaan Anda di sini..."
-          rows="3"
-        ></textarea>
-        <div>
-        <button id="copyQuestionButton" style="margin-bottom: 10px; background-color:rgb(89, 89, 89)" title="Copy Question">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-        </button>
-        <button id="submitButton">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-        </button>
-        </div>
-      </div>
-    </div>
-  `
-
-  // Create the chatbot element
-  const chatbotElement = document.createElement('div')
-  chatbotElement.innerHTML = chatbotHtml
-  document.body.appendChild(chatbotElement)
-
-  // Add additional CSS styles
-  addDraggableStyles()
-
-  // Add the CSS styles
-  if (typeof addChatbotStyles === 'function') {
-    addChatbotStyles()
-  } else {
-    console.error('addChatbotStyles function not found!')
-  }
-
-  // Setup event listeners with the encoded API key
-  setupChatbotEventListeners(encodedApiKey)
-
-  // Load chat history from localStorage
-  if (typeof loadChatHistory === 'function') {
-    loadChatHistory()
-  } else {
-    console.error('loadChatHistory function not found!')
-  }
-
-  // Start monitoring for Claude's textarea
-  if (typeof monitorForClaudeTextarea === 'function') {
-    monitorForClaudeTextarea()
-  } else {
-    console.error('monitorForClaudeTextarea function not found!')
-  }
-
-  // Setup tooltips with controlled display frequency
-  const tooltips = [
-    'Hai, aku Gemini Assistant!',
-    'Ada yang bisa kubantu?',
-    'Klik aku untuk ngobrol!',
-    'Punya pertanyaan? Tanyakan saja!',
-    'Gemini siap membantu kamu!',
-    'Butuh sesuatu? Aku di sini!',
-  ]
-
-  // Initialize tooltips after a short delay to ensure DOM is ready
-  setTimeout(() => {
-    initializeTooltips(tooltips)
-  }, 500)
+    </div>`;
+  const chatbotElement = document.createElement('div');
+  chatbotElement.innerHTML = chatbotHtml;
+  document.body.appendChild(chatbotElement);
+  addChatbotStyles();
+  setupChatbotEventListeners(encodedApiKey);
+  loadChatHistory();
+  const textarea = document.getElementById('questionInput');
+  textarea.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+  });
 }
 
-// Function to add styles for the draggable toggle
-function addDraggableStyles() {
-  const styleElement = document.createElement('style')
-  styleElement.textContent = `
-    .chatbot-toggle {
-      cursor: move;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9998;
-      transition: none; /* Remove transition for smoother dragging */
-      user-select: none; /* Prevent text selection during drag */
-      touch-action: none; /* Improve touch handling */
-    }
-
-    .drag-handle {
-      display: none;
-      position: absolute;
-      top: -5px;
-      left: 90%;
-      transform: translateX(-50%);
-      width: 25px;
-      height: 25px;
-      background-color: #333;
-      border-radius: 30px;
-      cursor: move;
-    }
-
-    .chatbot-toggle:hover .drag-handle {
-      background-color: rgb(255 0 0 / 31%);
-    }
-
-    /* Make sure chatbot container isn't affected by pointer events when hidden */
-    #geminiChatbot[style*="display: none"] {
-      pointer-events: none;
-    }
-
-    /* Cursor styles for different states */
-    .chatbot-toggle[data-dragging="true"] {
-      cursor: move;
-    }
-
-    .chatbot-toggle[data-dragging="false"] {
-      cursor: pointer;
-    }
-  `
-
-  document.head.appendChild(styleElement)
-}
-
-// Define the tooltip initialization function
-function initializeTooltips(tooltips) {
-  const tooltip = document.getElementById('geminiTooltip')
-  const toggle = document.getElementById('geminiChatbotToggle')
-
-  if (!tooltip || !toggle) {
-    console.error('Tooltip or toggle elements not found!')
-    return
-  }
-
-  // Set tooltip to initially invisible
-  tooltip.style.opacity = '0'
-
-  let tooltipIndex = 0
-
-  // Main cycle function: show tooltip briefly then hide for longer period
-  function tooltipCycle() {
-    // Show tooltip for 3 seconds
-    tooltipIndex = (tooltipIndex + 1) % tooltips.length
-    tooltip.textContent = tooltips[tooltipIndex]
-    tooltip.style.opacity = '1'
-
-    // Hide after 3 seconds and wait longer before showing next one
-    setTimeout(() => {
-      // Fade out tooltip
-      tooltip.style.opacity = '0'
-
-      // Wait longer before showing next tooltip (15 seconds hidden)
-      setTimeout(tooltipCycle, 15000)
-    }, 3000)
-  }
-
-  // Start the first cycle after a short delay
-  setTimeout(tooltipCycle, 1000)
-
-  // Also change tooltip on mouse enter and keep visible while hovering
-  toggle.addEventListener('mouseenter', function () {
-    const randomIndex = Math.floor(Math.random() * tooltips.length)
-    tooltip.textContent = tooltips[randomIndex]
-    tooltip.style.opacity = '1'
-  })
-
-  // Hide tooltip when mouse leaves
-  toggle.addEventListener('mouseleave', function () {
-    // Let the normal cycle determine visibility
-  })
-}
-function monitorForClaudeTextarea() {
-  // This will try to find Claude's textarea every 2 seconds
-  setInterval(() => {
-    const claudeTextarea = document.querySelector(
-      '.MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputMultiline:not([readonly])'
-    )
-    if (claudeTextarea) {
-      // Store the reference globally so it can be used by the copy buttons
-      window.claudeTextarea = claudeTextarea
-    }
-  }, 2000)
-}
-
-// Function to add typing indicator
 function addTypingIndicator() {
-  const chatHistory = document.getElementById('chatHistory')
-
-  const typingElement = document.createElement('div')
-  typingElement.className = 'message bot-message typing'
-  typingElement.innerHTML = `
-    <div class="typing-indicator">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    </div>
-  `
-
-  chatHistory.appendChild(typingElement)
-  chatHistory.scrollTop = chatHistory.scrollHeight
-
-  return typingElement
+  const chatHistory = document.getElementById('chatHistory');
+  const typingElement = document.createElement('div');
+  typingElement.className = 'message bot-message typing';
+  typingElement.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  chatHistory.appendChild(typingElement);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+  return typingElement;
 }
 
-// Function to save chat history to localStorage
-function saveChatHistory() {
-  const chatHistory = document.getElementById('chatHistory')
-  localStorage.setItem('gemini_chat_history', chatHistory.innerHTML)
-}
-
-// Initialize the chatbot
-function initChatbot() {
-  // Check if Gemini is enabled in settings
-  const isGeminiEnabled = localStorage.getItem('gemini_enabled') === 'true'
-  if (!isGeminiEnabled) {
-    console.log('Gemini is disabled in settings')
-    return
-  }
-
-  // Create chatbot interface if it doesn't exist
-  if (!document.getElementById('geminiChatbot')) {
-    createChatbotInterface()
-  }
-
-  // Set up event listeners
-  setupChatbotEventListeners()
-
-  // Show only the toggle button if Gemini is enabled
-  const toggle = document.getElementById('geminiChatbotToggle')
-  const chatInterface = document.getElementById('geminiChatbot')
-
-  // Always show toggle button if Gemini is enabled in settings
-  if (toggle && isGeminiEnabled) {
-    toggle.style.display = 'flex'
-  }
-
-  // Always hide chat interface initially
-  if (chatInterface) {
-    chatInterface.style.display = 'none'
-  }
-
-  // Add click event to toggle button to show chat interface
-  if (toggle) {
-    toggle.addEventListener('click', function () {
-      if (chatInterface) {
-        chatInterface.style.display = 'flex'
-      }
-    })
-  }
-}
-
-// Hanya atur nilai default jika belum ada sama sekali
-if (localStorage.getItem('gemini_enabled') === null) {
+function loadChatHistory() {
   try {
-    localStorage.setItem('gemini_enabled', 'true');
-  } catch (e) {
-    console.warn('localStorage mungkin tidak tersedia di WebView');
+    const chatHistory = document.getElementById('chatHistory');
+    const savedHistory = localStorage.getItem('gemini_chat_history');
+    if (savedHistory) {
+      chatHistory.innerHTML = savedHistory;
+      chatHistory.querySelectorAll('.message').forEach(message => {
+        if (message.classList.contains('user-message')) {
+            const editBtn = message.querySelector('.edit-message');
+            if(editBtn) editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const input = document.getElementById('questionInput');
+                input.value = message.getAttribute('data-original-text');
+                input.focus();
+                let current = message;
+                while (current) { let next = current.nextElementSibling; current.remove(); current = next; }
+                saveChatHistory();
+            });
+        } else {
+            const copyBtn = message.querySelector('.copy-to-clipboard');
+            if(copyBtn) copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(message.getAttribute('data-original-text')).then(() => {
+                    showChatNotification('Teks berhasil disalin!');
+                    copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M21 7L9 19l-5.5-5.5l1.41-1.41L9 16.17L19.59 5.59z"/></svg>`;
+                    setTimeout(() => { copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H8V7h11m0-2H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2m-3-4H4c-1.1 0-2 .9-2 2v14h2V3h12z"/></svg>`; }, 2000);
+                });
+            });
+        }
+      });
+    }
+  } catch (e) { console.warn('Gagal memuat riwayat chat, localStorage mungkin tidak tersedia.'); }
+}
+
+function getPreviousMessages(limit = 6) {
+  const chatHistory = document.getElementById('chatHistory');
+  const messages = Array.from(chatHistory.querySelectorAll('.message:not(.typing)'));
+  const history = [];
+  for (let i = Math.max(0, messages.length - limit); i < messages.length; i++) {
+    const el = messages[i];
+    const role = el.classList.contains('user-message') ? 'user' : 'model';
+    const content = el.getAttribute('data-original-text') || '';
+    if (content) history.push({ role: role, parts: [{ text: content }] });
+  }
+  return history;
+}
+
+async function getAnswerFromGemini(apiKey, question) {
+  const contents = [...getPreviousMessages(), { role: 'user', parts: [{ text: question }] }];
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: contents, generationConfig: { temperature: 0.7, maxOutputTokens: 2048, topP: 0.95, topK: 40, } }),
+  });
+  const result = await response.json();
+  if (result.error) throw new Error(`API error: ${result.error.message}`);
+  return result.candidates[0].content.parts[0].text;
+}
+
+function saveChatHistory() {
+  try {
+    const chatHistory = document.getElementById('chatHistory');
+    if (chatHistory) localStorage.setItem('gemini_chat_history', chatHistory.innerHTML);
+  } catch (e) { console.warn('Gagal menyimpan riwayat chat, localStorage mungkin tidak tersedia.'); }
+}
+
+function setupChatbotEventListeners(encodedApiKey) {
+    const chatbotToggle = document.getElementById('geminiChatbotToggle');
+    const chatbot = document.getElementById('geminiChatbot');
+    const closeChatButton = document.getElementById('closeChatButton');
+    const clearChatButton = document.getElementById('clearChatButton');
+    const refreshChatButton = document.getElementById('refreshChatButton');
+    const questionInput = document.getElementById('questionInput');
+    const submitButton = document.getElementById('submitButton');
+    const templateButtons = document.querySelectorAll('.template-buttons button');
+    if (!chatbotToggle || !chatbot) return;
+
+    chatbotToggle.addEventListener('click', () => {
+        const isOpeningGemini = chatbot.classList.contains('hidden');
+        const tokenRunnerPopup = document.getElementById('token-runner-popup');
+        if (isOpeningGemini) {
+            if (tokenRunnerPopup) { tokenRunnerPopup.style.display = 'none'; tokenRunnerPopup.classList.add('collapsed'); }
+        } else {
+            if (tokenRunnerPopup) { tokenRunnerPopup.style.display = 'block'; }
+        }
+        chatbot.classList.toggle('hidden');
+    });
+
+    closeChatButton.addEventListener('click', () => {
+        chatbot.classList.add('hidden');
+        const tokenRunnerPopup = document.getElementById('token-runner-popup');
+        if (tokenRunnerPopup) { tokenRunnerPopup.style.display = 'block'; }
+    });
+
+    clearChatButton.addEventListener('click', () => { document.getElementById('chatHistory').innerHTML = ''; saveChatHistory(); showChatNotification('Riwayat chat dihapus!'); });
+    refreshChatButton.addEventListener('click', () => { document.getElementById('chatHistory').innerHTML = ''; saveChatHistory(); showChatNotification('Chat dimulai ulang!'); });
+    
+    templateButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const template = button.getAttribute('data-prompt');
+            questionInput.value = `${template}:\n`;
+            questionInput.focus();
+        });
+    });
+
+    const submitFunction = async () => {
+        const question = questionInput.value.trim();
+        if (!question) return;
+        addMessageToChat('user', question);
+        questionInput.value = '';
+        questionInput.style.height = 'auto';
+        const typingIndicator = addTypingIndicator();
+        try {
+            const apiKey = atob(encodedApiKey);
+            const answer = await getAnswerFromGemini(apiKey, question);
+            typingIndicator.remove();
+            addMessageToChat('bot', answer);
+        } catch (error) {
+            typingIndicator.remove();
+            addMessageToChat('bot', `Maaf, terjadi kesalahan: ${error.message}`);
+        }
+        saveChatHistory();
+    };
+
+    submitButton.addEventListener('click', submitFunction);
+    questionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitFunction(); } });
+    questionInput.addEventListener('focus', () => {
+        if (window.innerWidth <= 600) {
+            document.documentElement.style.setProperty('--keyboard-height', '50vh'); // Asumsi tinggi keyboard
+            chatbot.classList.add('keyboard-mode');
+        }
+    });
+
+    questionInput.addEventListener('blur', () => {
+        if (window.innerWidth <= 600) {
+            document.documentElement.style.setProperty('--keyboard-height', '0px');
+            chatbot.classList.remove('keyboard-mode');
+        }
+    });
+}
+
+function initChatbot() {
+  let isGeminiEnabled = true;
+  try {
+    const enabled = localStorage.getItem('gemini_enabled');
+    if (enabled === null) localStorage.setItem('gemini_enabled', 'true');
+    else isGeminiEnabled = enabled === 'true';
+  } catch (e) { console.warn('Gagal mengakses localStorage.'); }
+  
+  if (!isGeminiEnabled) {
+    const existingUI = document.getElementById('geminiChatbotToggle')?.parentElement;
+    if (existingUI) existingUI.remove();
+    return;
+  }
+  if (!document.getElementById('geminiChatbot')) {
+    createChatbotInterface();
   }
 }
 
-;(function initializeGemini() {
-  initChatbot()
-
+(function initializeGemini() {
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChatbot)
+    document.addEventListener('DOMContentLoaded', initChatbot);
   } else {
-    setTimeout(initChatbot, 100)
+    initChatbot();
   }
-})()
+})();
 
-// Also call initChatbot when the toggle state changes
-window.addEventListener('storage', function (e) {
-  if (e.key === 'gemini_enabled') {
-    if (e.newValue === 'true') {
-      initChatbot()
-    } else {
-      // Hide both toggle and chat interface if disabled
-      const toggle = document.getElementById('geminiChatbotToggle')
-      const chatInterface = document.getElementById('geminiChatbot')
-      if (toggle) toggle.style.display = 'none'
-      if (chatInterface) chatInterface.style.display = 'none'
-    }
-  }
-})
-
-const confirmModalHTML = `
-  <div id="customConfirmModal" class="custom-modal hidden">
-    <div class="modal-content">
-      <h3>Konfirmasi</h3>
-      <p>Apakah kamu yakin ingin <strong>menghapus semua riwayat chat?</strong></p>
-      <div class="modal-actions">
-        <button id="cancelClearChat">Batal</button>
-        <button id="confirmClearChat">Hapus</button>
-      </div>
-    </div>
-  </div>
-`
-
-document.body.insertAdjacentHTML('beforeend', confirmModalHTML)
-
-;(function extendChatbotStylesWithModal() {
-  const styleElement = document.createElement('style')
-  styleElement.textContent = `
-    .custom-modal {
-      position: fixed;
-      z-index: 100000;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(15, 15, 15, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(5px);
-    }
-
-    .custom-modal.hidden {
-      display: none;
-    }
-
-    .modal-content {
-      background: #2a2a2a;
-      color: #fff;
-      padding: 20px 24px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    }
-
-    .modal-content h3 {
-      margin-top: 0;
-    }
-
-    .modal-actions {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .modal-actions button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    #cancelClearChat {
-      background-color: #444;
-      color: #ccc;
-    }
-
-    #confirmClearChat {
-      background-color: #e74c3c;
-      color: white;
-    }
-
-    #cancelClearChat:hover {
-      background-color: #555;
-    }
-
-    #confirmClearChat:hover {
-      background-color: #c0392b;
-    }
-      .fade-out-chat {
-      animation: fadeOutChat 0.5s ease forwards;
-    }
-
-    @keyframes fadeOutChat {
-      from {
-        opacity: 1;
-        transform: scale(1);
-      }
-      to {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-    }
-  `
-  document.head.appendChild(styleElement)
-})()
+window.addEventListener('storage', (e) => { if (e.key === 'gemini_enabled') initChatbot(); });

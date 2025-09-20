@@ -480,7 +480,7 @@ console.log('Token.js sedang dijalankan!');
             position: fixed;
             left: 15px !important;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            z-index: 10001;
+            z-index: 9999;
             width: 480px;
             max-width: 95%;
             border-radius: 18px;
@@ -512,7 +512,7 @@ console.log('Token.js sedang dijalankan!');
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 10002;
+            z-index: 9998;
             transition: transform 0.3s ease;
         }
         .popup-toggle:hover { transform: scale(1.1) rotate(5deg); }
@@ -1234,12 +1234,30 @@ console.log('Token.js sedang dijalankan!');
     header.addEventListener('touchstart', (e) => { if (!e.target.closest('button, a')) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
     document.addEventListener('touchmove', (e) => { if (isDragging) onDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
     document.addEventListener('touchend', stopDrag);
-
+    
     const toggle = popup.querySelector('.popup-toggle');
-    toggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      popup.classList.toggle('collapsed');
-    });
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        const isOpeningMod = popup.classList.contains('collapsed');
+        const geminiToggle = document.getElementById('geminiChatbotToggle');
+        
+        if (isOpeningMod) {
+          if (geminiToggle) {
+            geminiToggle.style.display = 'none';
+          }
+          const geminiPopup = document.getElementById('geminiChatbot');
+          if (geminiPopup && !geminiPopup.classList.contains('hidden')) {
+            geminiPopup.classList.add('hidden');
+        }
+        } else {
+          if (geminiToggle) {
+            geminiToggle.style.display = 'flex';
+        }
+    }
+
+    popup.classList.toggle('collapsed');
+  });
 
     document.getElementById('token-reset-btn').addEventListener('click', refreshAndTrackWithLoading);
 
@@ -1945,43 +1963,41 @@ function extractCourseCodeFromUrl(url) {
                 #forum-list { max-width: 500px; margin: 0 auto; box-sizing: border-box; width: 100%; margin-bottom: 125px; }
                 .copy-links-container { text-align: center; display: flex; gap: 0.5em; }
                 .presensi-button {
-  background: linear-gradient(90deg, rgb(0,160,32), rgb(0,200,100), rgb(0,160,32));
-  background-size: 300% 300%;
-  color: #fff;
-  border: none;
-  width: 100%;
-  border-radius: 4px;
-  padding: 8px 16px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  animation: presensiGradient 6s ease infinite;
-}
+                  background: linear-gradient(90deg, rgb(0,160,32), rgb(0,200,100), rgb(0,160,32));
+                  background-size: 300% 300%;
+                  color: #fff;
+                  border: none;
+                  width: 100%;
+                  border-radius: 4px;
+                  padding: 8px 16px;
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 8px;
+                  font-size: 14px;
+                  text-decoration: none;
+                  transition: all 0.3s ease;
+                  animation: presensiGradient 6s ease infinite;
+                }
 
-/* Hover → animasi lebih cepat + tombol naik */
-.presensi-button:hover {
-  animation-duration: 3s;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 160, 32, 0.4);
-}
+                  .presensi-button:hover {
+                    animation-duration: 3s;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(0, 160, 32, 0.4);
+                }
 
-/* Active → stop animasi sejenak + tombol turun */
-.presensi-button:active {
-  animation-play-state: paused;
-  transform: translateY(1px);
-  box-shadow: 0 3px 8px rgba(0, 160, 32, 0.4);
-}
+                  .presensi-button:active {
+                  animation-play-state: paused;
+                  transform: translateY(1px);
+                  box-shadow: 0 3px 8px rgba(0, 160, 32, 0.4);
+                }
 
-@keyframes presensiGradient {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+                  @keyframes presensiGradient {
+                  0%   { background-position: 0% 50%; }
+                  50%  { background-position: 100% 50%; }
+                  100% { background-position: 0% 50%; }
+                }
 
                 .forum-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
                 .loading-topics, .no-topics, .error-topics { color: #666; font-size: 12px; font-style: italic; }

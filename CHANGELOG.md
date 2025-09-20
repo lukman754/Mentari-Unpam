@@ -1,10 +1,8 @@
 # Changelog
 
-## [5.1] - 19 September 2025
+## [5.3] - 20 September 2025
 
-* [ui/ux] Implementasi efek "Glassmorphism" (akrilik) pada seluruh antarmuka untuk tampilan modern dan elegan.
-* [ui/ux] Perombakan total Tab Mahasiswa menjadi dashboard interaktif dengan kartu statistik, visualisasi kelompok, dan daftar yang ditingkatkan.
-* [ui/ux] Perombakan total Tab Pengaturan dengan tata letak berbasis kartu yang bersih, header pengguna dinamis, dan kontrol yang didesain ulang.
-* [style] Penambahan animasi gradien pada berbagai elemen (ikon, tombol, teks header) untuk memberikan nuansa yang hidup.
-* [style] Peningkatan palet warna, tipografi, dan spasi di seluruh komponen untuk meningkatkan keterbacaan dan estetika profesional.
-* [style] Desain ulang tombol toggle, input, dan kartu-kartu konten agar lebih konsisten dan menarik secara visual.
+- **[Fitur] Rombak Total Antarmuka Gemini Assistant**: Memperkenalkan desain *glassmorphism* futuristik baru dengan animasi yang lebih halus, ikon yang diperbarui, dan tema gelap yang lebih modern dan memukau.
+- **[Fitur] Peningkatan Tampilan Respons AI**: Respons dari Gemini kini mendukung format Markdown secara penuh, termasuk *syntax highlighting* untuk blok kode, daftar (list), dan tabel, membuatnya jauh lebih rapi dan mudah dibaca.
+- **[Perbaikan] Pop-up Otomatis untuk Keyboard Mobile**: Jendela asisten kini secara otomatis bergeser ke atas saat keyboard muncul di perangkat mobile, memastikan kolom input tidak pernah tertutup.
+- **[Perbaikan] Stabilitas Posisi Pop-up**: Memperbaiki berbagai bug terkait posisi, ukuran, dan perilaku menghilang pada pop-up di desktop dan mobile untuk pengalaman yang lebih konsisten dan mulus.
