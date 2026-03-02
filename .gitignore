@@ -1,0 +1,20 @@
+# --- PRIVATE SOURCE (JANGAN DI-PUSH) ---
+/src/
+webpack.config.js
+post_build.js
+path-fix-loader.js
+package.json
+package-lock.json
+node_modules/
+
+# --- IDE & SYSTEM ---
+.gemini/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# --- DISTRIBUTION (HASIL OBFUSCATE) ---
+# Kita tetap mengizinkan folder dist untuk di-push
+!/dist/

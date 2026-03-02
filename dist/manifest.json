@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Mentari Mod v2.0",
+  "version": "2.0",
+  "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": [
+    "https://mentari.unpam.ac.id/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": "src/assets/icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["src/content/apiKeyManager.js", "src/content/content.js", "src/content/gemini.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["src/content/home.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/exam/*"],
+      "js": ["src/content/quiz.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/kuesioner/*"],
+      "js": ["src/content/kuisioner.js"]
+    },
+    {
+      "matches": ["https://mentari.unpam.ac.id/u-courses/*/forum/*/topics/*"],
+      "js": ["src/content/discus.js"]
+    },
+    {
+      "matches": ["https://my.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["src/content/presensi.js", "src/content/QuickSurvey.js"]
+    },
+    {
+      "matches": [
+        "https://my.unpam.ac.id/login",
+        "https://mentari.unpam.ac.id/login"
+      ],
+      "js": ["src/content/pw.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content/token.js", "src/content/apiKeyManager.js", "src/content/guidebook.js", "src/assets/background.png"],
+      "matches": ["https://mentari.unpam.ac.id/*"]
+    }
+  ],
+  "icons": {
+    "16": "src/assets/icon.png",
+    "48": "src/assets/icon.png",
+    "128": "src/assets/icon.png"
+  }
+}
