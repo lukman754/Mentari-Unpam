@@ -1,45 +1,257 @@
+// quiz.js — Quiz Helper Extension for MENTARI UNPAM
+// Refactored: modular structure (Config, Utils, ApiService, UIRenderer, QuizEngine, App)
+
 (async () => {
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  // ─── CONFIG ──────────────────────────────────────────────────────────────────
+  const Config = {
+    GEMINI: {
+      MODEL: "gemini-2.5-flash-lite",
+      ENDPOINT: "https://generativelanguage.googleapis.com/v1beta/models",
+      TEMPERATURE: 0.2,
+      TOP_P: 0.85,
+      TOP_K: 20,
+      MAX_TOKENS: 2048,
+      SYSTEM_PROMPT: `Kamu adalah asisten akademik ahli untuk menjawab soal quiz mahasiswa Universitas Pamulang (UNPAM).
 
-  // Replace the hardcoded API key with this function
-  function getGeminiApiKey() {
-    // First try to get the API key from apiKeyManager
-    const storedApiKey = localStorage.getItem("geminiApiKey");
+Cara menjawab:
+1. Baca pertanyaan dengan teliti
+2. Analisis setiap pilihan jawaban satu per satu
+3. Gunakan penalaran logis dan pengetahuan akademik untuk menentukan jawaban yang paling benar
+4. Pada BARIS TERAKHIR, tulis HANYA: "Jawaban: [huruf]"
 
-    if (storedApiKey) {
-      return atob(storedApiKey);
-    }
+Penting:
+- Jangan gunakan karakter markdown atau simbol khusus
+- Tulis penjelasan singkat mengapa pilihan tersebut benar
+- Format wajib baris terakhir: "Jawaban: a" atau "Jawaban: b" dst`,
+    },
+    API: {
+      BASE_URL: "https://mentari.unpam.ac.id/api",
+      QUIZ_ENDPOINT: (quizId) => `https://mentari.unpam.ac.id/api/quiz/soal/${quizId}`,
+    },
+    POLL_INTERVAL_MS: 1000,
+    SELECTORS: {
+      START_BUTTON: "button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary",
+      CONFIRM_BUTTON: 'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]',
+      AUTO_FINISH_QUIZ_BUTTONS: [
+        'button.MuiButtonBase-root:has(span:contains("Selesai Quiz"))',
+        'button.MuiButton-contained:has(span:contains("Selesai Quiz"))',
+        'button:has(svg[data-testid="DoneAllIcon"])',
+      ],
+    },
+  };
 
-    // If not found in localStorage, show an error
-    const errorMsg = document.createElement("div");
-    errorMsg.style =
-      "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#f44336;color:white;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;";
-    errorMsg.innerHTML = `<div style="display:flex;align-items:center;gap:10px;">
-    <span>❌</span>
-    <span>API Key tidak ditemukan. Pastikan Anda telah mengatur API Key di ApiKeyManager.</span>
-  </div>`;
-    document.body.appendChild(errorMsg);
+  // ─── UTILS ───────────────────────────────────────────────────────────────────
+  const Utils = {
+    delay: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 
-    setTimeout(() => {
-      errorMsg.style.opacity = "0";
-      errorMsg.style.transition = "opacity 0.5s ease";
-      setTimeout(() => errorMsg.remove(), 500);
-    }, 5000);
+    getGeminiApiKey() {
+      const stored = localStorage.getItem("geminiApiKey");
+      if (stored) return atob(stored);
 
-    throw new Error("Gemini API Key not found in localStorage");
-  }
+      const errorEl = document.createElement("div");
+      errorEl.style = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#f44336;color:white;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;";
+      errorEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span>❌</span><span>API Key tidak ditemukan. Pastikan Anda telah mengatur API Key di Settings.</span></div>`;
+      document.body.appendChild(errorEl);
+      setTimeout(() => { errorEl.style.opacity = "0"; errorEl.style.transition = "opacity 0.5s"; setTimeout(() => errorEl.remove(), 500); }, 5000);
+      throw new Error("Gemini API Key not found in localStorage");
+    },
 
-  try {
-    const GEMINI_API_KEY = getGeminiApiKey();
+    getToken() {
+      const raw = localStorage.getItem("access");
+      if (!raw) throw new Error("Token akses tidak ditemukan");
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data) || !data[0]?.token) throw new Error("Struktur token tidak valid");
+      return data[0].token;
+    },
 
-    function createPopup() {
+    getQuizId() {
+      return window.location.href.split("/").pop();
+    },
+
+    cleanText(html) {
+      if (!html) return "";
+      const div = document.createElement("div");
+      div.innerHTML = html;
+
+      // Preserve table content
+      div.querySelectorAll("table").forEach((table) => {
+        let text = "\n==TABLE==\n";
+        table.querySelectorAll("tr").forEach((row, idx) => {
+          const cells = Array.from(row.querySelectorAll("td, th")).map((c) => c.textContent.trim()).join(" | ");
+          text += cells + "\n";
+          if (idx === 0 && row.querySelectorAll("th").length > 0) text += "-".repeat(cells.length) + "\n";
+        });
+        text += "==END TABLE==\n";
+        const pre = document.createElement("pre");
+        pre.textContent = text;
+        table.parentNode.replaceChild(pre, table);
+      });
+
+      return div.innerHTML
+        .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, "\n=== $1 ===\n\n")
+        .replace(/<strong>(.*?)<\/strong>/gi, "*$1*")
+        .replace(/<em>(.*?)<\/em>/gi, "_$1_")
+        .replace(/<\/p>/g, "\n\n")
+        .replace(/<br\s*\/?>/g, "\n")
+        .replace(/<ul[^>]*>/g, "\n").replace(/<\/ul>/g, "\n")
+        .replace(/<ol[^>]*>/g, "\n").replace(/<\/ol>/g, "\n")
+        .replace(/<li>/g, "• ").replace(/<\/li>/g, "\n")
+        .replace(/<img[^>]*alt="([^"]*)"[^>]*>/gi, "[IMG: $1]")
+        .replace(/<img[^>]*>/gi, "[IMG]")
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+        .replace(/\n\s*\n\s*\n/g, "\n\n")
+        .trim();
+    },
+
+    showError(message) {
+      const el = document.createElement("div");
+      el.style = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#fff;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;border:1px solid #333;";
+      el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#f44336;">❌</span><span>${message}</span></div>`;
+      document.body.appendChild(el);
+      setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity 0.5s"; setTimeout(() => el.remove(), 500); }, 5000);
+    },
+  };
+
+  // ─── API SERVICE ─────────────────────────────────────────────────────────────
+  const ApiService = {
+    async fetchQuiz(token, quizId) {
+      const res = await fetch(Config.API.QUIZ_ENDPOINT(quizId), {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        cache: "no-store",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.data ? data : null;
+    },
+
+    // Satu request untuk SEMUA soal sekaligus
+    async askGeminiBatch(apiKey, questions) {
+      const total = questions.length;
+      console.log(`[Batch] Mengirim ${total} soal dalam 1 request...`);
+
+      // Susun prompt dengan semua soal
+      const questionsBlock = questions.map((q, i) => {
+        const opts = q.options.map((o, j) => `  ${String.fromCharCode(97+j)}. ${o}`).join("\n");
+        return `=== SOAL_${i+1} ===\n${q.question}\n\nPilihan:\n${opts}`;
+      }).join("\n\n");
+
+      const prompt = `${Config.GEMINI.SYSTEM_PROMPT}
+
+Jawab SEMUA soal berikut. Untuk setiap soal, tulis jawaban dengan format WAJIB:
+SOAL_1: [huruf]
+SOAL_2: [huruf]
+... dst.
+
+Tulis jawaban di AKHIR response, satu baris per soal. Boleh tambahkan penjelasan singkat per soal sebelumnya.
+
+${questionsBlock}
+
+---
+REKAP JAWABAN (wajib ada di baris paling akhir, format tepat seperti ini):
+${questions.map((_, i) => `SOAL_${i+1}: [huruf]`).join("\n")}`;
+
+      let model = localStorage.getItem("gemini_model") || "gemini-2.5-flash-lite";
+      if (model.includes('"')) model = JSON.parse(model);
+      
+      let retries = 3;
+      const startTime = performance.now();
+
+      while (retries > 0) {
+        try {
+          const res = await fetch(
+            `${Config.GEMINI.ENDPOINT}/${model}:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: Config.GEMINI.TEMPERATURE,
+                  topP: Config.GEMINI.TOP_P,
+                  topK: Config.GEMINI.TOP_K,
+                  maxOutputTokens: Math.max(Config.GEMINI.MAX_TOKENS, total * 80),
+                  candidateCount: 1,
+                },
+                safetySettings: [
+                  { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                  { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                  { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                  { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                ],
+              }),
+            }
+          );
+
+          if (!res.ok) throw new Error(`API error: ${res.status}`);
+          const data = await res.json();
+          const fullText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+          console.log(`[Batch] Selesai dalam ${elapsed}s`);
+
+          return this._extractBatchAnswers(fullText, questions, total);
+
+        } catch (err) {
+          retries--;
+          console.warn(`[Batch] Retry ${3 - retries}/3: ${err.message}`);
+          if (retries === 0) {
+            // Fallback semua soal jika gagal total
+            return questions.map(q => ({
+              ...this.fallbackAnswer(q.question, q.options),
+              explanation: `Error: ${err.message}`,
+            }));
+          }
+          await Utils.delay(2000 * (4 - retries));
+        }
+      }
+    },
+
+    _extractBatchAnswers(fullText, questions, total) {
+      const results = [];
+      for (let i = 1; i <= total; i++) {
+        // Cari pola SOAL_N: [huruf]
+        const pattern = new RegExp(`SOAL_${i}\\s*:\\s*([a-e])`, "i");
+        const match = fullText.match(pattern);
+        if (match) {
+          results.push({ letter: match[1].toLowerCase(), explanation: fullText });
+        } else {
+          // Fallback per-soal jika tidak ditemukan
+          console.warn(`[Batch] Jawaban soal #${i} tidak ditemukan, pakai fallback`);
+          results.push(this.fallbackAnswer(questions[i-1].question, questions[i-1].options));
+        }
+      }
+      return results;
+    },
+
+    // Fallback: keyword matching jika Gemini gagal
+    fallbackAnswer(question, options) {
+      const keywords = question.toLowerCase().replace(/[.,?!;:()]/g, "").split(/\s+/).filter((w) => w.length > 3);
+      let bestIdx = 0, bestScore = 0;
+      options.forEach((opt, idx) => {
+        const score = keywords.filter((kw) => opt.toLowerCase().includes(kw)).length;
+        if (score > bestScore) { bestScore = score; bestIdx = idx; }
+      });
+      if (bestScore === 0 && options.length > 1) bestIdx = 1;
+      return {
+        letter: String.fromCharCode(97 + bestIdx),
+        explanation: "Maaf, analisis mendalam tidak tersedia. Jawaban ini adalah perkiraan berdasarkan kata kunci.",
+      };
+    },
+  };
+
+  // ─── UI RENDERER ─────────────────────────────────────────────────────────────
+  const UIRenderer = {
+    popup: null,
+    content: null,
+
+    createPopup() {
       const popup = document.createElement("div");
-      popup.style =
-        "position:fixed;z-index:10000;min-width:300px;max-width:450px;width:auto;top:20px;right:20px;background:#1e1e1e;color:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-family:system-ui;font-size:13px;border:1px solid #333;overflow:hidden;";
+      popup.style = "position:fixed;z-index:10000;min-width:300px;max-width:450px;width:auto;top:20px;right:20px;background:#1e1e1e;color:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-family:system-ui;font-size:13px;border:1px solid #333;overflow:hidden;";
 
       const header = document.createElement("div");
-      header.style =
-        "padding:10px 14px;background:#2a2a2a;color:#fff;cursor:move;user-select:none;display:flex;justify-content:space-between;align-items:center;font-weight:500;border-bottom:1px solid #333;";
+      header.style = "padding:10px 14px;background:#2a2a2a;color:#fff;cursor:move;user-select:none;display:flex;justify-content:space-between;align-items:center;font-weight:500;border-bottom:1px solid #333;";
       header.innerHTML = `
         <div>Quiz Helper</div>
         <div style="display:flex;gap:8px;">
@@ -52,12 +264,17 @@
       content.id = "popup-content";
       content.style = "padding:12px;max-height:500px;overflow-y:auto;";
 
-      // Add hover effects for buttons
+      // Hover & scrollbar styles
       const style = document.createElement("style");
       style.textContent = `
         #toggle-popup:hover, #close-popup:hover { color: #fff !important; }
-        .q-tooltip { background: #2a2a2a !important; border-color: #333 !important; }
-        .explanation-tooltip { background: #2a2a2a !important; border-color: #333 !important; }
+        .q-tooltip { background: #1e1e1e !important; border-color: #444 !important; }
+        ::-webkit-scrollbar { width: 2px; height: 2px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(76,175,80,0.5); }
+        .mode-btn { padding: 4px 8px; border-radius: 4px; border: 1px solid #444; background: #2a2a2a; color: #888; font-size: 10px; cursor: pointer; transition: all 0.2s; }
+        .mode-btn.active { background: rgba(76,175,80,0.2); border-color: #4CAF50; color: #4CAF50; font-weight: bold; }
       `;
       document.head.appendChild(style);
 
@@ -65,1119 +282,576 @@
       popup.appendChild(content);
       document.body.appendChild(popup);
 
-      let isDragging = false;
-      let offsetX, offsetY;
+      this._makeDraggable(popup, header);
+      this._initToggle(popup, content);
+      this.popup = popup;
+      this.content = content;
+      return { element: popup, content, remove: () => popup.remove() };
+    },
 
-      header.addEventListener("mousedown", (e) => {
-        isDragging = true;
-        offsetX = e.clientX - popup.getBoundingClientRect().left;
-        offsetY = e.clientY - popup.getBoundingClientRect().top;
-      });
+    _makeDraggable(popup, handle) {
+      let dragging = false, ox, oy;
+      handle.addEventListener("mousedown", (e) => { dragging = true; ox = e.clientX - popup.getBoundingClientRect().left; oy = e.clientY - popup.getBoundingClientRect().top; });
+      document.addEventListener("mousemove", (e) => { if (!dragging) return; popup.style.left = e.clientX - ox + "px"; popup.style.top = e.clientY - oy + "px"; popup.style.right = "auto"; });
+      document.addEventListener("mouseup", () => (dragging = false));
+    },
 
-      document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        popup.style.left = e.clientX - offsetX + "px";
-        popup.style.top = e.clientY - offsetY + "px";
-        popup.style.right = "auto";
-      });
-
-      document.addEventListener("mouseup", () => (isDragging = false));
-
-      let isOpen = true;
-      let contentHeight = null;
-
+    _initToggle(popup, content) {
+      let open = true;
       document.getElementById("toggle-popup").addEventListener("click", () => {
-        if (isOpen) {
-          contentHeight = content.scrollHeight;
-          content.style.display = "none";
-          document.getElementById("toggle-popup").textContent = "+";
+        open = !open;
+        content.style.display = open ? "block" : "none";
+        popup.style.height = open ? "auto" : undefined;
+        document.getElementById("toggle-popup").textContent = open ? "−" : "+";
+      });
+      document.getElementById("close-popup").addEventListener("click", () => popup.remove());
+    },
+
+    showLoading(content) {
+      content.innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <div style="width:60px;height:60px;margin:0 auto 15px;background:#2a2a2a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #333;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v8M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h8M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+          </div>
+          <div style="font-size:16px;font-weight:500;color:#4CAF50;margin-bottom:8px;">Memuat Quiz</div>
+          <div style="color:#999;font-size:13px;">Mohon tunggu sebentar...</div>
+          <div style="width:100%;height:4px;background:#2a2a2a;border-radius:2px;overflow:hidden;margin-top:12px;position:relative;">
+            <div style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4CAF50;animation:quiz-pulse 1.5s ease-in-out infinite;"></div>
+          </div>
+          <style>@keyframes quiz-pulse { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }</style>
+        </div>`;
+    },
+
+    showScanning(content) {
+      content.innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:16px;font-weight:500;color:#4CAF50;margin-bottom:8px;">Memeriksa Quiz...</div>
+          <div style="color:#999;font-size:13px;">Mencari tombol "Mulai Quiz"</div>
+          <div style="width:100%;height:4px;background:#2a2a2a;border-radius:2px;overflow:hidden;margin-top:12px;position:relative;">
+            <div style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4CAF50;animation:quiz-pulse 0.8s ease-in-out infinite;"></div>
+          </div>
+        </div>`;
+    },
+
+    initAnswerContainer(content) {
+      content.innerHTML = `
+        <div style="margin-bottom:10px;">
+          <div id="progress-text" style="font-size:12px;margin-bottom:6px;color:#999;font-weight:500;">Mencari jawaban...</div>
+          <div style="width:100%;height:4px;background-color:#2a2a2a;border-radius:2px;overflow:hidden;">
+            <div id="progress-bar" style="height:100%;width:0%;background-color:#4CAF50;transition:width 0.2s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div style="background:rgba(240,173,78,0.08);border:1px solid rgba(240,173,78,0.25);border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#f0ad4e;line-height:1.5;">
+          ⚠️ <strong>Catatan:</strong> Jawaban AI bisa saja kurang tepat. Gunakan sebagai referensi, bukan patokan utama — tetap baca soal dan cek jawabannya sendiri ya!
+        </div>
+
+        <!-- Tombol Copy All -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;">
+          <button id="copy-all-questions" style="flex:1;padding:7px;background:#2a2a2a;border:1px solid #444;border-radius:6px;color:#ccc;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.2s;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Salin
+          </button>
+          
+          <div style="display:flex;gap:2px;background:#2a2a2a;padding:2px;border-radius:6px;border:1px solid #444;">
+            <button class="mode-btn ${App.viewMode === 1 ? 'active' : ''}" data-mode="1" title="Mode Ringkas">R</button>
+            <button class="mode-btn ${App.viewMode === 2 ? 'active' : ''}" data-mode="2" title="Mode Standar">S</button>
+            <button class="mode-btn ${App.viewMode === 3 ? 'active' : ''}" data-mode="3" title="Mode Detail">D</button>
+          </div>
+        </div>
+
+        <div id="answers-container" style="max-height:420px;overflow-y:auto;padding-right:4px;"></div>
+        <div style="display:none;justify-content:space-between;margin-top:10px;">
+          <label style="display:flex;align-items:center;font-size:12px;color:#999;"><input type="checkbox" id="auto-answer" checked style="margin-right:5px;"> Auto-jawab</label>
+          <label style="display:flex;align-items:center;font-size:12px;color:#999;"><input type="checkbox" id="auto-next" checked style="margin-right:5px;"> Auto-next</label>
+        </div>`;
+
+      // Event Copy All
+      document.getElementById("copy-all-questions").addEventListener("click", () => App.copyAllQuestions());
+
+      // Event Switch Mode
+      content.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const mode = parseInt(btn.dataset.mode);
+          if (App.viewMode === mode) return;
+          App.viewMode = mode;
+          
+          // Toggle active class
+          content.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          
+          // Re-render all questions
+          App.renderAllQuestions();
+        });
+      });
+    },
+
+    createQuestionItem(index, questionId, statusHtml) {
+      const el = document.createElement("div");
+      el.dataset.questionId = questionId;
+      el.style = "padding:8px 12px;margin-bottom:8px;border-radius:6px;background-color:#2a2a2a;position:relative;border-left:3px solid #333;transition:all 0.2s ease;";
+      el.innerHTML = `<small>${index + 1}. <span style="color:#ffcc5c;">${statusHtml}</span></small>`;
+      return el;
+    },
+
+    updateQuestionItem(element, data) {
+      const { answer, number, options, question, explanation, index } = data;
+      const viewMode = App.viewMode;
+
+      if (answer) {
+        const answerIndex = answer.charCodeAt(0) - 97;
+        const answerText = options[answerIndex] || "";
+        
+        element.style.borderLeftColor = "#4CAF50";
+        element.style.padding = viewMode === 1 ? "6px 12px" : "10px 12px";
+
+        let html = "";
+        
+        if (viewMode === 1) {
+          // MODE 1: Ringkas (Nomor, Jawaban, Tombol Set)
+          html = `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">
+                <span style="color:#888;margin-right:4px;">${number}.</span>
+                <span style="background:#4CAF50;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;">${answer.toUpperCase()}</span>
+                <span style="color:#ddd;">${answerText}</span>
+              </div>
+              <button class="apply-answer" data-index="${index}" data-letter="${answer}" style="padding:2px 8px;background:#4CAF50;border:none;border-radius:4px;color:white;font-size:9px;cursor:pointer;">Set</button>
+            </div>`;
         } else {
-          content.style.display = "block";
-          popup.style.height = "auto";
-          document.getElementById("toggle-popup").textContent = "−";
+          // MODE 2 & 3: Standar / Detail
+          html = `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="flex:1;">
+                <span style="font-size:11px;color:#4CAF50;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Soal ${number}</span>
+                <span style="margin-left:8px;background:#4CAF50;color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;">${answer.toUpperCase()}</span>
+              </div>
+              <div style="display:flex;gap:5px;flex-shrink:0;">
+                <button class="apply-answer" data-index="${index}" data-letter="${answer}" title="Pilih jawaban ini" style="padding:3px 8px;background:#4CAF50;border:none;border-radius:4px;color:white;font-size:10px;cursor:pointer;">Pilih</button>
+                <div class="info-button" title="Lihat penjelasan AI" style="width:22px;height:22px;border-radius:50%;background:#333;color:#aaa;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-weight:700;transition:all 0.2s;">i</div>
+              </div>
+            </div>
+
+            <div style="font-size:12px;color:#ddd;line-height:1.5;margin-bottom:8px;white-space:pre-wrap;word-break:break-word;">${question.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+
+            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:${viewMode === 3 ? '10px' : '0'};">
+              ${options.map((opt, idx) => {
+                const letter = String.fromCharCode(97 + idx);
+                const isAnswer = letter === answer;
+                return `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 7px;border-radius:5px;font-size:11px;background:${isAnswer ? 'rgba(76,175,80,0.12)' : 'rgba(255,255,255,0.03)'};border:1px solid ${isAnswer ? 'rgba(76,175,80,0.3)' : 'rgba(255,255,255,0.05)'};">
+                  <span style="font-weight:700;color:${isAnswer ? '#4CAF50' : '#777'};flex-shrink:0;min-width:14px;">${letter}.</span>
+                  <span style="color:${isAnswer ? '#c8f0c9' : '#aaa'};line-height:1.4;">${opt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+                </div>`;
+              }).join('')}
+            </div>`;
+
+          if (viewMode === 3) {
+            html += `
+              <div style="padding:8px 10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:6px;font-size:11px;color:#999;line-height:1.5;">
+                <div style="font-weight:600;color:#4CAF50;margin-bottom:4px;font-size:10px;display:flex;align-items:center;gap:4px;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  PENJELASAN AI
+                </div>
+                ${explanation.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br>')}
+              </div>`;
+          }
         }
-        isOpen = !isOpen;
-      });
 
-      document
-        .getElementById("close-popup")
-        .addEventListener("click", () => popup.remove());
+        element.innerHTML = html;
 
-      return {
-        element: popup,
-        content: content,
-        remove: () => popup.remove(),
-      };
-    }
-
-    document.getElementById("auto-answer")?.addEventListener("change", () => {
-      if (document.getElementById("auto-answer").checked) {
-        sequentiallyAnswerAllQuestions();
-      } else if (autoAnswerTimer) {
-        clearInterval(autoAnswerTimer);
-        autoAnswerTimer = null;
-      }
-    });
-
-    function cleanText(html) {
-      if (!html) return "";
-
-      const div = document.createElement("div");
-      div.innerHTML = html;
-
-      const tables = div.querySelectorAll("table");
-      tables.forEach((table) => {
-        let tableText = "\n==TABLE==\n";
-        const rows = table.querySelectorAll("tr");
-
-        rows.forEach((row, idx) => {
-          const cells = row.querySelectorAll("td, th");
-          const rowText = Array.from(cells)
-            .map((cell) => cell.textContent.trim())
-            .join(" | ");
-          tableText += rowText + "\n";
-          if (idx === 0 && row.querySelectorAll("th").length > 0) {
-            tableText += "-".repeat(rowText.length) + "\n";
+        element.querySelector(".apply-answer").addEventListener("click", () => {
+          if (QuizEngine.selectRadioAnswer(index, answer) && document.getElementById("auto-next")?.checked) {
+            setTimeout(() => QuizEngine.clickNextButton(), 500);
           }
         });
 
-        tableText += "==END TABLE==\n";
-        const pre = document.createElement("pre");
-        pre.textContent = tableText;
-        table.parentNode.replaceChild(pre, table);
-      });
+        const infoBtn = element.querySelector(".info-button");
+        if (infoBtn) {
+          infoBtn.addEventListener("mouseenter", () => {
+            infoBtn.style.backgroundColor = "#4CAF50";
+            infoBtn.style.color = "#fff";
+            const tooltip = document.createElement("div");
+            tooltip.className = "q-tooltip explanation-tooltip";
+            tooltip.style = "position:fixed;width:320px;padding:12px;background:#1e1e1e;border:1px solid #444;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:10001;font-size:12px;white-space:pre-wrap;max-height:350px;overflow-y:auto;line-height:1.5;";
+            tooltip.innerHTML = `
+              <div style="font-weight:600;color:#4CAF50;margin-bottom:6px;">💡 Penjelasan AI:</div>
+              <div style="color:#ccc;">${explanation.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br>')}</div>
+              <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;font-size:10px;color:#666;">⚠️ Jawaban AI mungkin tidak selalu tepat.</div>`;
+            document.body.appendChild(tooltip);
 
-      return div.innerHTML
-        .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, "\n=== $1 ===\n\n")
-        .replace(/<strong>(.*?)<\/strong>/gi, "*$1*")
-        .replace(/<em>(.*?)<\/em>/gi, "_$1_")
-        .replace(/<\/p>/g, "\n\n")
-        .replace(/<br\s*\/?>/g, "\n")
-        .replace(/<ul[^>]*>/g, "\n")
-        .replace(/<\/ul>/g, "\n")
-        .replace(/<ol[^>]*>/g, "\n")
-        .replace(/<\/ol>/g, "\n")
-        .replace(/<li>/g, "• ")
-        .replace(/<\/li>/g, "\n")
-        .replace(/<img[^>]*alt="([^"]*)"[^>]*>/gi, "[IMG: $1]")
-        .replace(/<img[^>]*>/gi, "[IMG]")
-        .replace(/<[^>]*>/g, "")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/\n\s*\n\s*\n/g, "\n\n")
-        .trim();
-    }
-
-    // Modify the askGemini function to immediately apply answer after generation
-    async function askGemini(question, options, questionId, questionIndex) {
-      console.log(
-        `Processing question #${questionIndex}: "${question.substring(
-          0,
-          100
-        )}..."`
-      );
-
-      // Format pilihan jawaban
-      const optionsText = options
-        .map((opt, i) => `${String.fromCharCode(97 + i)}. ${opt}`)
-        .join("\n");
-
-      // Prompt yang lebih ketat untuk meningkatkan akurasi
-      const prompt = `
-Pertanyaan:
-"""
-${question}
-"""
-
-Pilihan jawaban:
-"""
-${optionsText}
-"""
-Berikan jawaban akhir HANYA dengan huruf (a, b, c, d, atau e) pada baris terakhir
-Format jawaban akhir sebagai: "Jawaban: [huruf]"`;
-
-      try {
-        let retries = 3;
-        let geminiResult = null;
-
-        const startTime = performance.now();
-
-        while (retries > 0 && !geminiResult) {
-          try {
-            const response = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: prompt }] }],
-                  generationConfig: {
-                    temperature: 0.2,
-                    topP: 0.7,
-                    topK: 10,
-                    maxOutputTokens: 1024,
-                  },
-                }),
-              }
-            );
-
-            if (!response.ok) {
-              console.error(`API error: ${response.status}`);
-              throw new Error(`API error: ${response.status}`);
-            }
-
-            const data = await response.json();
-            geminiResult = data;
-          } catch (error) {
-            console.warn(`Retry ${4 - retries}/3: ${error.message}`);
-            retries--;
-            if (retries === 0) throw error;
-            await new Promise((resolve) =>
-              setTimeout(resolve, 1500 * (4 - retries))
-            );
-          }
-        }
-
-        const processingTime = ((performance.now() - startTime) / 1000).toFixed(
-          2
-        );
-        const answerText =
-          geminiResult?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-        // Mencari jawaban dengan regex yang lebih ketat
-        let answerLetter = null;
-        const answerPatterns = [
-          /Jawaban\s*:\s*([a-e])/i, // Format utama
-          /\b([a-e])\b\s*$/, // Huruf tunggal di akhir teks
-          /.*(Pilihan [a-e] yang benar adalah|Maka jawabannya adalah)\s*([a-e])/i, // Variasi lainnya
-        ];
-
-        for (const pattern of answerPatterns) {
-          const match = answerText.match(pattern);
-          if (match) {
-            answerLetter = match[1].toLowerCase();
-            break;
-          }
-        }
-
-        if (!answerLetter) {
-          console.warn(
-            "AI response did not contain a clear answer. Logging full response:"
-          );
-          console.warn(answerText);
-        }
-
-        const result = {
-          letter: answerLetter,
-          explanation: answerText.trim(),
-        };
-
-        console.log(
-          `Question #${questionIndex} processed in ${processingTime}s`
-        );
-        console.log(`Answer: ${result.letter || "Unable to determine"}`);
-
-        return result;
-      } catch (error) {
-        console.error(`Error processing question #${questionIndex}:`, error);
-        return { letter: null, explanation: `Error: ${error.message}` };
-      }
-    }
-
-    // Modify the fallbackAnswerExtractor to immediately apply answer
-    async function fallbackAnswerExtractor(
-      question,
-      options,
-      questionId,
-      questionIndex
-    ) {
-      try {
-        const keywords = question
-          .toLowerCase()
-          .replace(/[.,?!;:()]/g, "")
-          .split(/\s+/)
-          .filter((word) => word.length > 3);
-
-        let bestMatchIndex = 0;
-        let bestMatchScore = 0;
-
-        options.forEach((option, index) => {
-          const optionText = option.toLowerCase();
-          let score = 0;
-
-          keywords.forEach((keyword) => {
-            if (optionText.includes(keyword)) {
-              score += 1;
-            }
+            const btnRect = infoBtn.getBoundingClientRect();
+            tooltip.style.top = Math.min(btnRect.bottom + 6, window.innerHeight - 360) + "px";
+            tooltip.style.left = Math.max(10, Math.min(btnRect.left - 280, window.innerWidth - 340)) + "px";
           });
-
-          if (score > bestMatchScore) {
-            bestMatchScore = score;
-            bestMatchIndex = index;
-          }
-        });
-
-        if (bestMatchScore === 0 && options.length > 1) {
-          bestMatchIndex = 1;
+          infoBtn.addEventListener("mouseleave", () => {
+            infoBtn.style.backgroundColor = "#333";
+            infoBtn.style.color = "#aaa";
+            document.querySelector(".explanation-tooltip")?.remove();
+          });
         }
-
-        const letter = String.fromCharCode(97 + bestMatchIndex);
-
-        const result = {
-          letter: letter,
-          explanation:
-            "Maaf, analisis mendalam tidak tersedia. Jawaban ini adalah perkiraan berdasarkan kata kunci dalam pertanyaan dan pilihan.",
-        };
-
-        return result;
-      } catch (e) {
-        return {
-          letter: options.length > 0 ? "a" : null,
-          explanation:
-            "Tidak dapat menganalisis. Memilih opsi pertama sebagai default.",
-        };
+      } else {
+        element.style.borderLeftColor = "#f44336";
+        element.innerHTML = `<div style="color:#fff;font-size:12px;padding:4px 0;">${number}. <span style="color:#f44336;font-weight:500;">Gagal mendapatkan jawaban</span></div>`;
       }
-    }
+    },
+  };
 
-    // Improved selectRadioAnswer function for better reliability
-    function selectRadioAnswer(questionIndex, answerLetter) {
+  // ─── QUIZ ENGINE ─────────────────────────────────────────────────────────────
+  const QuizEngine = {
+    selectRadioAnswer(questionIndex, answerLetter) {
       const answerIndex = answerLetter.charCodeAt(0) - 97;
-
-      // Expanded list of selectors to find radio buttons across different quiz platforms
-      const radioSelectors = [
-        `.MuiStack-root.css-1kic1uf .MuiFormControlLabel-root:nth-child(${
-          answerIndex + 1
-        }) .MuiRadio-root`,
+      const selectors = [
+        `.MuiStack-root.css-1kic1uf .MuiFormControlLabel-root:nth-child(${answerIndex + 1}) .MuiRadio-root`,
         `input[type="radio"][name="jawaban[${questionIndex}]"][value="${answerIndex}"]`,
-        `input[type="radio"][name="soal_${
-          questionIndex + 1
-        }"][value="${answerIndex}"]`,
-        `input[type="radio"][value="${answerIndex}"][data-question-id="${
-          questionIndex + 1
-        }"]`,
-        // More generic selectors
-        `.question-container:nth-child(${
-          questionIndex + 1
-        }) input[type="radio"]:nth-child(${answerIndex + 1})`,
-        `#question-${
-          questionIndex + 1
-        } input[type="radio"][value="${answerIndex}"]`,
-        // Additional selectors for better compatibility
+        `input[type="radio"][name="soal_${questionIndex + 1}"][value="${answerIndex}"]`,
+        `input[type="radio"][value="${answerIndex}"][data-question-id="${questionIndex + 1}"]`,
+        `.question-container:nth-child(${questionIndex + 1}) input[type="radio"]:nth-child(${answerIndex + 1})`,
+        `#question-${questionIndex + 1} input[type="radio"][value="${answerIndex}"]`,
         `form .MuiRadio-root:nth-of-type(${answerIndex + 1})`,
-        `.css-1675apn .MuiFormControlLabel-root:nth-child(${
-          answerIndex + 1
-        }) input`,
+        `.css-1675apn .MuiFormControlLabel-root:nth-child(${answerIndex + 1}) input`,
         `[name^="jawaban"][value="${answerIndex}"]`,
       ];
 
-      let radioButton = null;
-      for (const selector of radioSelectors) {
+      for (const sel of selectors) {
         try {
-          radioButton = document.querySelector(selector);
-          if (radioButton) break;
-        } catch (e) {
-          continue;
-        }
+          const radio = document.querySelector(sel);
+          if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event("change", { bubbles: true }));
+            radio.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+            return true;
+          }
+        } catch (_) {}
       }
-
-      if (radioButton) {
-        // Create and dispatch both change and click events for better compatibility
-        radioButton.checked = true;
-
-        // Dispatch change event
-        const changeEvent = new Event("change", { bubbles: true });
-        radioButton.dispatchEvent(changeEvent);
-
-        // Dispatch click event
-        const clickEvent = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        });
-        radioButton.dispatchEvent(clickEvent);
-
-        return true;
-      }
-
       return false;
-    }
-    // Improve the next button clicking function
-    // Optimized clickNextButton function
-    function clickNextButton() {
-      const nextButtons = [
+    },
+
+    clickNextButton() {
+      const nextSelectors = [
         'button:has(svg[data-testid="KeyboardTabIcon"])',
         'button.MuiButton-contained:has(span:contains("Next"))',
         'button.MuiButton-contained:has(span:contains("Selanjutnya"))',
         "button.next-button",
         'button[type="submit"]',
         'input[type="button"][value="Next"]',
-        // More generic selectors
         "button.btn-primary:not(:disabled)",
-        'button:contains("Next"):not(:disabled)',
-        'button:contains("Selanjutnya"):not(:disabled)',
-        // Additional selectors
         "button.css-1hw9j7s",
         '[aria-label="next"]',
-        '.MuiButtonBase-root:contains("Next")',
       ];
 
-      for (const selector of nextButtons) {
+      for (const sel of nextSelectors) {
         try {
-          const buttons = document.querySelectorAll(selector);
-          for (const nextButton of buttons) {
-            if (
-              nextButton &&
-              !nextButton.disabled &&
-              nextButton.offsetParent !== null
-            ) {
-              nextButton.click();
-              return true;
-            }
+          const buttons = document.querySelectorAll(sel);
+          for (const btn of buttons) {
+            if (btn && !btn.disabled && btn.offsetParent !== null) { btn.click(); return true; }
           }
-        } catch (e) {
-          continue;
-        }
+        } catch (_) {}
       }
 
-      // If no next button is found, try to click Selesai Quiz button
-      const selesaiButtons = [
-        'button.MuiButtonBase-root:has(span:contains("Selesai Quiz"))',
-        'button.MuiButton-contained:has(span:contains("Selesai Quiz"))',
-        'button:has(svg[data-testid="DoneAllIcon"])',
-        'button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary:has(span:contains("Selesai Quiz"))',
-        // More specific selector based on the provided HTML
-        'button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary.MuiButton-sizeSmall.MuiButton-containedSizeSmall:has(span:contains("Selesai Quiz"))',
-      ];
-
-      // Cek toggle auto_finish_quiz sebelum klik otomatis tombol Selesai Quiz
-      const autoFinishEnabled =
-        localStorage.getItem("auto_finish_quiz") === "true";
-
-      if (!autoFinishEnabled) {
-        // Jika toggle tidak aktif, tambahkan delay random 2-3 menit untuk humanize
-        const randomDelay = Math.floor(Math.random() * 60000) + 120000; // 2-3 menit dalam milidetik
-        console.log(
-          `Auto finish quiz tidak aktif, menunggu ${Math.round(
-            randomDelay / 1000
-          )} detik untuk humanize...`
-        );
-
-        setTimeout(() => {
-          console.log("Delay selesai, melanjutkan auto finish quiz...");
-          // Panggil fungsi ini lagi setelah delay
-          clickNextButton();
-        }, randomDelay);
-
+      // Cek auto_finish_quiz
+      const autoFinish = localStorage.getItem("auto_finish_quiz") === "true";
+      if (!autoFinish) {
+        const delay = Math.floor(Math.random() * 60000) + 120000;
+        console.log(`Auto finish tidak aktif, menunggu ${Math.round(delay / 1000)}s untuk humanize...`);
+        setTimeout(() => this.clickNextButton(), delay);
         return false;
       }
 
-      for (const selector of selesaiButtons) {
+      for (const sel of Config.SELECTORS.AUTO_FINISH_QUIZ_BUTTONS) {
         try {
-          const buttons = document.querySelectorAll(selector);
-          for (const selesaiButton of buttons) {
-            if (
-              selesaiButton &&
-              !selesaiButton.disabled &&
-              selesaiButton.offsetParent !== null
-            ) {
-              console.log("Found Selesai Quiz button, clicking...");
-              selesaiButton.click();
-
-              // Start watching for the second "Ya" button after clicking Selesai Quiz
-              setTimeout(() => {
-                const observer = new MutationObserver((mutations, obs) => {
-                  try {
-                    const confirmButton = document
-                      .querySelector(
-                        'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]'
-                      )
-                      ?.closest("button");
-
-                    if (confirmButton) {
-                      console.log(
-                        "Found second confirmation dialog after Selesai Quiz, clicking 'Ya'..."
-                      );
-                      confirmButton.click();
-                      obs.disconnect();
-                    }
-                  } catch (error) {
-                    console.debug("Selector check in progress...");
-                  }
-                });
-
-                observer.observe(document.body, {
-                  childList: true,
-                  subtree: true,
-                  attributes: false,
-                  characterData: false,
-                });
-
-                // Also check immediately in case the button is already present
-                try {
-                  const confirmButton = document
-                    .querySelector(
-                      'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]'
-                    )
-                    ?.closest("button");
-
-                  if (confirmButton) {
-                    console.log(
-                      "Second confirmation dialog already present, clicking 'Ya'..."
-                    );
-                    confirmButton.click();
-                    observer.disconnect();
-                  }
-                } catch (error) {
-                  console.debug("Initial selector check in progress...");
-                }
-              }, 500); // Small delay to ensure the confirmation dialog has time to appear
-
+          const buttons = document.querySelectorAll(sel);
+          for (const btn of buttons) {
+            if (btn && !btn.disabled && btn.offsetParent !== null) {
+              btn.click();
+              this._watchConfirmDialog();
               return true;
             }
           }
-        } catch (e) {
-          continue;
-        }
+        } catch (_) {}
       }
-
       return false;
-    }
+    },
 
-    // Check if all answers are ready and answer questions sequentially
-    function sequentiallyAnswerAllQuestions() {
-      if (
-        !document.getElementById("auto-answer")?.checked ||
-        !allQuestionsAnswered
-      )
-        return;
+    _watchConfirmDialog() {
+      setTimeout(() => {
+        const selector = Config.SELECTORS.CONFIRM_BUTTON;
+        const check = () => document.querySelector(selector)?.closest("button");
 
-      // Clear any existing timer
-      if (autoAnswerTimer) {
-        clearInterval(autoAnswerTimer);
-      }
+        const obs = new MutationObserver((_, o) => {
+          const btn = check();
+          if (btn) { btn.click(); o.disconnect(); }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        const btn = check();
+        if (btn) { btn.click(); obs.disconnect(); }
+      }, 500);
+    },
 
-      // Get all questions in order
-      const questions = Array.from(questionData.values()).sort(
-        (a, b) => a.index - b.index
-      );
-      let currentQuestionIndex = 0;
-      let noNextButtonCount = 0; // Counter for consecutive no-next-button situations
+    sequentiallyAnswerAllQuestions(questionData) {
+      if (!document.getElementById("auto-answer")?.checked) return;
+      const questions = Array.from(questionData.values()).sort((a, b) => a.index - b.index);
+      let i = 0, noNextCount = 0;
 
-      // Function to process next question
-      function processNextQuestion() {
-        if (currentQuestionIndex >= questions.length) {
-          clearInterval(autoAnswerTimer);
-          return;
-        }
-
-        const question = questions[currentQuestionIndex];
-        const selected = selectRadioAnswer(question.index, question.answer);
-
+      const processNext = () => {
+        if (i >= questions.length) return;
+        const q = questions[i];
+        const selected = this.selectRadioAnswer(q.index, q.answer);
         if (selected) {
-          // If auto-next is enabled, click next button after a short delay
           if (document.getElementById("auto-next")?.checked) {
             setTimeout(() => {
-              if (clickNextButton()) {
-                // Reset no-next-button counter if next button was found
-                noNextButtonCount = 0;
-                // Move to next question after clicking next
-                currentQuestionIndex++;
-                // Wait a bit before processing next question
-                setTimeout(processNextQuestion, 100);
-              } else {
-                // Increment counter if no next button was found
-                noNextButtonCount++;
-                if (noNextButtonCount >= 2) {
-                  // If no next button found twice in a row
-                  console.log(
-                    "No next button found twice, trying to finish quiz..."
-                  );
-                  // Try to click Selesai Quiz button multiple times to ensure it's clicked
-                  for (let i = 0; i < 3; i++) {
-                    setTimeout(() => clickNextButton(), i * 50);
-                  }
-                  clearInterval(autoAnswerTimer);
-                } else {
-                  // Retry after a short delay
-                  setTimeout(processNextQuestion, 100);
-                }
+              if (this.clickNextButton()) { noNextCount = 0; i++; setTimeout(processNext, 100); }
+              else {
+                noNextCount++;
+                if (noNextCount >= 2) { for (let j = 0; j < 3; j++) setTimeout(() => this.clickNextButton(), j * 50); }
+                else setTimeout(processNext, 100);
               }
             }, 100);
-          } else {
-            currentQuestionIndex++;
-            setTimeout(processNextQuestion, 100);
-          }
-        } else {
-          // If failed to select answer, retry after a short delay
-          setTimeout(processNextQuestion, 100);
-        }
-      }
+          } else { i++; setTimeout(processNext, 100); }
+        } else { setTimeout(processNext, 100); }
+      };
 
-      // Start processing questions
-      processNextQuestion();
-    }
+      processNext();
+    },
+  };
 
-    const localStorageData = localStorage.getItem("access");
-    if (!localStorageData) throw new Error("Token akses tidak ditemukan");
+  // ─── APP ─────────────────────────────────────────────────────────────────────
+  const App = {
+    apiKey: null,
+    token: null,
+    quizId: null,
+    popup: null,
+    processedQuestions: new Set(),
+    questionData: new Map(),
+    viewMode: 2, // 1: Ringkas, 2: Standar, 3: Detail
+    allAnswered: false,
 
-    let accessData;
-    try {
-      accessData = JSON.parse(localStorageData);
-    } catch (e) {
-      throw new Error("Error parsing data token");
-    }
-
-    if (
-      !Array.isArray(accessData) ||
-      accessData.length === 0 ||
-      !accessData[0].token
-    ) {
-      throw new Error("Struktur token tidak valid");
-    }
-
-    const token = accessData[0].token;
-    const quizId = window.location.href.split("/").pop();
-    const apiUrl = `https://mentari.unpam.ac.id/api/quiz/soal/${quizId}`;
-
-    const popup = createPopup();
-    popup.content.innerHTML =
-      '<div style="text-align:center;padding:20px;">' +
-      '<div style="margin-bottom:15px;position:relative;">' +
-      '<div style="width:60px;height:60px;margin:0 auto 15px;background:#2a2a2a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #333;">' +
-      '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M12 2v8M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h8M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
-      "</svg>" +
-      "</div>" +
-      '<div style="font-size:16px;font-weight:500;color:#4CAF50;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.2);">Memuat Quiz</div>' +
-      '<div style="color:#999;font-size:13px;line-height:1.4;max-width:280px;margin:0 auto;">Mohon tunggu sebentar...</div>' +
-      "</div>" +
-      '<div style="width:100%;height:4px;background:#2a2a2a;border-radius:2px;overflow:hidden;position:relative;">' +
-      '<div id="load-progress" style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4CAF50;animation:pulse 1.5s ease-in-out infinite;"></div>' +
-      "</div>" +
-      "<style>" +
-      "@keyframes pulse {" +
-      "0% { transform: translateX(-100%); }" +
-      "100% { transform: translateX(400%); }" +
-      "}" +
-      "</style>" +
-      "</div>";
-
-    const processedQuestions = new Set();
-    const questionData = new Map();
-    let allQuestionsAnswered = false;
-    let autoAnswerTimer = null;
-
-    // Modify the fetchAndProcess function to be more aggressive in checking
-    async function fetchAndProcess() {
-      try {
-        const response = await fetch(apiUrl, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          // Add cache control to prevent caching
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          // Instead of throwing error, show friendly message
-          popup.content.innerHTML = `
-            <div style="text-align:center;padding:20px;">
-              <div style="margin-bottom:15px;position:relative;">
-                <div style="width:60px;height:60px;margin:0 auto 15px;background:#2a2a2a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #333;animation:spin 1s linear infinite;">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;">
-                    <path d="M12 2v8M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h8M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
-                </div>
-                <div style="font-size:16px;font-weight:500;color:#4CAF50;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.2);">Memeriksa Quiz...</div>
-                <div style="color:#999;font-size:13px;line-height:1.4;max-width:280px;margin:0 auto;">Mencari tombol "Mulai Quiz"</div>
-              </div>
-              <div style="width:100%;height:4px;background:#2a2a2a;border-radius:2px;overflow:hidden;position:relative;">
-                <div style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4CAF50;animation:pulse 0.8s ease-in-out infinite;"></div>
-              </div>
-              <style>
-                @keyframes pulse {
-                  0% { transform: translateX(-100%); }
-                  100% { transform: translateX(400%); }
-                }
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              </style>
-            </div>
-          `;
-          return;
-        }
-
-        const data = await response.json();
-        if (!data || !data.data) {
-          popup.content.innerHTML = `
-            <div style="text-align:center;padding:20px;">
-              <div style="margin-bottom:15px;position:relative;">
-                <div style="width:60px;height:60px;margin:0 auto 15px;background:#2a2a2a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #333;animation:spin 1s linear infinite;">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;">
-                    <path d="M12 2v8M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h8M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
-                </div>
-                <div style="font-size:16px;font-weight:500;color:#4CAF50;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.2);">Memeriksa Quiz...</div>
-                <div style="color:#999;font-size:13px;line-height:1.4;max-width:280px;margin:0 auto;">Mencari tombol "Mulai Quiz"</div>
-              </div>
-              <div style="width:100%;height:4px;background:#2a2a2a;border-radius:2px;overflow:hidden;position:relative;">
-                <div style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4CAF50;animation:pulse 0.8s ease-in-out infinite;"></div>
-              </div>
-              <style>
-                @keyframes pulse {
-                  0% { transform: translateX(-100%); }
-                  100% { transform: translateX(400%); }
-                }
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              </style>
-            </div>
-          `;
-          return;
-        }
-
-        await processQuiz(data);
-      } catch (error) {
-        console.error("Error:", error);
-        popup.content.innerHTML = `
-          <div style="text-align:center;padding:20px;">
-            <div style="margin-bottom:15px;position:relative;">
-              <div style="width:60px;height:60px;margin:0 auto 15px;background:#2a2a2a;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #333;animation:spin 1s linear infinite;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;">
-                  <path d="M12 2v8M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h8M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                </svg>
-              </div>
-              <div style="font-size:16px;font-weight:500;color:#4CAF50;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.2);">Memeriksa Quiz...</div>
-              <div style="color:#999;font-size:13px;line-height:1.4;max-width:280px;margin:0 auto;">Mencari tombol "Mulai Quiz"</div>
-            </div>
-            <div style="width:100%;height:4px;background:#2a2a2a;border-radius:2px;overflow:hidden;position:relative;">
-              <div style="position:absolute;top:0;left:0;width:30%;height:100%;background:#4CAF50;animation:pulse 0.8s ease-in-out infinite;"></div>
-            </div>
-            <style>
-              @keyframes pulse {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(400%); }
-              }
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            </style>
-          </div>
-        `;
-      }
-    }
-
-    // Modify the processQuiz function to gather all answers first
-    async function processQuiz(quizData) {
-      const isFirstRun = !popup.content.querySelector("#answers-container");
-
-      if (isFirstRun) {
-        popup.content.innerHTML = `
-      <div style="margin-bottom:15px;">
-            <div id="progress-text" style="font-size:12px;margin-bottom:8px;color:#999;font-weight:500;">Mencari jawaban...</div>
-            <div style="width:100%;height:4px;background-color:#2a2a2a;border-radius:2px;overflow:hidden;">
-              <div id="progress-bar" style="height:100%;width:0%;background-color:#4CAF50;transition:width 0.2s ease;"></div>
-        </div>
-      </div>
-      <div id="answers-container" style="max-height:350px;overflow-y:auto;padding-right:5px;"></div>
-      <div style="display:none;justify-content:space-between;margin-top:10px;">
-            <label style="display:flex;align-items:center;font-size:12px;color:#999;">
-          <input type="checkbox" id="auto-answer" checked style="margin-right:5px;"> Auto-jawab
-        </label>
-            <label style="display:flex;align-items:center;font-size:12px;color:#999;">
-          <input type="checkbox" id="auto-next" checked style="margin-right:5px;"> Auto-next
-        </label>
-      </div>
-    `;
-      }
-
-      const progressText = document.getElementById("progress-text");
-      const progressBar = document.getElementById("progress-bar");
+    renderAllQuestions() {
       const answersContainer = document.getElementById("answers-container");
+      if (!answersContainer) return;
+
+      this.questionData.forEach((data, questionId) => {
+        let el = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (el) {
+          UIRenderer.updateQuestionItem(el, data);
+        }
+      });
+    },
+
+    copyAllQuestions() {
+      if (this.questionData.size === 0) {
+        Utils.showError("Belum ada soal yang diproses.");
+        return;
+      }
+
+      const lines = [];
+      const sorted = Array.from(this.questionData.values()).sort((a, b) => a.index - b.index);
+
+      sorted.forEach((data) => {
+        lines.push(`Soal ${data.number}:`);
+        lines.push(data.question);
+        lines.push("");
+        data.options.forEach((opt, idx) => {
+          const letter = String.fromCharCode(97 + idx);
+          const mark = letter === data.answer ? " ✓ (Jawaban AI)" : "";
+          lines.push(`${letter}. ${opt}${mark}`);
+        });
+        lines.push(`→ Jawaban AI: ${data.answer?.toUpperCase() ?? "Tidak diketahui"}`);
+        lines.push("─".repeat(50));
+        lines.push("");
+      });
+
+      lines.push("⚠️ Catatan: Jawaban di atas dihasilkan oleh AI dan mungkin tidak selalu tepat.");
+      lines.push("Tetap baca soal dan verifikasi jawabannya sendiri ya!");
+
+      const text = lines.join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById("copy-all-questions");
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!`;
+          btn.style.color = "#4CAF50";
+          btn.style.borderColor = "#4CAF50";
+          setTimeout(() => { btn.innerHTML = orig; btn.style.color = "#ccc"; btn.style.borderColor = "#444"; }, 2000);
+        }
+      }).catch(() => Utils.showError("Gagal menyalin ke clipboard."));
+    },
+    async init() {
+      this.apiKey = Utils.getGeminiApiKey();
+      this.token = Utils.getToken();
+      this.quizId = Utils.getQuizId();
+      this.popup = UIRenderer.createPopup();
+      UIRenderer.showLoading(this.popup.content);
+
+      await this.fetchAndProcess();
+      setInterval(() => this.fetchAndProcess(), Config.POLL_INTERVAL_MS);
+      this.autoStartQuiz();
+      this.setupAutoConfirm();
+    },
+
+    async fetchAndProcess() {
+      // Jika popup sudah di-close, hentikan
+      if (!this.popup?.element?.isConnected) return;
+      const data = await ApiService.fetchQuiz(this.token, this.quizId);
+      if (!data) {
+        // Hanya tampilkan scanning jika answers-container belum ada (belum ada data)
+        if (!this.popup.content.querySelector("#answers-container")) {
+          UIRenderer.showScanning(this.popup.content);
+        }
+        return;
+      }
+      await this.processQuiz(data);
+    },
+
+    async processQuiz(quizData) {
+      const isFirstRun = !this.popup.content.querySelector("#answers-container");
+      if (isFirstRun) UIRenderer.initAnswerContainer(this.popup.content);
+
+
+      // Restore already-answered questions on re-render
+      const answersContainer = document.getElementById("answers-container");
+      if (!answersContainer) return; // Popup hilang dari DOM, abort
 
       if (!isFirstRun) {
-        questionData.forEach((data, questionId) => {
+        this.questionData.forEach((data, questionId) => {
           if (!document.querySelector(`[data-question-id="${questionId}"]`)) {
-            const questionItem = createQuestionElement(data);
-            answersContainer.appendChild(questionItem);
+            const item = UIRenderer.createQuestionItem(data.index, questionId, "...");
+            answersContainer.appendChild(item);
+            UIRenderer.updateQuestionItem(
+              document.querySelector(`[data-question-id="${questionId}"]`),
+              data
+            );
           }
         });
       }
 
-      let newQuestionsFound = false;
-      let answeredQuestions = 0;
+      let answeredCount = 0;
+      let newFound = false;
+      const pending = [];
 
-      // Gather all answers in parallel
-      const pendingQuestions = [];
       for (let i = 0; i < quizData.data.length; i++) {
-        const question = quizData.data[i];
-        if (processedQuestions.has(question.id)) {
-          if (
-            questionData.has(question.id) &&
-            questionData.get(question.id).answer
-          ) {
-            answeredQuestions++;
-          }
+        const q = quizData.data[i];
+
+        if (this.processedQuestions.has(q.id)) {
+          if (this.questionData.get(q.id)?.answer) answeredCount++;
           continue;
         }
 
-        newQuestionsFound = true;
-        processedQuestions.add(question.id);
+        newFound = true;
+        this.processedQuestions.add(q.id);
 
-        const progress = Math.round(((i + 1) / quizData.data.length) * 100);
-        progressBar.style.width = `${progress}%`;
-        progressText.textContent = `Mencari jawaban ${i + 1} dari ${
-          quizData.data.length
-        }`;
+        const pBar = document.getElementById("progress-bar");
+        const pText = document.getElementById("progress-text");
+        if (pBar) pBar.style.width = `${Math.round(((i + 1) / quizData.data.length) * 100)}%`;
+        if (pText) pText.textContent = `Mencari jawaban ${i + 1} dari ${quizData.data.length}`;
 
-        const questionItem = document.createElement("div");
-        questionItem.dataset.questionId = question.id;
-        questionItem.style =
-          "padding:8px 12px;margin-bottom:8px;border-radius:6px;background-color:#2a2a2a;position:relative;border-left:3px solid #333;transition:all 0.2s ease;";
-        questionItem.innerHTML = `<small>${
-          i + 1
-        }. <span style="color:#ffcc5c;">Mencari jawaban...</span></small>`;
+        const questionItem = UIRenderer.createQuestionItem(i, q.id, "Mencari jawaban...");
         answersContainer.appendChild(questionItem);
 
-        const title = cleanText(question.judul || "");
-        const desc = cleanText(question.deskripsi || "");
-        let fullQuestion = title ? `${title}\n\n` : "";
-        fullQuestion += desc ? `${desc}` : "";
-
-        const options = (question.list_jawaban || []).map((j) =>
-          cleanText(j.jawaban)
-        );
+        const title = Utils.cleanText(q.judul || "");
+        const desc = Utils.cleanText(q.deskripsi || "");
+        const fullQuestion = [title, desc].filter(Boolean).join("\n\n");
+        const options = (q.list_jawaban || []).map((j) => Utils.cleanText(j.jawaban));
 
         if (options.length === 0) {
-          questionItem.innerHTML = `<small>${
-            i + 1
-          }. <span style="color:#ff6b6b;">Tidak ada pilihan</span></small>`;
+          questionItem.innerHTML = `<small>${i + 1}. <span style="color:#ff6b6b;">Tidak ada pilihan</span></small>`;
           continue;
         }
 
-        pendingQuestions.push({
-          question: fullQuestion,
-          options: options,
-          questionId: question.id,
-          index: i,
-          questionItem: questionItem,
+        pending.push({ question: fullQuestion, options, questionId: q.id, index: i, questionItem });
+      }
+
+      // ── BATCH REQUEST: 1 request untuk semua soal sekaligus ──
+      if (pending.length > 0) {
+        const pText = document.getElementById("progress-text");
+        const pBar = document.getElementById("progress-bar");
+        if (pText) pText.textContent = `Memproses ${pending.length} soal dalam 1 request...`;
+        if (pBar) pBar.style.width = "50%";
+
+        const batchResults = await ApiService.askGeminiBatch(this.apiKey, pending);
+
+        if (pBar) pBar.style.width = "100%";
+
+        batchResults.forEach((result, batchIdx) => {
+          const { question, options, questionId, index, questionItem } = pending[batchIdx];
+          const data = {
+            id: questionId,
+            number: index + 1,
+            question,
+            options,
+            answer: result.letter,
+            explanation: result.explanation,
+            index,
+          };
+          this.questionData.set(questionId, data);
+          UIRenderer.updateQuestionItem(questionItem, data);
+          if (result.letter) answeredCount++;
         });
       }
 
-      // Process all pending questions in parallel
-      if (pendingQuestions.length > 0) {
-        const results = await Promise.all(
-          pendingQuestions.map(
-            async ({ question, options, questionId, index, questionItem }) => {
-              let result = await askGemini(
-                question,
-                options,
-                questionId,
-                index
-              );
-              if (!result.letter) {
-                result = await fallbackAnswerExtractor(
-                  question,
-                  options,
-                  questionId,
-                  index
-                );
-              }
-              return { ...result, questionId, index, questionItem };
-            }
-          )
-        );
+      // Update progress
+      const progressText = document.getElementById("progress-text");
+      const progressBar = document.getElementById("progress-bar");
+      if (!progressText || !progressBar) return; // Popup sudah ditutup
 
-        // Update UI with all results
-        results.forEach(
-          ({ letter, explanation, questionId, index, questionItem }) => {
-            questionData.set(questionId, {
-              id: questionId,
-              number: index + 1,
-              question: pendingQuestions.find(
-                (q) => q.questionId === questionId
-              ).question,
-              options: pendingQuestions.find((q) => q.questionId === questionId)
-                .options,
-              answer: letter,
-              explanation: explanation,
-              index: index,
-            });
-
-            updateQuestionElement(questionItem, questionData.get(questionId));
-            if (letter) answeredQuestions++;
-          }
-        );
-      }
-
-      // Update progress and start answering if all answers are found
-      if (answeredQuestions === quizData.data.length && !allQuestionsAnswered) {
-        allQuestionsAnswered = true;
-        progressText.textContent =
-          "✅ Semua jawaban ditemukan! Mulai menjawab...";
+      if (answeredCount === quizData.data.length && !this.allAnswered) {
+        this.allAnswered = true;
+        progressText.textContent = "✅ Semua jawaban ditemukan! Mulai menjawab...";
         progressText.style.color = "#4CAF50";
-
-        // Automatically start answering questions
         if (document.getElementById("auto-answer")?.checked) {
-          setTimeout(() => sequentiallyAnswerAllQuestions(), 100);
+          setTimeout(() => QuizEngine.sequentiallyAnswerAllQuestions(this.questionData), 100);
         }
       } else {
         progressBar.style.width = "100%";
-        const progressPercent = Math.round(
-          (answeredQuestions / quizData.data.length) * 100
-        );
-        progressText.textContent = `${progressPercent}% (${answeredQuestions}/${quizData.data.length}) jawaban ditemukan`;
-        progressText.style.color = newQuestionsFound ? "#4CAF50" : "#aaa";
+        const pct = Math.round((answeredCount / quizData.data.length) * 100);
+        progressText.textContent = `${pct}% (${answeredCount}/${quizData.data.length}) jawaban ditemukan`;
+        progressText.style.color = newFound ? "#4CAF50" : "#aaa";
       }
-    }
+    },
 
-    function createQuestionElement(data) {
-      const questionItem = document.createElement("div");
-      questionItem.dataset.questionId = data.id;
-      questionItem.style =
-        "padding:8px 12px;margin-bottom:8px;border-radius:6px;background-color:#2a2a2a;position:relative;border-left:3px solid #333;transition:all 0.2s ease;";
-
-      updateQuestionElement(questionItem, data);
-      return questionItem;
-    }
-
-    function updateQuestionElement(element, data) {
-      const answer = data.answer;
-
-      if (answer) {
-        const answerIndex = answer.charCodeAt(0) - 97;
-        const answerText = data.options[answerIndex] || "Opsi tidak valid";
-
-        element.style.borderLeftColor = "#4CAF50";
-        element.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="flex-grow:1;overflow:hidden;">
-              <span style="font-weight:500;color:#fff;">${
-                data.number
-              }. <span style="color:#4CAF50;font-weight:bold;">${answer.toUpperCase()}</span></span>
-              <span style="color:#999;margin-left:6px;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:inline-block;vertical-align:middle;">${answerText.substring(
-                0,
-                40
-              )}${answerText.length > 40 ? "..." : ""}</span>
-            </div>
-            <div style="display:none;align-items:center;">
-              <button class="apply-answer" data-index="${
-                data.index
-              }" data-letter="${answer}" style="margin-right:5px;padding:2px 5px;background:#4CAF50;border:none;border-radius:3px;color:white;font-size:10px;cursor:pointer;">Pilih</button>
-              <div class="info-button" style="width:18px;height:18px;border-radius:50%;background:#333;color:#999;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;transition:all 0.2s;">i</div>
-            </div>
-          </div>
-        `;
-
-        const applyButton = element.querySelector(".apply-answer");
-        applyButton.addEventListener("click", () => {
-          const index = parseInt(applyButton.dataset.index);
-          const letter = applyButton.dataset.letter;
-          if (
-            selectRadioAnswer(index, letter) &&
-            document.getElementById("auto-next")?.checked
-          ) {
-            setTimeout(() => clickNextButton(), 500);
-          }
-        });
-
-        const infoButton = element.querySelector(".info-button");
-        infoButton.addEventListener("mouseenter", () => {
-          element.style.backgroundColor = "#333";
-          element.querySelector(".info-button").style.backgroundColor =
-            "#4CAF50";
-          element.querySelector(".info-button").style.color = "#fff";
-
-          const tooltip = document.createElement("div");
-          tooltip.className = "q-tooltip explanation-tooltip";
-          tooltip.style =
-            "position:absolute;left:105%;top:0;transform:translateX(0);width:350px;padding:12px;background:#2a2a2a;border:1px solid #333;border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,0.3);z-index:10001;font-size:12px;white-space:pre-wrap;max-height:400px;overflow-y:auto;line-height:1.4;";
-
-          tooltip.innerHTML = `
-            <div style="margin-bottom:8px;font-weight:500;color:#4CAF50;">Pertanyaan:</div>
-            <div style="margin-bottom:10px;color:#fff;">${data.question}</div>
-            <div style="margin-bottom:8px;font-weight:500;color:#4CAF50;">Pilihan:</div>
-            <div style="margin-bottom:10px;color:#fff;">
-              ${data.options
-                .map(
-                  (opt, idx) =>
-                    `<div style="${
-                      answer === String.fromCharCode(97 + idx)
-                        ? "color:#4CAF50;font-weight:500;"
-                        : "color:#999;"
-                    }">${String.fromCharCode(97 + idx)}. ${opt}</div>`
-                )
-                .join("")}
-            </div>
-            <div style="margin-bottom:8px;font-weight:500;color:#4CAF50;">Penjelasan:</div>
-            <div style="color:#999;">${data.explanation.replace(
-              /\n/g,
-              "<br>"
-            )}</div>
-          `;
-
-          document.body.appendChild(tooltip);
-
-          const rect = tooltip.getBoundingClientRect();
-          if (rect.right > window.innerWidth) {
-            tooltip.style.left = "auto";
-            tooltip.style.right = "105%";
-            tooltip.style.transform = "translateX(0)";
-          }
-
-          if (rect.bottom > window.innerHeight) {
-            const overflow = rect.bottom - window.innerHeight;
-            tooltip.style.top = `${Math.max(0, rect.top - overflow - 20)}px`;
-            tooltip.style.transform = "translateX(0)";
-          }
-        });
-
-        infoButton.addEventListener("mouseleave", () => {
-          element.style.backgroundColor = "#2a2a2a";
-          element.querySelector(".info-button").style.backgroundColor = "#333";
-          element.querySelector(".info-button").style.color = "#999";
-          const tooltip = document.querySelector(".explanation-tooltip");
-          if (tooltip) tooltip.remove();
-        });
-      } else {
-        element.style.borderLeftColor = "#f44336";
-        element.innerHTML = `<div style="color:#fff;">${data.number}. <span style="color:#f44336;font-weight:500;">Error</span></div>`;
-      }
-    }
-
-    await fetchAndProcess();
-
-    // Set a faster check interval for updates (reduced from 4000ms to 1000ms)
-    setInterval(fetchAndProcess, 1000);
-
-    // Modify autoStartQuiz to be more aggressive
-    async function autoStartQuiz() {
-      // Reduce initial wait time
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Create a more aggressive observer for the start button
-      const startObserver = new MutationObserver((mutations, obs) => {
-        const startButton = document.querySelector(
-          "button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary"
-        );
-
-        if (startButton && startButton.textContent.includes("Mulai Quiz")) {
-          console.log("Found Mulai Quiz button, clicking...");
-          startButton.click();
-          obs.disconnect();
-
-          // Wait a moment and refresh the page
-          setTimeout(() => {
-            window.location.reload();
-          }, 50000);
+    autoStartQuiz() {
+      const SELECTOR = Config.SELECTORS.START_BUTTON;
+      const tryClick = (obs) => {
+        const btn = document.querySelector(SELECTOR);
+        if (btn && btn.textContent.includes("Mulai Quiz")) {
+          btn.click();
+          obs?.disconnect();
+          setTimeout(() => window.location.reload(), 50000);
+          return true;
         }
-      });
+        return false;
+      };
 
-      // Start observing immediately with a more aggressive configuration
-      startObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true, // Also watch for attribute changes
-        characterData: true, // Also watch for text content changes
-      });
-
-      // Also check immediately
-      const startButton = document.querySelector(
-        "button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary"
-      );
-
-      if (startButton && startButton.textContent.includes("Mulai Quiz")) {
-        console.log("Mulai Quiz button already present, clicking...");
-        startButton.click();
-        startObserver.disconnect();
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 50000);
+      if (!tryClick(null)) {
+        const obs = new MutationObserver((_, o) => tryClick(o));
+        obs.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
       }
-    }
+    },
 
-    // Add function to auto-click the "Ya" button (now only for the first appearance)
-    function setupAutoConfirm() {
-      let hasClickedFirst = false;
-
-      // Create a MutationObserver to watch for the confirmation dialog
-      const observer = new MutationObserver((mutations, obs) => {
-        try {
-          // Look for the "Ya" button using a more reliable selector
-          const confirmButton = document
-            .querySelector(
-              'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]'
-            )
-            ?.closest("button");
-
-          if (confirmButton && !hasClickedFirst) {
-            // First appearance only
-            console.log("Found first confirmation dialog, clicking 'Ya'...");
-            confirmButton.click();
-            hasClickedFirst = true;
-            obs.disconnect(); // Disconnect after first click since second click is handled by clickNextButton
-          }
-        } catch (error) {
-          // Silently handle any selector errors
-          console.debug("Selector check in progress...");
+    setupAutoConfirm() {
+      let clicked = false;
+      const SELECTOR = Config.SELECTORS.CONFIRM_BUTTON;
+      const tryClick = (obs) => {
+        const btn = document.querySelector(SELECTOR)?.closest("button");
+        if (btn && !clicked) {
+          btn.click();
+          clicked = true;
+          obs?.disconnect();
         }
-      });
+      };
 
-      // Start observing the document with the configured parameters
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: false,
-        characterData: false,
-      });
+      const obs = new MutationObserver((_, o) => tryClick(o));
+      obs.observe(document.body, { childList: true, subtree: true });
+      tryClick(null);
+    },
+  };
 
-      // Also check immediately in case the button is already present
-      try {
-        const confirmButton = document
-          .querySelector(
-            'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]'
-          )
-          ?.closest("button");
-
-        if (confirmButton && !hasClickedFirst) {
-          console.log(
-            "First confirmation dialog already present, clicking 'Ya'..."
-          );
-          confirmButton.click();
-          hasClickedFirst = true;
-          observer.disconnect();
-        }
-      } catch (error) {
-        // Silently handle any selector errors
-        console.debug("Initial selector check in progress...");
-      }
-    }
-
-    // Start both auto-start and auto-confirm processes
-    autoStartQuiz();
-    setupAutoConfirm();
+  // ─── BOOTSTRAP ───────────────────────────────────────────────────────────────
+  try {
+    await App.init();
   } catch (error) {
-    const errorMsg = document.createElement("div");
-    errorMsg.style =
-      "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#fff;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;border:1px solid #333;";
-    errorMsg.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#f44336;">❌</span><span>${error.message}</span></div>`;
-    document.body.appendChild(errorMsg);
-
-    setTimeout(() => {
-      errorMsg.style.opacity = "0";
-      errorMsg.style.transition = "opacity 0.5s ease";
-      setTimeout(() => errorMsg.remove(), 500);
-    }, 5000);
+    Utils.showError(error.message);
   }
 })();

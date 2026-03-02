@@ -4,7 +4,10 @@
   "version": "1.9",
   "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
   "permissions": ["scripting", "activeTab"],
-  "host_permissions": ["https://mentari.unpam.ac.id/*"],
+  "host_permissions": [
+    "https://mentari.unpam.ac.id/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": "src/assets/icon.png"
