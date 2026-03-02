@@ -1,10 +1,4 @@
-# --- PRIVATE SOURCE (JANGAN DI-PUSH) ---
-/src/
-webpack.config.js
-post_build.js
-path-fix-loader.js
-package.json
-package-lock.json
+# --- SOURCE CODE & CONFIG (DIIZINKAN KARENA REPO PRIVATE) ---
 node_modules/
 
 # --- IDE & SYSTEM ---
@@ -15,6 +9,6 @@ node_modules/
 Thumbs.db
 *.log
 
-# --- DISTRIBUTION (HASIL OBFUSCATE) ---
-# Kita tetap mengizinkan folder dist untuk di-push
-!/dist/
+# --- DISTRIBUTION ---
+# Folder dist juga tetap diikutkan
+dist/
