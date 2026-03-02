@@ -13,7 +13,7 @@
       API_KEY: "geminiApiKey",
     },
     PROMPTS: {
-      DEFAULT: (content) => `Bacalah diskusi berikut, lalu tuliskan jawaban atau rangkuman yang natural, mengalir, dan mudah dipahami seperti jawaban manusia. jangan gunakan tanda seperti (*/#) atau yg lainnya, hanya text dan angka. dan langsung jawab tanpa mengucapkan (berikut jawabannya) atau sejenisnya. Gunakan bahasa yang natural seperti manusia. Berikan penjelasan yang lengkap dan memadai sesuai konteks diskusi, jangan dibatasi jika membutuhkan penjelasan panjang. Jangan ucapkan "Tentu, ini rangkumannya:" atau semacamnya, langsung jawab saja. Jika terdapat soal atau pertanyaan yang berhubungan dengan bahasa pemrograman atau coding, berikan contoh singkat code nya. jika pertanyaannya bernomor maka buat jawaban bernomor juga, hanya pertanyaan saja\n${content}\n\nJawaban yang natural dan mengalir:`,
+      DEFAULT: (content) => `Bacalah diskusi berikut, lalu tuliskan jawaban atau rangkuman yang natural, JANGAN GUNAKAN HURUF TEBAL JANGAN GUNAKAN HURUF TEBAL JANGAN BOLD JANGAN PAKE TANDA BINTANG PLAIN TEXT YG BERSIH. dan mudah dipahami seperti jawaban manusia. jangan gunakan tanda seperti (*/#) atau yg lainnya, hanya plain text yg bersih jangan gunakan bold huruf tebal, italic, underline. dan langsung jawab tanpa mengucapkan (berikut jawabannya) atau sejenisnya. Gunakan bahasa yang natural seperti manusia. Berikan penjelasan yang lengkap dan memadai sesuai konteks diskusi, jangan dibatasi jika membutuhkan penjelasan panjang. Jangan ucapkan "Tentu, ini rangkumannya:" atau semacamnya, langsung jawab saja. Jika terdapat soal atau pertanyaan yang berhubungan dengan bahasa pemrograman atau coding, berikan contoh singkat code nya. jika pertanyaannya bernomor maka buat jawaban bernomor juga, hanya pertanyaan saja\n${content}\n\nJawaban yang natural dan mengalir:`,
       REVISE: (mode, prevAnswer) => {
         const modes = {
           shorten: `Ringkas jawaban berikut menjadi lebih singkat, tetap natural dan mudah dipahami, tanpa bullet atau penomoran:\n\n${prevAnswer}`,
@@ -24,7 +24,7 @@
         };
         return modes[mode] || prevAnswer;
       },
-      QUESTIONS: (content) => `Bacalah diskusi berikut, lalu buatkan beberapa saran pertanyaan yang natural, relevan, dan menarik untuk diajukan pada diskusi ini. Hindari bullet, penomoran, dan buat seolah-olah pertanyaan dari manusia. Pisahkan setiap pertanyaan dengan baris baru. Pastikan setiap saran pertanyaan berdiri sendiri, tidak saling terhubung, dan tidak menggunakan kata penghubung seperti 'selain itu', 'terus', 'dan' di awal kalimat.\n\n${content}\n\nSaran pertanyaan:`
+      QUESTIONS: (content) => `Bacalah diskusi berikut, lalu buatkan beberapa saran pertanyaan yang natural, relevan, dan menarik untuk diajukan pada diskusi ini. Hindari bullet, penomoran, huruf tebal, italic, underline dan buat seolah-olah pertanyaan dari manusia. Pisahkan setiap pertanyaan dengan baris baru. Pastikan setiap saran pertanyaan berdiri sendiri, tidak saling terhubung, dan tidak menggunakan kata penghubung seperti 'selain itu', 'terus', 'dan' di awal kalimat.\n\n${content}\n\nSaran pertanyaan:`
     }
   };
 
@@ -50,14 +50,24 @@
     isDosen(root) {
       const elements = [...(root?.querySelectorAll('strong, b, [style*="font-weight:bold"], [class*="name"], [class*="user"], [class*="author"], .MuiTypography-root') || [])];
       return elements.some(el => /\b(?:,|\.)\b/i.test(el.textContent.trim()));
+    },
+    updateQuota(headers) {
+      try {
+        const quota = {
+          rpm: { remaining: parseInt(headers.get('x-ratelimit-remaining-requests')), limit: parseInt(headers.get('x-ratelimit-limit-requests')) },
+          tpm: { remaining: parseInt(headers.get('x-ratelimit-remaining-tokens')), limit: parseInt(headers.get('x-ratelimit-limit-tokens')) },
+          updated: Date.now()
+        };
+        if (!isNaN(quota.rpm.limit)) localStorage.setItem("gemini_quota", JSON.stringify(quota));
+      } catch (e) {}
     }
   };
 
   const ApiService = {
     async callGemini(prompt) {
       const key = Utils.getApiKey();
-      let model = localStorage.getItem("gemini_model") || "gemini-1.5-flash";
-      if (model.includes('"')) model = JSON.parse(model);
+      let modelRaw = localStorage.getItem("gemini_model") || Config.GEMINI.MODEL;
+      let model = modelRaw.replace(/"/g, '');
 
       const res = await fetch(`${Config.GEMINI.ENDPOINT}/${model}:generateContent?key=${key}`, {
         method: "POST",
@@ -68,7 +78,13 @@
         })
       });
 
-      if (!res.ok) throw new Error("Gagal mendapatkan jawaban dari Gemini");
+      if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error("Rate Limit Tercapai! Kuota API model ini sudah habis. Silakan ganti Model atau API Key lain di menu Pengaturan (Mentari Mod).");
+        }
+        throw new Error("Gagal mendapatkan jawaban dari Gemini (Cek Koneksi atau API Key)");
+      }
+      Utils.updateQuota(res.headers);
       const data = await res.json();
       return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada jawaban.";
     }
@@ -80,11 +96,11 @@
       btn.type = "button";
       if (type === "buat") {
         btn.className = "MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedInfo MuiButton-sizeSmall MuiButton-containedSizeSmall buat-pertanyaan-btn";
-        btn.style = "margin-right:2px;min-width:0px;padding:7px 12px;line-height:1.2;font-weight:500;border-radius:11px;background:#1e3a8a;color:#fff;border:0;display:flex;align-items:center;gap:4px;";
+        btn.style = "margin-right:2px;min-width:0px;padding:6px 12px;line-height:1.2;font-weight:500;border-radius:11px;background:#1e3a8a;color:#fff;border:0;display:flex;align-items:center;gap:4px;";
         btn.innerHTML = `<span class="MuiButton-startIcon" style="display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg></span><span class="MuiButton-label">Buat Pertanyaan</span>`;
       } else {
         btn.className = "MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedWarning MuiButton-sizeSmall MuiButton-containedSizeSmall cari-jawaban-btn";
-        btn.style = "margin-right:2px;min-width:0px;padding:7px 12px;line-height:1.2;font-weight:500;border-radius:11px;background:#41a3f1;color:rgb(255,255,255);border:0;display:flex;align-items:center;gap:4px;";
+        btn.style = "margin-right:2px;min-width:0px;padding:6px 12px;line-height:1.2;font-weight:500;border-radius:11px;background:#41a3f1;color:rgb(255,255,255);border:0;display:flex;align-items:center;gap:4px;";
         btn.innerHTML = `<span class="MuiButton-startIcon" style="display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span><span class="MuiButton-label">Cari Jawaban</span>`;
       }
       btn.onclick = onClick;

@@ -58,13 +58,13 @@ function showApiKeyPopup() {
     <div id="gemini_apiKeyPopup" class="gemini_api-key-popup">
       <div class="gemini_popup-header">
         <div style="font-weight:600; color:#fff; display:flex; align-items:center; gap:8px;">
-          <span class="ms" style="color:#f0872d">vpn_key</span> Gemini API Key
+          <span class="ms" style="color:#d4af37">vpn_key</span> Gemini API Key
         </div>
       </div>
       <div class="gemini_popup-content">
         <div style="margin-bottom:12px; color:#aaa; font-size:12px; line-height:1.4;">
            Dapatkan API key gratis di Google AI Studio:<br>
-           <a href="https://aistudio.google.com/api-keys" target="_blank" style="color:#f0872d; text-decoration:none; word-break:break-all;">https://aistudio.google.com/api-keys</a>
+           <a href="https://aistudio.google.com/api-keys" target="_blank" style="color:#d4af37; text-decoration:none; word-break:break-all;">https://aistudio.google.com/api-keys</a>
         </div>
         
         <div style="position:relative; width:100%; margin-bottom:12px; display:flex; align-items:center;">
@@ -79,7 +79,7 @@ function showApiKeyPopup() {
         
         <div style="display:flex; justify-content:flex-end; gap:10px;">
           <button id="gemini_closePopup" style="background:transparent; color:#999; border:none; cursor:pointer; font-size:12px; font-weight:500;">Batal</button>
-          <button id="gemini_saveApiKeyButton" style="background:#f0872d; color:#fff; border:none; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px;">
+          <button id="gemini_saveApiKeyButton" style="background:#d4af37; color:#fff; border:none; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px;">
             <span id="gemini_btnText">Simpan</span>
           </button>
         </div>
@@ -171,7 +171,7 @@ function addApiKeyPopupStyles() {
     .gemini_api-key-popup { background:#121212; width:380px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); overflow:hidden; box-shadow:0 15px 50px rgba(0,0,0,0.8); }
     .gemini_popup-header { padding:16px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.08); }
     .gemini_popup-content { padding:20px; }
-    #gemini_apiKeyInput:focus { border-color: #f0872d!important; }
+    #gemini_apiKeyInput:focus { border-color: #d4af37!important; }
     .ms-spin { font-family: 'Material Symbols Rounded'; font-size: 16px; font-style: normal; display: inline-block; line-height: 1; }
     @keyframes spin { from {transform:rotate(0deg);} to {transform:rotate(360deg);} }
   `;

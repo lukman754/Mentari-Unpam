@@ -57,15 +57,27 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
   background:
     radial-gradient(
       circle at center,
-      rgba(255,255,255,0.58) 0%,
-      rgba(255,255,255,0.38) 30%,
-      transparent 65%
+      rgba(255,255,255,0.88) 0%,
+      rgba(255,255,255,0.68) 30%,
+      transparent 75%
     );
 
   filter: blur(14px);
   mix-blend-mode: screen;
 
   animation: mentari-sweep 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Light Theme Glow: Use orange instead of white */
+#mentari-header-toggle.light-theme::after {
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(255, 123, 0, 0.6) 0%,
+      rgba(255, 123, 0, 0.3) 30%,
+      transparent 75%
+    );
+  mix-blend-mode: multiply;
 }
 
 /* Hover = subtle breathing glow */
@@ -105,19 +117,27 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
           mentariButton.style.alignItems = "center";
           mentariButton.style.justifyContent = "center";
           mentariButton.style.outline = "0";
-          mentariButton.style.color = "#f0872d";
+          mentariButton.style.color = "#ff7b00ff";
           mentariButton.style.cursor = "pointer";
           mentariButton.style.transition = "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms";
 
+          // Theme Detection Logic for Glow
+          const applyTheme = () => {
+            const isLight = document.querySelector(".css-1yxmbwk") !== null;
+            if (isLight) mentariButton.classList.add("light-theme");
+            else mentariButton.classList.remove("light-theme");
+          };
+          applyTheme();
+
           mentariButton.innerHTML = `
-            <svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium" focusable="false" aria-hidden="true" viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: currentColor;">
+            <svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium" focusable="false" aria-hidden="true" viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: currentColor;">
               <path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
             </svg>
             <span class="MuiTouchRipple-root"></span>
 
           `;
 
-          mentariButton.onmouseover = () => { mentariButton.style.backgroundColor = "rgba(240, 135, 45, 0.08)"; };
+          mentariButton.onmouseover = () => { mentariButton.style.backgroundColor = "rgba(212, 175, 55, 0.08)"; };
           mentariButton.onmouseout = () => { mentariButton.style.backgroundColor = "transparent"; };
 
           mentariButton.onclick = (e) => {
@@ -139,17 +159,30 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     const headerCheckInterval = setInterval(injectHeaderToggle, 500);
 
     let scriptsLoaded = false;
+    let isLoading = false;
+    let loadQueue = [];
 
     function loadScripts(callback) {
       if (scriptsLoaded) { if (callback) callback(); return; }
+      if (callback) loadQueue.push(callback);
+      if (isLoading) return;
+      
+      isLoading = true;
       let apiScript = document.createElement("script");
       apiScript.src = chrome.runtime.getURL("src/content/apiKeyManager.js");
       apiScript.onload = function () {
         let tokenScript = document.createElement("script");
         tokenScript.src = chrome.runtime.getURL("src/content/token.js");
         tokenScript.onload = function () {
-          scriptsLoaded = true;
-          if (callback) callback();
+          let guideScript = document.createElement("script");
+          guideScript.src = chrome.runtime.getURL("src/content/guidebook.js");
+          guideScript.onload = function () {
+            scriptsLoaded = true;
+            isLoading = false;
+            loadQueue.forEach(cb => cb());
+            loadQueue = [];
+          };
+          document.body.appendChild(guideScript);
         };
         document.body.appendChild(tokenScript);
       };
@@ -157,7 +190,6 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     }
 
     function clickButton() {
-      // Load script dulu jika belum, baru toggle popup
       loadScripts(() => {
         window.dispatchEvent(new CustomEvent('mentari-toggle-popup'));
       });

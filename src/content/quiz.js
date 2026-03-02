@@ -107,10 +107,21 @@ Penting:
 
     showError(message) {
       const el = document.createElement("div");
-      el.style = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#fff;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;border:1px solid #333;";
+      el.style = "position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:50px;box-shadow:0 5px 15px rgba(0,0,0,0.4);z-index:10000;font-family:system-ui;border:1px solid #444;font-size:11px;animation:toastIn 0.3s;";
       el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#f44336;">❌</span><span>${message}</span></div>`;
       document.body.appendChild(el);
       setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity 0.5s"; setTimeout(() => el.remove(), 500); }, 5000);
+    },
+
+    updateQuota(headers) {
+      try {
+        const quota = {
+          rpm: { remaining: parseInt(headers.get('x-ratelimit-remaining-requests')), limit: parseInt(headers.get('x-ratelimit-limit-requests')) },
+          tpm: { remaining: parseInt(headers.get('x-ratelimit-remaining-tokens')), limit: parseInt(headers.get('x-ratelimit-limit-tokens')) },
+          updated: Date.now()
+        };
+        if (!isNaN(quota.rpm.limit)) localStorage.setItem("gemini_quota", JSON.stringify(quota));
+      } catch (e) {}
     },
   };
 
@@ -127,99 +138,82 @@ Penting:
       return data?.data ? data : null;
     },
 
-    // Satu request untuk SEMUA soal sekaligus
+    // Proses soal dalam kelompok kecil (5 soal per request) untuk akurasi maksimal
     async askGeminiBatch(apiKey, questions) {
-      const total = questions.length;
-      console.log(`[Batch] Mengirim ${total} soal dalam 1 request...`);
+      const CHUNK_SIZE = 5;
+      const results = [];
+      const modelRaw = localStorage.getItem("gemini_model") || Config.GEMINI.MODEL;
+      const model = modelRaw.replace(/"/g, '');
 
-      // Susun prompt dengan semua soal
-      const questionsBlock = questions.map((q, i) => {
-        const opts = q.options.map((o, j) => `  ${String.fromCharCode(97+j)}. ${o}`).join("\n");
-        return `=== SOAL_${i+1} ===\n${q.question}\n\nPilihan:\n${opts}`;
-      }).join("\n\n");
+      for (let i = 0; i < questions.length; i += CHUNK_SIZE) {
+        const chunk = questions.slice(i, i + CHUNK_SIZE);
+        const startIndex = i + 1;
+        
+        console.log(`[Batch] Memproses chunk ${Math.floor(i/CHUNK_SIZE) + 1} (${chunk.length} soal)...`);
+        
+        const chunkBlock = chunk.map((q, j) => {
+          const opts = q.options.map((o, k) => `  ${String.fromCharCode(65+k)}. ${o}`).join("\n");
+          return `### SOAL ${startIndex + j}\n${q.question}\n\nPilihan:\n${opts}`;
+        }).join("\n\n---\n\n");
 
-      const prompt = `${Config.GEMINI.SYSTEM_PROMPT}
+        const prompt = `Kamu adalah pakar akademik yang sangat teliti. Jawab soal-soal berikut dengan akurasi 100%. 
+Langkah kerja:
+1. Analisis soal dan semua pilihan jawaban dengan mendalam.
+2. Identifikasi konsep kunci dan singkirkan pilihan yang salah.
+3. Pilih jawaban yang paling tepat secara akademis.
 
-Jawab SEMUA soal berikut. Untuk setiap soal, tulis jawaban dengan format WAJIB:
-SOAL_1: [huruf]
-SOAL_2: [huruf]
-... dst.
+DAFTAR SOAL:
+${chunkBlock}
 
-Tulis jawaban di AKHIR response, satu baris per soal. Boleh tambahkan penjelasan singkat per soal sebelumnya.
+Wajib tulis REKAP JAWABAN di baris paling akhir dengan format persis seperti ini:
+${chunk.map((_, j) => `JAWABAN_${startIndex+j}: [HURUF]`).join("\n")}
 
-${questionsBlock}
+Berikan penjelasan ringkas per soal sebelum rekap.`;
 
----
-REKAP JAWABAN (wajib ada di baris paling akhir, format tepat seperti ini):
-${questions.map((_, i) => `SOAL_${i+1}: [huruf]`).join("\n")}`;
+        let retries = 2;
+        let chunkSuccess = false;
 
-      let model = localStorage.getItem("gemini_model") || "gemini-2.5-flash-lite";
-      if (model.includes('"')) model = JSON.parse(model);
-      
-      let retries = 3;
-      const startTime = performance.now();
-
-      while (retries > 0) {
-        try {
-          const res = await fetch(
-            `${Config.GEMINI.ENDPOINT}/${model}:generateContent?key=${apiKey}`,
-            {
+        while (retries >= 0 && !chunkSuccess) {
+          try {
+            const res = await fetch(`${Config.GEMINI.ENDPOINT}/${model}:generateContent?key=${apiKey}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
-                  temperature: Config.GEMINI.TEMPERATURE,
-                  topP: Config.GEMINI.TOP_P,
-                  topK: Config.GEMINI.TOP_K,
-                  maxOutputTokens: Math.max(Config.GEMINI.MAX_TOKENS, total * 80),
-                  candidateCount: 1,
-                },
-                safetySettings: [
-                  { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-                  { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-                  { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-                  { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-                ],
-              }),
+                  temperature: 0.1, // Sangat rendah untuk akurasi maksimal/deterministik
+                  topP: 0.1,
+                  maxOutputTokens: 2048
+                }
+              })
+            });
+
+            if (!res.ok) throw new Error(`API Error ${res.status}`);
+            Utils.updateQuota(res.headers);
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            
+            // Ekstrak jawaban dari chunk ini
+            chunk.forEach((_, j) => {
+              const idx = startIndex + j;
+              const reg = new RegExp(`JAWABAN_${idx}\\s*:\\s*([A-E])`, "i");
+              const match = text.match(reg);
+              results.push({
+                letter: match ? match[1].toLowerCase() : this.fallbackAnswer(chunk[j].question, chunk[j].options).letter,
+                explanation: text
+              });
+            });
+            
+            chunkSuccess = true;
+          } catch (err) {
+            console.error(`[Batch] Error pada chunk ${startIndex}:`, err);
+            if (retries === 0) {
+              // Failback chunk ini
+              chunk.forEach(q => results.push(this.fallbackAnswer(q.question, q.options)));
             }
-          );
-
-          if (!res.ok) throw new Error(`API error: ${res.status}`);
-          const data = await res.json();
-          const fullText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-          console.log(`[Batch] Selesai dalam ${elapsed}s`);
-
-          return this._extractBatchAnswers(fullText, questions, total);
-
-        } catch (err) {
-          retries--;
-          console.warn(`[Batch] Retry ${3 - retries}/3: ${err.message}`);
-          if (retries === 0) {
-            // Fallback semua soal jika gagal total
-            return questions.map(q => ({
-              ...this.fallbackAnswer(q.question, q.options),
-              explanation: `Error: ${err.message}`,
-            }));
+            retries--;
+            await new Promise(r => setTimeout(r, 2000));
           }
-          await Utils.delay(2000 * (4 - retries));
-        }
-      }
-    },
-
-    _extractBatchAnswers(fullText, questions, total) {
-      const results = [];
-      for (let i = 1; i <= total; i++) {
-        // Cari pola SOAL_N: [huruf]
-        const pattern = new RegExp(`SOAL_${i}\\s*:\\s*([a-e])`, "i");
-        const match = fullText.match(pattern);
-        if (match) {
-          results.push({ letter: match[1].toLowerCase(), explanation: fullText });
-        } else {
-          // Fallback per-soal jika tidak ditemukan
-          console.warn(`[Batch] Jawaban soal #${i} tidak ditemukan, pakai fallback`);
-          results.push(this.fallbackAnswer(questions[i-1].question, questions[i-1].options));
         }
       }
       return results;
@@ -233,10 +227,9 @@ ${questions.map((_, i) => `SOAL_${i+1}: [huruf]`).join("\n")}`;
         const score = keywords.filter((kw) => opt.toLowerCase().includes(kw)).length;
         if (score > bestScore) { bestScore = score; bestIdx = idx; }
       });
-      if (bestScore === 0 && options.length > 1) bestIdx = 1;
       return {
-        letter: String.fromCharCode(97 + bestIdx),
-        explanation: "Maaf, analisis mendalam tidak tersedia. Jawaban ini adalah perkiraan berdasarkan kata kunci.",
+        letter: String.fromCharCode(97 + (bestScore > 0 ? bestIdx : 0)),
+        explanation: "Analisis otomatis (Akurasi terbatas).",
       };
     },
   };

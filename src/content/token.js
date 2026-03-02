@@ -1,6 +1,5 @@
-const APP_VERSION = "1.9.1";
-
 (function () {
+  const APP_VERSION = "1.9.1";
   console.log("Mentari Mod Token script loaded.");
 
   const Config = {
@@ -10,34 +9,189 @@ const APP_VERSION = "1.9.1";
       COURSE_DATA: "mentari_course_data",
       LAST_UPDATE: "mentari_last_update",
       GEMINI_ENABLED: "gemini_enabled",
-      AUTO_FINISH_QUIZ: "auto_finish_quiz",
-      GEMINI_MODEL: "gemini_model"
+      AUTO_FINISH_QUIZ: "mentari_auto_finish_quiz",
+      GEMINI_MODEL: "gemini_model",
+      GEMINI_QUOTA: "gemini_quota",
+      GEMINI_API_KEY: "geminiApiKey"
     },
     API: {
       BASE_URL: "https://mentari.unpam.ac.id/api",
       GITHUB_API: "https://api.github.com/repos/lukman754/Mentari-Unpam/releases/latest"
     },
     STYLES: `
-      #token-runner-popup { position: fixed; z-index: 99999; width: 450px; background: rgba(18, 18, 18, 0.98); color: #fff; backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 15px 50px rgba(0,0,0,0.6); overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); visibility: hidden; opacity: 0; transform: translateY(-15px) scale(0.95); pointer-events: none; }
+       #token-runner-popup { 
+         position: fixed; z-index: 99999; top: 70px; right: 20px; width: 500px; height: 600px; 
+         background: #121212; color: #eee; backdrop-filter: blur(25px); 
+         border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; 
+         box-shadow: 0 15px 50px rgba(0,0,0,0.4); overflow: hidden; 
+         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); visibility: hidden; opacity: 0; 
+         transform: translateY(-15px) scale(0.95); pointer-events: none; 
+         font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+       }
       #token-runner-popup.active { visibility: visible; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+      
+      /* Light Theme Adaptation */
+      #token-runner-popup.light-theme {
+        background: #ffffff; 
+        color: #1a1c1e;
+        border: 1px solid rgba(0,0,0,0.12);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      }
+      #token-runner-popup.light-theme .popup-header {
+        background: #f8f9fa;
+        border-bottom-color: rgba(0,0,0,0.08);
+      }
+      #token-runner-popup.light-theme .popup-title {
+        color: #0d47a1;
+      }
+      #token-runner-popup.light-theme .token-tab {
+        color: rgba(0,0,0,0.4);
+      }
+      #token-runner-popup.light-theme .token-tab.active {
+        color: #1976d2;
+        border-bottom-color: #1976d2;
+        background: rgba(25, 118, 210, 0.04);
+      }
+      #token-runner-popup.light-theme .data-card, 
+      #token-runner-popup.light-theme .course-card {
+        background: #ffffff;
+        border-color: rgba(0,0,0,0.08);
+      }
+      #token-runner-popup.light-theme .course-card-header {
+        background: #f2f2f2;
+        border-bottom-color: rgba(0,0,0,0.05);
+      }
+      #token-runner-popup.light-theme .course-card-header h2 {
+        color: #0d47a1;
+      }
+      #token-runner-popup.light-theme .section-header {
+        background: #;
+        border-bottom: 1px solid rgba(0,0,0,0.03);
+      }
+      #token-runner-popup.light-theme .section-header:hover {
+        background: #f8f9fa;
+      }
+      #token-runner-popup.light-theme .section-header h3 {
+        color: #1e293b;
+      }
+      #token-runner-popup.light-theme .section-content {
+        background: #ffffff;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+      }
+      #token-runner-popup.light-theme .item-row {
+        background: #f1f1f1;
+        border-color: rgba(0,0,0,0.06);
+      }
+      #token-runner-popup.light-theme .item-row:hover {
+        background: #f8fafc!important;
+      }
+      #token-runner-popup.light-theme .item-row:hover .item-title {
+        color: #ff7b00;
+      }
+      #token-runner-popup.light-theme .item-title {
+        color: #334155;
+      }
+      #token-runner-popup.light-theme .item-meta {
+        color: #64748b;
+      }
+      #token-runner-popup.light-theme .card-title {
+         color: #1e293b;
+      }
+      #token-runner-popup.light-theme .student-item {
+        background: #ffffff;
+      }
+      #token-runner-popup.light-theme .student-item div {
+        color: #334155;
+      }
+      #token-runner-popup.light-theme .settings-label {
+        color: #1e293b;
+      }
+      #token-runner-popup.light-theme .settings-desc {
+        color: #64748b;
+      }
+      #token-runner-popup.light-theme .settings-area {
+        background: #ffffff;
+        border-color: rgba(0,0,0,0.05);
+      }
+      #token-runner-popup.light-theme .settings-card-inner {
+        background: rgba(25, 118, 210, 0.04);
+        border-color: rgba(25, 118, 210, 0.08);
+      }
+      #token-runner-popup.light-theme select,
+      #token-runner-popup.light-theme input[type="text"] {
+        background: #ffffff;
+        color: #1a1c1e;
+        border-color: rgba(0,0,0,0.12);
+      }
+      #token-runner-popup.light-theme .token-button.btn-outline {
+        background: #ffffff;
+        color: #475569;
+        border-color: rgba(0,0,0,0.06);
+      }
+      #token-runner-popup.light-theme .token-button.btn-outline:hover {
+        background: #e2e8f0;
+      }
+      #token-runner-popup.light-theme .settings-footer {
+        color: #94a3b8;
+      }
+      #token-runner-popup.light-theme .topic-badge {
+        background: #f1f5f9;
+        border-color: rgba(0,0,0,0.08);
+        color: #1976d2!important;
+      }
+      #token-runner-popup.light-theme .topic-badge:hover {
+        background: #e2e8f0;
+        border-color: #1976d2;
+      }
+      #token-runner-popup.light-theme .forum-html-preview {
+        color: #1a1c1e;
+      }
+      #token-runner-popup.light-theme .forum-toggle-btn {
+        background: #f1f5f9;
+        color: #f0872d;
+      }
+      #token-runner-popup.light-theme .icon-forum {
+        background: rgba(13, 71, 161, 0.1);
+        color: #0d47a1;
+      }
+      #token-runner-popup.light-theme .icon-quiz {
+        background: rgba(46, 125, 50, 0.1);
+        color: #2e7d32;
+      }
+      #token-runner-popup.light-theme .icon-material {
+        background: rgba(230, 81, 0, 0.1);
+        color: #e65100;
+      }
+      #token-runner-popup.light-theme .section-toggle {
+        color: #1a1c1e;
+        opacity: 0.5;
+      }
+      #token-runner-popup.light-theme .section-toggle.active {
+        color: #f0872d;
+        opacity: 1;
+      }
+
       #token-runner-popup *::-webkit-scrollbar { width: 4px; }
-      #token-runner-popup *::-webkit-scrollbar-thumb { background: rgba(240, 135, 45, 0.4); border-radius: 10px; }
-      @media (max-width: 600px) { #token-runner-popup { width: 100%!important; left: 0!important; right: 0!important; border-radius: 0!important; height: 90vh!important; top: 50px!important; transform: translateX(100%)!important; } #token-runner-popup.active { transform: translateX(0)!important; } }
+      #token-runner-popup *::-webkit-scrollbar-thumb { background: rgba(144, 202, 249, 0.3); border-radius: 10px; }
+      
+      @media (max-width: 600px) { #token-runner-popup { width: 100%!important; left: 0!important; right: 0!important; border-radius: 0!important; height: 100vh!important; top: 50px!important; transform: translateX(100%)!important; } #token-runner-popup.active { transform: translateX(0)!important; } }
       .popup-content { display: flex; flex-direction: column; height: 100%; max-height: 90vh; }
       .popup-header { padding: 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
       .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-      .popup-title { font-weight: 800; font-size: 16px; background: linear-gradient(90deg, #f0872d, #ffb36b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .token-tabs { display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.04); padding: 0 10px; flex-shrink: 0; }
-      .token-tab { padding: 12px 14px; font-size: 12px; color: rgba(255,255,255,0.4); border-bottom: 2px solid transparent; background: none; border: none; cursor: pointer; transition: all 0.2s; font-weight: 600; }
-      .token-tab.active { color: #f0872d; border-bottom-color: #f0872d; }
+      .popup-title { font-weight: 700; font-size: 16px; color: #3d99e3; line-height: 1.2; }
+      .popup-subtitle { font-size: 8px; color: rgba(197, 197, 197, 0.5); font-weight: 500; letter-spacing: 0.5px; margin-top: -2px; display: block; }
+      .token-tabs { display: flex; justify-content: space-around; border-bottom: 1px solid rgba(255,255,255,0.04); padding: 0; flex-shrink: 0; }
+      .token-tab { flex: 1; padding: 14px 0; font-size: 14px; color: rgba(255,255,255,0.4); border-bottom: 2px solid transparent; background: none; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+      .token-tab.active { color: #3d99e3; border-bottom-color: #3d99e3; background: rgba(144, 202, 249, 0.05); }
+      .token-tab .ms { font-size: 20px; }
       .token-tab-content { display: none; padding: 16px; flex: 1; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; }
       .token-tab-content.active { display: block; }
-      .token-loading-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: #f0872d; transition: width 0.3s; z-index: 10; }
+      .token-loading-bar { position: absolute; top: 0; left: 0; height: 2px; width: 0; background: #3d99e3; transition: width 0.3s; z-index: 10; }
       .token-loading-bar.active { width: 100%; }
-      .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #79bb7c; padding: 12px 24px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(121, 187, 124, 0.2); display: flex; align-items: center; gap: 10px; z-index: 1000000; animation: toastIn 0.3s ease-out; font-size: 14px; }
-      @keyframes toastIn { from { transform: translate(-50%, 50px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-      .token-button { background: #f0872d; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); }
-      .token-button:hover { background: #e0761d; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240, 135, 45, 0.3); }
+      .toast { position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:50px;box-shadow:0 5px 15px rgba(0,0,0,0.4);z-index:10000;font-family:system-ui;border:1px solid #444;font-size:11px;animation:toastIn 0.3s; }
+      @keyframes toastIn { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+      .token-button { background: #3d99e3; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); }
+      .token-button:hover { background: #1976d2; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
       .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
       .switch input { opacity: 0; width: 0; height: 0; }
       .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 22px; }
@@ -46,7 +200,7 @@ const APP_VERSION = "1.9.1";
       input:checked + .slider:before { transform: translateX(22px); }
       .data-card { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
       .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-      .card-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0; opacity: 0.9; }
+      .card-title { font-size: 14px; font-weight: 700; color: #eee; margin: 0; opacity: 0.9; }
       .student-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 8px; transition: background 0.2s; }
       .student-item:hover { background: rgba(255,255,255,0.04); }
       .student-absen { width: 24px; height: 24px; background: #f0872d; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; flex-shrink: 0; }
@@ -54,7 +208,7 @@ const APP_VERSION = "1.9.1";
       /* Detailed Forum Styles */
       .course-card { margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.01); }
       .course-card-header { padding: 12px 16px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.05); }
-      .course-card-header h2 { margin: 0; font-size: 14px; color: #f0872d; }
+      .course-card-header h2 { margin: 0; font-size: 14px; color: #3d99e3; font-weight: 700; }
       .course-card-code { font-size: 10px; opacity: 0.5; margin-top: 4px; display: block; }
       .section-card { border-bottom: 1px solid rgba(255,255,255,0.03); }
       .section-header { padding: 10px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); transition: background 0.2s; }
@@ -66,21 +220,36 @@ const APP_VERSION = "1.9.1";
       .section-content.active { display: block; }
       .section-actions { padding: 0 4px 10px; display: flex; justify-content: center; }
       .item-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
-      .icon-forum { background: rgba(0, 112, 243, 0.1); color: #0070f3; }
+      .icon-forum { background: rgba(61, 153, 227, 0.1); color: #3d99e3; }
       .icon-quiz { background: rgba(121, 187, 124, 0.1); color: #79bb7c; }
       .icon-material { background: rgba(240, 135, 45, 0.1); color: #f0872d; }
       .item-info { flex: 1; overflow: hidden; }
-      .item-title { font-size: 12px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s; }
+      .item-title { font-size: 12px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s; color: #eee; }
       .item-meta { font-size: 10px; opacity: 0.5; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
       .item-status { font-size: 10px; font-weight: 700; text-transform: uppercase; }
       .status-done { color: #79bb7c; }
       .status-todo { color: #f0872d; }
-      .topic-badge { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: rgba(255,255,255,0.04); border-radius: 5px; font-size: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.06); color: #f0872d!important; text-decoration: none!important; transition: all 0.2s; width: 100%; box-sizing: border-box; overflow: hidden; }
-      .topic-badge:hover { background: rgba(240, 135, 45, 0.1); border-color: rgba(240,135,45,0.2); }
+      .topic-badge { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: rgba(255,255,255,0.04); border-radius: 5px; font-size: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.06); color: #3d99e3!important; text-decoration: none!important; transition: all 0.2s; width: 100%; box-sizing: border-box; overflow: hidden; }
+      .topic-badge:hover { background: rgba(144, 202, 249, 0.1); border-color: rgba(144,202,249,0.2); }
       .item-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: inherit; transition: all 0.2s; cursor: pointer; }
       .item-row:hover { background: rgba(255,255,255,0.06)!important; transform: translateX(5px); }
       .item-row:hover .item-title { color: #f0872d; }
       .ms { font-family: 'Material Symbols Rounded'; font-size: 14px; font-style: normal; font-weight: normal; line-height: 1; display: inline-flex; align-items: center; vertical-align: middle; user-select: none; letter-spacing: normal; text-transform: none; white-space: nowrap; }
+      /* Forum Content Reset */
+      .forum-html-preview { all: revert; font-family: inherit; color: inherit; font-size: 11px; line-height: 1.5; }
+      .forum-html-preview p { margin-bottom: 8px; }
+      .forum-html-preview ul, .forum-html-preview ol { padding-left: 20px; margin-bottom: 8px; }
+      .forum-html-preview li { margin-bottom: 4px; }
+
+      /* Empty State */
+      .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; }
+      .empty-icon { font-size: 48px; margin-bottom: 16px; color: #3d99e3; background: rgba(144, 202, 249, 0.05); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid rgba(144, 202, 249, 0.1); }
+      .empty-title { font-size: 16px; font-weight: 700; color: #eee; margin-bottom: 6px; }
+      .empty-desc { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.6; max-width: 240px; }
+      
+      #token-runner-popup.light-theme .empty-title { color: #1e293b; }
+      #token-runner-popup.light-theme .empty-desc { color: #64748b; }
+      #token-runner-popup.light-theme .empty-icon { background: rgba(25, 118, 210, 0.04); border-color: rgba(25, 118, 210, 0.08); }
     `
   };
 
@@ -113,10 +282,33 @@ const APP_VERSION = "1.9.1";
     },
     copy(text, msg) { navigator.clipboard.writeText(text).then(() => this.toast(msg)); },
     toast(msg) {
-      const existing = document.querySelector(".toast"); if (existing) existing.remove();
-      const t = document.createElement("div"); t.className = "toast";
-      t.innerHTML = `<span class="ms">check_circle</span><span>${msg}</span>`;
-      document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+      const t = document.createElement("div");
+      t.style = "position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#f0872d;padding:8px 16px;border-radius:50px;font-size:11px;z-index:100000;box-shadow:0 5px 15px rgba(0,0,0,0.5);border:1px solid rgba(240,135,45,0.2);animation:msgIn 0.3s;white-space:nowrap;";
+      t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
+    },
+    updateQuota(headers) {
+      try {
+        const quota = {
+          rpm: {
+            remaining: parseInt(headers.get('x-ratelimit-remaining-requests')),
+            limit: parseInt(headers.get('x-ratelimit-limit-requests'))
+          },
+          tpm: {
+            remaining: parseInt(headers.get('x-ratelimit-remaining-tokens')),
+            limit: parseInt(headers.get('x-ratelimit-limit-tokens'))
+          },
+          updated: Date.now()
+        };
+        if (!isNaN(quota.rpm.limit)) {
+          this.save(Config.STORAGE_KEYS.GEMINI_QUOTA, quota);
+          window.dispatchEvent(new CustomEvent('gemini-quota-updated', { detail: quota }));
+        }
+      } catch (e) {}
+    },
+    formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num;
     },
     injectMaterialIcons() {
       if (document.getElementById("material-icons-css")) return;
@@ -125,6 +317,13 @@ const APP_VERSION = "1.9.1";
       link.rel = "stylesheet";
       link.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
       document.head.appendChild(link);
+    },
+    applyTheme() {
+      const container = document.getElementById("token-runner-popup");
+      if (!container) return;
+      const isLight = document.querySelector(".css-1yxmbwk") !== null;
+      if (isLight) container.classList.add("light-theme");
+      else container.classList.remove("light-theme");
     }
   };
 
@@ -159,14 +358,17 @@ const APP_VERSION = "1.9.1";
         <div class="popup-content">
           <div class="popup-header">
             <div class="header-top">
-              <span class="popup-title">MENTARI MOD</span>
+              <div style="display:flex; flex-direction:column;">
+                <span class="popup-title">MENTARI MOD</span>
+                <span class="popup-subtitle">mod by <a style="color: #c8ad95ff; text-decoration: none;" href="https://github.com/Lukman754">Lukman754</a></span>
+              </div>
               <button id="token-refresh-btn" class="token-button" style="padding:6px 10px; border-radius:6px;"><span class="ms">refresh</span></button>
             </div>
             <div class="token-tabs">
-              <button class="token-tab active" data-tab="forum-tab">Forum</button>
-              <button class="token-tab" data-tab="mhs-tab">Mhs</button>
-              <button class="token-tab" data-tab="notif-tab">Notif</button>
-              <button class="token-tab" data-tab="set-tab">Set</button>
+              <button class="token-tab active" data-tab="forum-tab" title="Forum"><span class="ms">forum</span></button>
+              <button class="token-tab" data-tab="mhs-tab" title="Mahasiswa"><span class="ms">groups</span></button>
+              <button class="token-tab" data-tab="notif-tab" title="Notifikasi"><span class="ms">notifications</span></button>
+              <button class="token-tab" data-tab="set-tab" title="Pengaturan"><span class="ms">settings</span></button>
             </div>
           </div>
           <div class="token-tab-content active" id="forum-tab-tab"></div>
@@ -198,36 +400,7 @@ const APP_VERSION = "1.9.1";
       if (bar) active ? bar.classList.add("active") : bar.classList.remove("active");
     },
     updatePosition() {
-      const p = document.getElementById("token-runner-popup");
-      const a = document.getElementById("mentari-header-toggle");
-      if (!p || !a) return;
-      const r = a.getBoundingClientRect();
-      const isMobile = window.innerWidth <= 600;
-      
-      if (isMobile) {
-        p.style.top = "0px";
-        p.style.left = "0px";
-        p.style.width = "100%";
-        p.style.height = "100vh";
-      } else {
-        const popupWidth = 450;
-        const popupHeight = 550;
-        let top = r.bottom + 10;
-        let left = r.right - popupWidth;
-        
-        if (left < 10) left = 10;
-        if (left + popupWidth > window.innerWidth) left = window.innerWidth - popupWidth - 10;
-        
-        if (top + popupHeight > window.innerHeight) {
-          top = window.innerHeight - popupHeight - 10;
-          if (top < 10) top = 10;
-        }
-        
-        p.style.top = top + "px";
-        p.style.left = left + "px";
-        p.style.width = popupWidth + "px";
-        p.style.height = "auto";
-      }
+      // Disabled for fixed position consistency across mod windows
     }
   };
 
@@ -237,14 +410,29 @@ const APP_VERSION = "1.9.1";
       if (!el) return;
       
       let html = `
-        <div style="display:flex; gap:8px; margin-bottom:15px;">
-          <a href="https://my.unpam.ac.id/presensi/" class="token-button" style="flex:1; background: #00a550;"><i class="fa-solid fa-clipboard-list"></i> Presensi</a>
-          <button id="copy-all-links" class="token-button" style="width:40px;"><span class="ms">content_copy</span></button>
+        <div style="margin-bottom:15px;">
+          <a href="https://my.unpam.ac.id/presensi/" class="item-row" target="_blank"
+             style="background: rgba(0, 165, 80, 0.05); border-color: rgba(0, 165, 80, 0.1); display:flex;">
+            <div class="item-icon" style="background: rgba(0, 165, 80, 0.1); color: #00a550;"><span class="ms">fact_check</span></div>
+            <div class="item-info">
+              <span class="item-title" style="color: #00a550; font-weight: 700;">Halaman Presensi Mahasiswa</span>
+              <div class="item-meta">
+                <span class="item-status" style="color: #00a550; opacity: 0.7;"><span class="ms" style="font-size:12px;">link</span> Buka my.unpam.ac.id</span>
+              </div>
+            </div>
+            <div style="color: #00a550; opacity: 0.5;"><span class="ms">open_in_new</span></div>
+          </a>
         </div>
       `;
       
       if (!data.length) {
-        html += `<div style="text-align:center; padding:40px 20px; color:rgba(255,255,255,0.3); font-size:12px;">Pilih mata kuliah di Mentari agar data muncul di sini.</div>`;
+        html += `
+          <div class="empty-state">
+            <div class="empty-icon"><span class="ms" style="font-size:40px;">cloud_sync</span></div>
+            <div class="empty-title">Data Kosong</div>
+            <div class="empty-desc">Pilih mata kuliah di Mentari agar data forum muncul di sini.</div>
+          </div>
+        `;
       } else {
         const sortedData = [...data].sort((a, b) => {
           const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -254,7 +442,22 @@ const APP_VERSION = "1.9.1";
           };
           return getDay(a.coursename) - getDay(b.coursename);
         });
-        html += sortedData.map(course => this.renderCourse(course)).join("");
+        
+        const coursesHtml = sortedData.map(course => this.renderCourse(course)).join("");
+        
+        if (!coursesHtml.trim()) {
+          html += `
+            <div class="empty-state">
+              <div class="empty-icon" style="color: #79bb7c; background: rgba(121, 187, 124, 0.05); border-color: rgba(121, 187, 124, 0.1);">
+                <span class="ms" style="font-size:40px;">task_alt</span>
+              </div>
+              <div class="empty-title">Semua Beres!</div>
+              <div class="empty-desc">Hore! Tidak ada forum diskusi yang perlu dikerjakan saat ini. Istirahatlah sejenak.</div>
+            </div>
+          `;
+        } else {
+          html += coursesHtml;
+        }
       }
       
       el.innerHTML = html;
@@ -366,13 +569,13 @@ const APP_VERSION = "1.9.1";
       const statusText = i.completion ? "Selesai" : "Belum";
 
       // Konten forum (HTML) untuk accordion
-      const forumKonten = isForum && i.konten ? i.konten.replace(/<[^>]*>/g, '').trim() : "";
+      const forumKonten = isForum && i.konten ? i.konten.trim() : "";
       const forumKontenId = `fk-${i.id}`;
 
       return `
         <div class="item-row ${i.completion ? 'completed-item' : ''}" 
              onclick="if(event.target.closest('a,button')) return; window.location.href='${cardUrl}';"
-             style="flex-direction:column; align-items:stretch; padding:0; overflow:hidden; ${i.completion ? 'opacity:0.8;' : 'background: rgba(255,179,107,0.03);'}" data-name="${i.judul}">
+             style="flex-direction:column; align-items:stretch; padding:0; overflow:hidden; ${i.completion ? 'opacity:0.8;' : 'background: rgba(130, 130, 130, 0.13);'}" data-name="${i.judul}">
           <div style="display:flex; align-items:center; gap:10px; padding:10px;">
             <div class="item-icon ${iconClass}"><span class="ms">${icon}</span></div>
             <div class="item-info">
@@ -384,18 +587,18 @@ const APP_VERSION = "1.9.1";
             </div>
             <div style="display:flex; gap:6px; flex-shrink:0;">
               ${forumKonten ? `
-                <button class="token-button" onclick="event.stopPropagation(); const el=document.getElementById('${forumKontenId}'); el.style.display=el.style.display==='none'?'block':'none';" style="height:26px; padding:0 10px; font-size:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);">
-                  <span class="ms">menu_book</span> Konten
+                <button class="token-button" title="Lihat Konten Forum" onclick="event.stopPropagation(); const el=document.getElementById('${forumKontenId}'); el.style.display=el.style.display==='none'?'block':'none';" style="width:28px; height:28px; padding:0; background: #3d99e3;  border-radius:6px;">
+                  <span class="ms" style="font-size:16px;">menu_book</span>
                 </button>` : ""}
               ${actionUrl !== "#" ? `
-                <a href="${actionUrl}" class="token-button" onclick="event.stopPropagation();"
-                   style="height:26px; padding:0 10px; font-size:10px; background: ${actionLabel === 'Download' ? '#79bb7c' : actionLabel === 'Mulai Quiz' ? '#e05c2a' : ''}; white-space:nowrap;">
-                  <span class="ms">${actionIcon}</span> ${actionLabel}
+                <a href="${actionUrl}" class="token-button" title="${actionLabel}" onclick="event.stopPropagation();"
+                   style="width:28px; height:28px; padding:0; background: ${actionLabel === 'Download' ? '#79bb7c' : actionLabel === 'Mulai Quiz' ? '#e05c2a' : '#f0872d'}; border-radius:6px;">
+                  <span class="ms" style="font-size:16px;">${actionIcon}</span>
                 </a>` : ""}
             </div>
           </div>
           ${forumKonten ? `
-            <div id="${forumKontenId}" style="display:none; padding:10px 12px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:rgba(255,255,255,0.65); line-height:1.6; background:rgba(0,0,0,0.15);">
+            <div id="${forumKontenId}" class="forum-html-preview" style="display:none; padding:12px; border-top:1px solid rgba(255,255,255,0.05); color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.6);">
               ${forumKonten}
             </div>` : ""}
           ${isForum && i.id ? `<div class="topics-container" data-forum-id="${i.id}" data-course-code="${c.kode_course}" style="padding:0 12px 10px;"></div>` : ""}
@@ -428,26 +631,6 @@ const APP_VERSION = "1.9.1";
         };
       });
 
-      document.getElementById("copy-all-links").onclick = (e) => {
-        e.stopPropagation();
-        let txt = "";
-        data.forEach(c => {
-          txt += `${c.coursename} (${c.kode_course})\n`;
-          c.data?.forEach(s => {
-             s.sub_section?.forEach(i => {
-               if (!i.completion) {
-                 let url = "#";
-                 if (i.kode_template === "PRE_TEST" || i.kode_template === "POST_TEST") url = `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/exam/${i.id}`;
-                 else if (i.kode_template === "FORUM_DISKUSI") url = `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/forum/${i.id}`;
-                 else if (i.link) url = i.link;
-                 if (url !== "#") txt += `- ${i.judul}: ${url}\n`;
-               }
-             });
-          });
-          txt += "\n";
-        });
-        Utils.copy(txt, "Semua link disalin");
-      };
       this.loadTopics();
     },
 
@@ -489,43 +672,93 @@ const APP_VERSION = "1.9.1";
     },
     notif(data) {
       const el = document.getElementById("notif-tab-tab"); if (!el) return;
-      el.innerHTML = data.length ? data.map(n => `<div class="data-card" style="border-left:3px solid #f0872d; background:rgba(240,135,45,0.03);">
-        <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#f0872d;">${n.lecturerName}</div>
+      el.innerHTML = data.length ? data.map(n => `
+      <div class="data-card" style="border-left:3px solid #f0872d; background:rgba(240,135,45,0.03); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <div style="font-weight:700; font-size:13px; color:#f0872d;">${n.lecturerName}</div>
+          <div style="font-size:10px; opacity:0.4; display:flex; align-items:center; gap:3px;">
+            <span class="ms" style="font-size:12px;">schedule</span> ${n.date ? new Date(n.date).toLocaleDateString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) : '-'}
+          </div>
+        </div>
         <div style="font-size:12px; color:rgba(255,255,255,0.8); line-height:1.4;">${n.content}</div>
-        <a href="${n.url}" target="_blank" class="token-button" style="margin-top:12px; height:28px; font-size:11px; background:rgba(255,255,255,0.05);">Tampilkan</a>
+        <a href="${n.url}" target="_blank" class="token-button" style="margin-top:12px; height:28px; font-size:11px; background:rgba(255,255,255,0.05); gap:6px;">
+          <span class="ms" style="font-size:14px;">visibility</span> Lihat Diskusi
+        </a>
       </div>`).join("") : `<div style="text-align:center; padding:40px 20px; opacity:0.3;">Belum ada balasan dari dosen.</div>`;
     },
     settings(info) {
       const el = document.getElementById("set-tab-tab"); if (!el || !info) return;
-      const currentModel = Utils.get(Config.STORAGE_KEYS.GEMINI_MODEL) || 'gemini-2.5-flash-lite';
-      const isCustom = !['gemini-2.5-flash', 'gemini-2.5-flash-lite'].includes(currentModel);
+      const currentModel = Utils.get(Config.STORAGE_KEYS.GEMINI_MODEL) || 'gemini-2.0-flash-lite';
+      const isCustom = !['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-3-flash-preview'].includes(currentModel);
 
       el.innerHTML = `
-        <div class="data-card">
-          <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:12px; border-radius:10px;">
-            <div style="width:45px; height:45px; background:linear-gradient(135deg, #f0872d, #ffb36b); border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:20px; color:#fff;">${info.fullname.charAt(0)}</div>
-            <div><div style="font-weight:700; font-size:15px;">${info.fullname}</div><div style="font-size:11px; opacity:0.4;">${info.username} • ${info.role}</div></div>
+        <div class="data-card" style="padding:15px; border-radius:15px;">
+          <!-- Profile Section -->
+          <div class="settings-card-inner" style="display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:10px; border-radius:10px; border:1px solid rgba(255,179,107,0.08);">
+            <div style="width:34px; height:34px; background:linear-gradient(135deg, #f0872d, #ffb36b); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px; color:#fff;">${info.fullname.charAt(0)}</div>
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#f0872d;">${info.fullname}</div>
+              <div class="settings-desc" style="font-size:10px; opacity:0.6;">${info.username} • ${info.role}</div>
+            </div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:13px; font-weight:500;">Gemini AI Chatbot</span><label class="switch"><input type="checkbox" id="set-gemini" ${Utils.get(Config.STORAGE_KEYS.GEMINI_ENABLED) ? 'checked' : ''}><span class="slider"></span></label></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:13px; font-weight:500;">Auto Finish Quiz</span><label class="switch"><input type="checkbox" id="set-quiz" ${Utils.get(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ) ? 'checked' : ''}><span class="slider"></span></label></div>
-            
-            <div style="display:flex; flex-direction:column; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
-              <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.05em;">Gemini AI Model</span>
-              <select id="set-gemini-model" style="width:100%; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:6px; padding:6px; font-size:12px; outline:none; cursor:pointer;">
-                <option value="gemini-2.5-flash" ${currentModel === 'gemini-2.5-flash' ? 'selected' : ''}>Gemini 2.5 Flash</option>
-                <option value="gemini-2.5-flash-lite" ${currentModel === 'gemini-2.5-flash-lite' ? 'selected' : ''}>Gemini 2.5 Flash Lite</option>
-                <option value="custom" ${isCustom ? 'selected' : ''}>Lainnya (Ketik Manual...)</option>
-              </select>
-              <input type="text" id="set-gemini-custom" placeholder="Contoh: gemini-2.0-pro-exp" value="${isCustom ? currentModel : ''}" 
-                style="display:${isCustom ? 'block' : 'none'}; width:100%; background:#1a1a1a; color:#fff; border:1px solid #444; border-radius:6px; padding:6px; font-size:12px; outline:none; margin-top:5px;">
+
+          <!-- Tools Grid Section -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:18px;">
+            <a href="https://aistudio.google.com/app/api-keys" target="_blank" class="token-button btn-outline" style="height:34px; background:rgba(255,255,255,0.03); font-size:11px; gap:6px; border-radius:8px; box-shadow:none;">
+              <span class="ms" style="font-size:18px; color:#f0872d;">vpn_key</span> API Key
+            </a>
+            <a href="https://aistudio.google.com/app/rate-limit" target="_blank" class="token-button btn-outline" style="height:34px; background:rgba(255,255,255,0.03); font-size:11px; gap:6px; border-radius:8px; box-shadow:none;">
+              <span class="ms" style="font-size:18px; color:#f0872d;">speed</span> Rate Limit
+            </a>
+            <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" class="token-button btn-outline" style="height:34px; background:rgba(255,255,255,0.03); font-size:11px; gap:6px; grid-column: span 2; border-radius:8px; justify-content: center; box-shadow:none;">
+              <span class="ms" style="font-size:18px; color:#f0872d;">travel_explore</span> Cari Model Gemini Terbaru
+            </a>
+          </div>
+
+          <!-- Settings Area -->
+          <div class="settings-area" style="display:flex; flex-direction:column; gap:14px; padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;"><span class="ms" style="color:#f0872d; font-size:18px;">auto_awesome</span><span class="settings-label" style="font-size:12px; font-weight:500;">Gemini AI Chatbot</span></div>
+              <label class="switch"><input type="checkbox" id="set-gemini" ${Utils.get(Config.STORAGE_KEYS.GEMINI_ENABLED) ? 'checked' : ''}><span class="slider"></span></label>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;"><span class="ms" style="color:#f0872d; font-size:18px;">quiz</span><span class="settings-label" style="font-size:12px; font-weight:500;">Auto Finish Quiz</span></div>
+              <label class="switch"><input type="checkbox" id="set-quiz" ${Utils.get(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ) ? 'checked' : ''}><span class="slider"></span></label>
             </div>
 
-            <button id="set-api-btn" class="token-button" style="width:100%; justify-content:flex-start; background:rgba(255,255,255,0.04);"><span class="ms" style="color:#f0872d;">key</span> Update Gemini API Key</button>
-            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px; margin-top:5px;">
-              <span style="font-size:11px; opacity:0.3;">Versi v${APP_VERSION}</span>
-              <button id="set-update-btn" class="token-button" style="padding:4px 10px; font-size:10px; background:transparent;">Cek Update</button>
+            <!-- Model Dropdown -->
+            <div style="margin-top:5px;">
+              <span style="font-size:10px; font-weight:700; color:rgba(128,128,128,0.5); text-transform:uppercase; margin-bottom:5px; display:block; letter-spacing:0.5px;">Konfigurasi Model</span>
+              <select id="set-gemini-model" style="width:100%; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:6px; padding:6px; font-size:12px; outline:none; cursor:pointer;">
+                <option value="gemini-2.0-flash" ${currentModel === 'gemini-2.0-flash' ? 'selected' : ''}>Gemini 2.0 Flash</option>
+                <option value="gemini-2.0-flash-lite" ${currentModel === 'gemini-2.0-flash-lite' ? 'selected' : ''}>Gemini 2.0 Flash Lite</option>
+                <option value="gemini-3-flash-preview" ${currentModel === 'gemini-3-flash-preview' ? 'selected' : ''}>Gemini 3 Flash Preview</option>
+                <option value="custom" ${isCustom ? 'selected' : ''}>Custom Model...</option>
+              </select>
+              <input type="text" id="set-gemini-custom" placeholder="Ketik model kustom..." value="${isCustom ? currentModel : ''}" 
+                style="display:${isCustom ? 'block' : 'none'}; width:100%; background:#1a1a1a; color:#fff; border:1px solid #444; border-radius:6px; padding:7px; font-size:12px; outline:none; margin-top:6px;">
+              
+              <!-- AI Disclaimer Warning -->
+              <div style="margin-top:10px; padding:8px 10px; background:rgba(240,135,45,0.05); border-left:2px solid #f0872d; border-radius:4px;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                  <span class="ms" style="font-size:14px; color:#f0872d;">warning</span>
+                  <span style="font-size:10px; font-weight:700; color:#f0872d; text-transform:uppercase; letter-spacing:0.5px;">Peringatan Penting</span>
+                </div>
+                <p class="settings-desc" style="font-size:10px; color:rgba(128,128,128,0.7); line-height:1.5; margin:0;">
+                  Jika terjadi error saat mencari jawaban, silakan coba ganti model. Harap diingat bahwa jawaban AI tidak selalu 100% akurat dan dapat membuat kesalahan. Selalu lakukan verifikasi data secara berkala.
+                </p>
+              </div>
             </div>
+
+            <button id="set-api-btn" class="token-button" style="width:100%; background:#f0872d; color:#fff; font-weight:700; border-radius:8px; height:34px; margin-top:5px; gap:8px; box-shadow:none;">
+              <span class="ms" style="font-size:18px;">vpn_key</span> Update API Key
+            </button>
+          </div>
+
+          <!-- Footer -->
+          <div class="settings-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; opacity:0.6; font-size:10px;">
+            <span>v${APP_VERSION}</span>
+            <button id="set-update-btn" style="background:none; border:none; color:inherit; font-size:inherit; cursor:pointer; text-decoration:underline;">Cek Update</button>
           </div>
         </div>
       `;
@@ -566,6 +799,8 @@ const APP_VERSION = "1.9.1";
       Utils.injectMaterialIcons(); UIRenderer.injectStyles(); UIRenderer.createPopup(); this.intercept();
       const t = Utils.get(Config.STORAGE_KEYS.AUTH_TOKEN); if (t) this.handleToken(t); else this.render();
       window.addEventListener('mentari-toggle-popup', () => window.toggleTokenPopup()); window.addEventListener('resize', () => UIRenderer.updatePosition());
+      
+      setInterval(() => Utils.applyTheme(), 1000);
     },
     intercept() {
       const self = this;
@@ -616,14 +851,24 @@ const APP_VERSION = "1.9.1";
               const res = await ApiService.fetchForumTopics(f.id);
               for (const t of (res.topics || []).filter(t => t.id_trx_course_sub_section === f.id)) {
                 const reps = await ApiService.fetchForumReplies(t.id);
-                const lNotifs = (reps.replies || []).filter(r => r.role === "Lecturer").map(r => ({
-                  lecturerName: r.fullname, content: r.konten?.replace(/<[^>]*>/g, '').substring(0, 100) + "...", url: `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/forum/${f.id}/topics/${t.id}`, date: r.created_at
-                }));
+                const lNotifs = (reps.replies || []).filter(r => r.role === "Lecturer").map(r => {
+                  const raw = r.konten?.replace(/<[^>]*>/g, '') || "";
+                  const preview = raw.length > 100 ? raw.substring(0, 100) + "..." : raw;
+                  return {
+                    lecturerName: r.fullname, 
+                    content: preview, 
+                    url: `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/forum/${f.id}/topics/${t.id}`, 
+                    date: r.created_at
+                  };
+                });
                 State.lecturerNotifications.push(...lNotifs);
               }
             } catch (e) {}
           }
         }
+        
+        // Sorting: Terbaru paling atas
+        State.lecturerNotifications.sort((a,b) => new Date(b.date) - new Date(a.date));
         Utils.save(Config.STORAGE_KEYS.COURSE_DATA, State.courseDataList); this.render();
       } catch (e) {} finally { State.isFetching = false; UIRenderer.setLoading(false); }
     },
@@ -636,6 +881,10 @@ const APP_VERSION = "1.9.1";
   window.toggleTokenPopup = () => {
     const p = document.getElementById("token-runner-popup"); if (!p) { UIRenderer.createPopup(); return; }
     if (!p.classList.contains("active")) {
+      // Close other popups for consistency
+      document.getElementById("gemini-chat-container")?.classList.remove("active");
+      document.getElementById("mentari-guide-container")?.classList.remove("active");
+
       UIRenderer.updatePosition(); p.classList.add("active");
       const close = (e) => {
         if (!p.contains(e.target) && !document.getElementById("mentari-header-toggle")?.contains(e.target) && !e.target.closest(".toast")) {
