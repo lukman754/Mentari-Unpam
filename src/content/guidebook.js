@@ -248,7 +248,7 @@
       setInterval(() => {
         injectToggleButton();
         if (container.classList.contains("active")) this.applyTheme(container);
-      }, 1000);
+      }, 100);
       injectToggleButton();
 
       document.getElementById("guide-close-btn").onclick = () => container.classList.remove("active");

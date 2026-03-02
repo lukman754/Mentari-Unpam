@@ -198,7 +198,7 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     // Pre-load scripts di background TANPA membuka popup
     setTimeout(() => {
       loadScripts(null); // null = jangan buka popup setelah load
-    }, 1500);
+    }, 300);
 
   })();
 }

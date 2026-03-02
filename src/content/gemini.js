@@ -354,7 +354,7 @@ Aturan Jawab Dasar:
       setInterval(() => {
         injectToggleButton();
         if (container.classList.contains("active")) this.applyTheme(container);
-      }, 1000);
+      }, 100);
       injectToggleButton();
     },
 

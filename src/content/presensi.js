@@ -1,30 +1,337 @@
-// Fungsi utama untuk mendapatkan data presensi dari semua jadwal kuliah
-async function fetchAllPresensiData() {
-  // Dapatkan token autentikasi terlebih dahulu
-  const token = await getAuthToken();
+const Config = {
+  APP_VERSION: "2.0",
+  STYLES: `
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    
+    #mentari-presensi-popup {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 10000; font-family: 'Roboto', sans-serif;
+      animation: fadeIn 0.3s;
+    }
+    .presensi-content-container {
+      background: #121212; color: #eee; width: 90%; max-width: 900px;
+      max-height: 90vh; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column;
+      overflow: hidden; position: relative;
+    }
+    
+    /* Light Theme Adaptation */
+    #mentari-presensi-popup.light-theme .presensi-content-container {
+      background: #ffffff; color: #1a1c1e; border-color: rgba(0,0,0,0.1);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    #mentari-presensi-popup.light-theme .popup-header { background: #f8f9fa; border-bottom-color: rgba(0,0,0,0.08); }
+    #mentari-presensi-popup.light-theme .popup-title { color: #0d47a1; }
+    #mentari-presensi-popup.light-theme .course-card { background: #ffffff; border-color: rgba(0,0,0,0.08); }
+    #mentari-presensi-popup.light-theme .course-card-header { background: #f2f2f2; }
+    #mentari-presensi-popup.light-theme .course-card-header h2 { color: #0d47a1; }
+    #mentari-presensi-popup.light-theme .item-row { background: #f1f1f1; border-color: rgba(0,0,0,0.06); }
+    #mentari-presensi-popup.light-theme .item-row:hover { background: #f8fafc!important; }
+    #mentari-presensi-popup.light-theme .item-title { color: #334155; }
+    #mentari-presensi-popup.light-theme .item-meta { color: #64748b; }
+    #mentari-presensi-popup.light-theme .popup-footer { background: #f8f9fa; border-top-color: rgba(0,0,0,0.08); }
+    
+    .popup-header { padding: 18px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .popup-title { font-weight: 700; font-size: 18px; color: #3d99e3; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .popup-close-btn { background: none; border: none; color: inherit; opacity: 0.5; cursor: pointer; transition: 0.2s; }
+    .popup-close-btn:hover { opacity: 1; transform: rotate(90deg); }
+    
+    .presensi-scroll-area { flex: 1; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+    .popup-footer { padding: 16px 24px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    
+    .course-card { margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.01); }
+    .course-card-header { padding: 14px 20px; background: rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .course-card-header h2 { margin: 0; font-size: 14px; color: #3d99e3; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+    .course-percentage { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+    
+    .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s; position: relative; }
+    .item-row:hover { background: rgba(255,255,255,0.06)!important; transform: translateX(5px); }
+    .item-row:hover .item-title { color: #f0872d; }
+    #mentari-presensi-popup.light-theme .item-row:hover .item-title { color: #ff7b00; }
+    
+    .item-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; font-weight: 800; }
+    .icon-hadir { background: rgba(121, 187, 124, 0.1); color: #79bb7c; }
+    .icon-tidak-hadir { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+    
+    .item-info { flex: 1; }
+    .item-title { font-size: 13px; font-weight: 600; color: #eee; margin-bottom: 2px; display: block; }
+    .item-meta { font-size: 10px; opacity: 0.5; display: flex; align-items: center; gap: 8px; }
+    
+    .ms { font-family: 'Material Symbols Rounded'; font-size: 20px; font-style: normal; font-weight: normal; line-height: 1; display: inline-flex; align-items: center; vertical-align: middle; }
+    
+    .info-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .info-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; }
+    .info-label { font-size: 9px; text-transform: uppercase; opacity: 0.5; margin-bottom: 4px; font-weight: 700; letter-spacing: 0.5px; }
+    .info-value { font-size: 13px; font-weight: 700; }
+    
+    .presensi-btn, .quick-survey-trigger { 
+      background: #1e293b; color: white; border: none; border-radius: 50px; 
+      width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative;
+    }
+    .presensi-btn:hover, .quick-survey-trigger:hover { 
+      background: #3d99e3; transform: translateY(-4px) scale(1.1); 
+      box-shadow: 0 8px 25px rgba(61, 153, 227, 0.4);
+    }
+    
+    /* Tooltip */
+    .presensi-btn::after, .quick-survey-trigger::after {
+      content: attr(data-title);
+      position: absolute; bottom: 50px; left: 0;
+      background: #1e293b; color: white; padding: 6px 12px; border-radius: 6px;
+      font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: 0.2s; font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .presensi-btn:hover::after, .quick-survey-trigger:hover::after { opacity: 1; bottom: 55px; }
+    
+    #mentari-presensi-popup.light-theme .presensi-btn, 
+    #mentari-presensi-popup.light-theme .quick-survey-trigger {
+      background: #ffffff; color: #1e293b; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    #presensi-loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 10001; display: flex; align-items: center; justify-content: center; }
+    .loading-card { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(61, 153, 227, 0.1); border-top: 3px solid #3d99e3; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+    .presensi-notice {
+      background: rgba(255, 123, 0, 0.08); border: 1px solid rgba(255, 123, 0, 0.2);
+      border-radius: 12px; padding: 12px 16px; font-size: 11px; color: #f0872d;
+      margin-bottom: 20px; line-height: 1.5; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .presensi-notice .ms { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+    
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  `
+};
 
+const Utils = {
+  formatDate(d) { if (!d) return "-"; try { return new Date(d).toLocaleString("id-ID", { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch(e) { return d; } },
+  formatDateSimple(d) { if (!d) return "-"; try { return new Date(d).toLocaleString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }); } catch(e) { return d; } },
+  injectMaterialIcons() {
+    if (document.getElementById("ms-presensi-icons")) return;
+    const l = document.createElement("link"); l.id = "ms-presensi-icons"; l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
+    document.head.appendChild(l);
+  }
+};
+
+const UIRenderer = {
+  injectStyles() {
+    const s = document.createElement("style"); s.id = "mentari-presensi-styles";
+    s.textContent = Config.STYLES; document.head.appendChild(s);
+  },
+  
+  showMainPopup(data) {
+    const m = data.mahasiswa;
+    const isLight = document.querySelector(".css-1yxmbwk") !== null;
+    
+    let popup = document.getElementById("mentari-presensi-popup");
+    if (popup) popup.remove();
+    
+    popup = document.createElement("div");
+    popup.id = "mentari-presensi-popup";
+    if (isLight) popup.classList.add("light-theme");
+    
+    let totalPertemuan = 0, totalHadir = 0;
+    data.forEach(d => {
+      totalPertemuan += (d.pertemuan || []).length;
+      totalHadir += (d.pertemuan || []).filter(p => p.presensi_status === "hadir").length;
+    });
+    const avgPercent = totalPertemuan > 0 ? ((totalHadir / totalPertemuan) * 100).toFixed(1) : 0;
+    
+    popup.innerHTML = `
+      <div class="presensi-content-container">
+        <div class="popup-header">
+          <div class="popup-title"><span class="ms" style="color:#f0872d; font-size:24px;">fact_check</span> Ringkasan Presensi</div>
+          <button class="popup-close-btn" id="p-close-btn"><span class="ms">close</span></button>
+        </div>
+        
+        <div class="presensi-scroll-area">
+          <div class="presensi-notice">
+            <span class="ms">campaign</span>
+            <div>
+              <strong>Info Transparansi:</strong> Jika ada mata kuliah yang tidak muncul, ini berarti data presensi mata kuliah tersebut belum diterbitkan atau memang tidak dibuka oleh dosen yang bersangkutan melalui sistem My Unpam.
+            </div>
+          </div>
+          
+          <div class="info-bar">
+            <div class="info-card"><div class="info-label">MAHASISWA</div><div class="info-value">${m.nama_mahasiswa}</div></div>
+            <div class="info-card"><div class="info-label">NIM</div><div class="info-value">${m.nim}</div></div>
+            <div class="info-card"><div class="info-label">SEMESTER</div><div class="info-value">${m.nama_semester_registrasi}</div></div>
+            <div class="info-card" style="background: rgba(61,153,227,0.05); border-color:#3d99e3;">
+              <div class="info-label" style="color:#3d99e3;">TOTAL KEHADIRAN</div>
+              <div class="info-value" style="color:#3d99e3; font-size:16px;">${avgPercent}%</div>
+            </div>
+          </div>
+          
+          <div id="p-course-list">
+            ${data.map((c, i) => this.renderCourseCard(c, i)).join("")}
+          </div>
+        </div>
+        
+        <div class="popup-footer">
+          <div style="opacity:0.6;">v${Config.APP_VERSION} • Data real-time My Unpam</div>
+          <div style="font-weight:700; color:#3d99e3;">${data.length} Mata Kuliah</div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(popup);
+    document.getElementById("p-close-btn").onclick = () => popup.remove();
+    popup.onclick = (e) => { if (e.target === popup) popup.remove(); };
+    
+    // Add detail click events
+    data.forEach((c, i) => {
+      document.getElementById(`p-course-${i}`).onclick = () => this.showDetailPopup(c);
+    });
+  },
+  
+  renderCourseCard(c, idx) {
+    const total = (c.pertemuan || []).length;
+    const hadir = (c.pertemuan || []).filter(p => p.presensi_status === "hadir").length;
+    const percent = total > 0 ? ((hadir / total) * 100).toFixed(0) : 0;
+    
+    let color = "#f44336", bg = "rgba(244,67,54,0.1)";
+    if (percent >= 85) { color = "#79bb7c"; bg = "rgba(121,187,124,0.1)"; }
+    else if (percent >= 75) { color = "#3d99e3"; bg = "rgba(61,153,227,0.1)"; }
+    else if (percent >= 50) { color = "#f0872d"; bg = "rgba(240,135,45,0.1)"; }
+    
+    return `
+      <div class="course-card" id="p-course-${idx}" style="cursor:pointer;">
+        <div class="course-card-header">
+          <h2>${c.nama_mata_kuliah}</h2>
+          <div class="course-percentage" style="color:${color}; background:${bg};">${percent}%</div>
+        </div>
+        <div style="padding:12px 20px; display:flex; gap:20px; font-size:11px; opacity:0.8;">
+          <div><span style="opacity:0.6;">SKS:</span> <b>${c.sks || 3}</b></div>
+          <div><span style="opacity:0.6;">Hadir:</span> <b style="color:#79bb7c;">${hadir}</b></div>
+          <div><span style="opacity:0.6;">Mangkir:</span> <b style="color:#f44336;">${total - hadir}</b></div>
+          <div style="margin-left:auto; display:flex; align-items:center; color:#3d99e3;">Lihat Detail <span class="ms" style="font-size:14px;">chevron_right</span></div>
+        </div>
+      </div>
+    `;
+  },
+  
+  showDetailPopup(c) {
+    const isLight = document.querySelector(".css-1yxmbwk") !== null;
+    const container = document.createElement("div");
+    container.id = "p-detail-subpopup";
+    container.style.cssText = "position:absolute; top:0; left:0; width:100%; height:100%; background:inherit; z-index:10; display:flex; flex-direction:column; animation:slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);";
+    
+    if (isLight) container.classList.add("light-theme");
+    
+    container.innerHTML = `
+      <div class="popup-header" style="background:transparent; border:none;">
+        <button class="popup-close-btn" id="pd-back-btn" style="opacity:1; display:flex; align-items:center; gap:4px; font-weight:700; color:#3d99e3;">
+          <span class="ms">arrow_back</span> Kembali
+        </button>
+        <div class="popup-title" style="font-size:14px; opacity:0.8;">${c.nama_mata_kuliah}</div>
+        <div style="width:50px;"></div>
+      </div>
+      
+      <div class="presensi-scroll-area">
+        ${(c.pertemuan || []).reverse().map((p, i) => `
+          <div class="item-row">
+            <div class="item-icon ${p.presensi_status === 'hadir' ? 'icon-hadir' : 'icon-tidak-hadir'}">
+              <span class="ms">${p.presensi_status === 'hadir' ? 'check_circle' : 'cancel'}</span>
+            </div>
+            <div class="item-info">
+              <span class="item-title">Pertemuan ${c.pertemuan.length - i} - ${p.jenis_perkuliahan || 'Perkuliahan'}</span>
+              <div class="item-meta">
+                <span><span class="ms" style="font-size:12px;">event</span> ${Utils.formatDateSimple(p.tanggal_mulai)}</span>
+                ${p.presensi_date ? `<span><span class="ms" style="font-size:12px;">history</span> ${Utils.formatDate(p.presensi_date)}</span>` : ""}
+              </div>
+            </div>
+            <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:${p.presensi_status === 'hadir' ? '#79bb7c' : '#f44336'}">
+              ${p.presensi_status || 'Tidak Hadir'}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      
+      <style>
+        @keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      </style>
+    `;
+    
+    const root = document.querySelector(".presensi-content-container");
+    root.appendChild(container);
+    document.getElementById("pd-back-btn").onclick = () => container.remove();
+  },
+  
+  showLoading() {
+    const l = document.createElement("div"); l.id = "presensi-loading";
+    l.innerHTML = `
+      <div class="loading-card">
+        <div class="spinner"></div>
+        <div style="font-weight:700; font-size:16px; margin-bottom:4px;">Sinkronisasi Presensi</div>
+        <div style="opacity:0.5; font-size:12px;">Menghubungkan ke portal akademik...</div>
+      </div>
+    `;
+    document.body.appendChild(l);
+    return l;
+  },
+  
+  hideLoading() { document.getElementById("presensi-loading")?.remove(); },
+  
+  addTrigger() {
+    if (document.getElementById("p-trigger-btn")) return;
+    const b = document.createElement("button");
+    b.id = "p-trigger-btn";
+    b.className = "presensi-btn";
+    b.setAttribute("data-title", "Lihat Presensi Keseluruhan");
+    b.style.cssText = "position:fixed; bottom:20px; left:20px; z-index:9999;";
+    b.innerHTML = `<span class="ms">fact_check</span>`;
+    b.onclick = async () => {
+      b.disabled = true;
+      b.innerHTML = `<div class="spinner" style="width:14px; height:14px; border-width:2px; margin:0;"></div> Memuat...`;
+      this.showLoading();
+      try {
+        await fetchAllPresensiData();
+      } catch (e) {
+        console.error(e);
+        alert("Gagal memuat data presensi.");
+      } finally {
+        this.hideLoading();
+        b.disabled = false;
+        b.innerHTML = `<span class="ms">fact_check</span>`;
+      }
+    };
+    document.body.appendChild(b);
+  }
+};
+
+// Update existing functions to use new UIRenderer
+function showPresensiTable(data) { UIRenderer.showMainPopup(data); }
+function showLoadingSpinner() { return UIRenderer.showLoading(); }
+function hideLoadingSpinner() { UIRenderer.hideLoading(); }
+function addFloatingButton() { UIRenderer.addTrigger(); }
+
+// Initialize styles
+Utils.injectMaterialIcons();
+UIRenderer.injectStyles();
+
+// Original core logic follows...
+async function fetchAllPresensiData() {
+  const token = await getAuthToken();
   if (!token) {
-    console.error("Token tidak ditemukan. Tidak dapat melanjutkan.");
+    console.error("Token tidak ditemukan.");
     showPopupMessage("Error: Token tidak ditemukan", "error");
-    return;
+    return null;
   }
 
-  console.log("Token ditemukan:", token);
-
   try {
-    // 1. Fetch jadwal kuliah terlebih dahulu
-    console.log("Mengambil data jadwal kuliah...");
     const jadwalKuliah = await fetchJadwalKuliah(token);
-
     if (!jadwalKuliah || !jadwalKuliah.length) {
-      console.error("Tidak ada jadwal kuliah yang ditemukan.");
       showPopupMessage("Tidak ada jadwal kuliah yang ditemukan", "error");
-      return;
+      return null;
     }
 
-    console.log(`Ditemukan ${jadwalKuliah.length} mata kuliah`);
-
-    // Extract student information from the first item in jadwal kuliah
     const mahasiswaInfo = {
       nim: jadwalKuliah[0].nim,
       nama_mahasiswa: jadwalKuliah[0].nama_mahasiswa,
@@ -32,638 +339,33 @@ async function fetchAllPresensiData() {
       nama_semester_registrasi: jadwalKuliah[0].nama_semester_registrasi,
     };
 
-    // 2. Untuk setiap mata kuliah, ambil data presensi
     const allPresensiData = [];
-
     for (const jadwal of jadwalKuliah) {
       const { id_kelas, id_mata_kuliah, nama_mata_kuliah, sks } = jadwal;
-
-      console.log(
-        `Mengambil data presensi untuk: ${nama_mata_kuliah} (${id_mata_kuliah})`
-      );
-
       try {
-        const presensiData = await fetchPresensiPertemuan(
-          token,
-          id_kelas,
-          id_mata_kuliah
-        );
-
-        // Tambahkan nama mata kuliah dan SKS ke data presensi
-        const enrichedData = {
+        const presensiData = await fetchPresensiPertemuan(token, id_kelas, id_mata_kuliah);
+        allPresensiData.push({
           nama_mata_kuliah,
           id_mata_kuliah,
           id_kelas,
           sks,
           pertemuan: presensiData,
-        };
-
-        allPresensiData.push(enrichedData);
-
-        console.log(
-          `Berhasil mengambil data presensi untuk: ${nama_mata_kuliah}`
-        );
+        });
       } catch (error) {
-        console.error(
-          `Gagal mengambil data presensi untuk ${nama_mata_kuliah}:`,
-          error
-        );
+        console.error(`Gagal mengambil data untuk ${nama_mata_kuliah}`);
       }
     }
 
-    // 3. Tambahkan data mahasiswa ke presensi data
     allPresensiData.mahasiswa = mahasiswaInfo;
-
-    // 4. Tampilkan ringkasan data presensi sebagai popup
     showPresensiTable(allPresensiData);
     return allPresensiData;
   } catch (error) {
-    console.error("Terjadi kesalahan saat mengambil data:", error);
+    console.error("Kesalahan fetch:", error);
     showPopupMessage("Terjadi kesalahan saat mengambil data", "error");
+    return null;
   }
 }
 
-// Fungsi untuk membuat popup table dengan desain Vercel
-// Function to show attendance details when a row is clicked
-function showAttendanceDetails(pertemuan, mataKuliah) {
-  // Create modal container
-  const modalContainer = document.createElement("div");
-  modalContainer.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10002;
-  `;
-
-  // Create modal content
-  const modalContent = document.createElement("div");
-  modalContent.style.cssText = `
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    width: 90%;
-    max-width: 1200px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 24px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
-    display: flex;
-    flex-direction: column;
-  `;
-
-  // Create header (STICKY)
-  const header = document.createElement("div");
-  header.style.cssText = `
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #eaeaea;
-    color: black;
-    padding-bottom: 16px;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: white;
-  `;
-
-  header.innerHTML = `
-    <h3 style="margin: 0; font-size: 18px; font-weight: 600;">${mataKuliah} - Detail Presensi</h3>
-    <button id="close-detail-modal" style="background: none; border: none; cursor: pointer; color: #666; font-size: 20px;">×</button>
-  `;
-
-  // Create table container (for horizontal scroll)
-  const tableContainer = document.createElement("div");
-  tableContainer.style.cssText = `
-    width: 100%;
-    overflow-x: auto;
-  `;
-
-  // Create table
-  const table = document.createElement("table");
-  table.style.cssText = `
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    color: black;
-  `;
-
-  table.innerHTML = `
-    <thead>
-      <tr style="background-color: #fafafa;">
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">Pertemuan</th>
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">Jenis</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">Status</th>
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">Tanggal Mulai</th>
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">Tanggal Hadir</th>
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">Oleh</th>
-      </tr>
-    </thead>
-    <tbody id="detail-table-body">
-    </tbody>
-  `;
-
-  // Assemble modal
-  modalContent.appendChild(header);
-  tableContainer.appendChild(table);
-  modalContent.appendChild(tableContainer);
-  modalContainer.appendChild(modalContent);
-  document.body.appendChild(modalContainer);
-
-  // Add event listener to close button
-  document
-    .getElementById("close-detail-modal")
-    .addEventListener("click", () => {
-      document.body.removeChild(modalContainer);
-    });
-
-  // Fill table with data
-  const tableBody = document.getElementById("detail-table-body");
-
-  pertemuan.forEach((p, index) => {
-    const row = document.createElement("tr");
-    row.style.cssText = `transition: background-color 0.15s ease;`;
-
-    row.onmouseover = function () {
-      this.style.backgroundColor = "#f9fafb";
-    };
-
-    row.onmouseout = function () {
-      this.style.backgroundColor = "";
-    };
-
-    // Status styling
-    let statusColor, statusBg;
-    if (p.presensi_status === "hadir") {
-      statusColor = "#10b981"; // green
-      statusBg = "rgba(16, 185, 129, 0.1)";
-    } else {
-      statusColor = "#f43f5e"; // red
-      statusBg = "rgba(244, 63, 94, 0.1)";
-    }
-
-    // Format date
-    const dateStr = p.presensi_date ? formatDate(p.presensi_date) : "-";
-    const TglMulai = p.tanggal_mulai ? formatDateStart(p.tanggal_mulai) : "-";
-
-    row.innerHTML = `
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        index + 1
-      }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        p.jenis_perkuliahan || "-"
-      }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">
-        <div style="display: inline-flex; align-items: center; background-color: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 12px; font-weight: 500; font-size: 13px;">
-          ${p.presensi_status || "tidak hadir"}
-        </div>
-      </td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${TglMulai}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${dateStr}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        p.presensi_by || "-"
-      }</td>
-    `;
-
-    tableBody.appendChild(row);
-  });
-}
-
-// Helper function to format date
-function formatDate(dateString) {
-  if (!dateString) return "-";
-
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleString("id-ID", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch (e) {
-    return dateString;
-  }
-}
-
-function formatDateStart(dateString) {
-  if (!dateString) return "-";
-
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleString("id-ID", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch (e) {
-    return dateString;
-  }
-}
-
-// Modify the showPresensiTable function to make rows clickable
-function showPresensiTable(presensiData) {
-  // Get student info
-  const mahasiswaInfo = presensiData.mahasiswa;
-
-  // Create popup container
-  const popupContainer = document.createElement("div");
-  popupContainer.id = "presensi-popup";
-  popupContainer.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    z-index: 10000;
-    width: 90%;
-    max-width: 1200px;
-    max-height: 90vh;
-    overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    color: black;
-  `;
-
-  // Create header with student info
-  const header = document.createElement("div");
-  header.style.cssText = `
-    margin-bottom: 24px;
-    border-bottom: 1px solid #eaeaea;
-    padding-bottom: 16px;
-  `;
-
-  header.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
-      <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #000;">Ringkasan Presensi</h2>
-      <span style="background-color: #0070f3; color: white; padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-top: 8px;">
-        ${presensiData.length} Mata Kuliah
-      </span>
-    </div>
-    
-    <div style="display: flex; flex-wrap: wrap; gap: 16px;">
-      <div style="flex: 1; min-width: 200px;">
-        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Nama Mahasiswa</div>
-        <div style="font-weight: 500;">${mahasiswaInfo.nama_mahasiswa}</div>
-      </div>
-      <div style="flex: 1; min-width: 100px;">
-        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">NIM</div>
-        <div style="font-weight: 500;">${mahasiswaInfo.nim}</div>
-      </div>
-      <div style="flex: 1; min-width: 200px;">
-        <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Semester</div>
-        <div style="font-weight: 500;">${mahasiswaInfo.nama_semester_registrasi}</div>
-      </div>
-    </div>
-  `;
-
-  // Create table container
-  const tableContainer = document.createElement("div");
-  tableContainer.style.cssText = `
-    border-radius: 8px;
-    overflow-x: auto;
-    border: 1px solid #eaeaea;
-  `;
-
-  // Create table
-  const table = document.createElement("table");
-  table.style.cssText = `
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    background-color: #fff;
-    min-width: 650px;
-  `;
-
-  // Table header
-  table.innerHTML = `
-    <thead>
-      <tr style="background-color: #fafafa;">
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">No</th>
-        <th style="padding: 12px 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #eaeaea;">Mata Kuliah</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">Kode</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">SKS</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">Total Pertemuan</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">Hadir</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">Tidak Hadir</th>
-        <th style="padding: 12px 16px; text-align: center; font-weight: 600; border-bottom: 1px solid #eaeaea;">Persentase</th>
-      </tr>
-    </thead>
-    <tbody id="presensi-table-body">
-    </tbody>
-  `;
-
-  // Footer with close button
-  const footer = document.createElement("div");
-  footer.style.cssText = `
-    margin-top: 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-  `;
-
-  // Add overall attendance status
-  const overallStatus = document.createElement("div");
-
-  // Calculate overall attendance
-  let totalPertemuanKeseluruhan = 0;
-  let totalHadirKeseluruhan = 0;
-
-  presensiData.forEach((data) => {
-    const hadir = data.pertemuan.filter(
-      (p) => p.presensi_status === "hadir"
-    ).length;
-    const totalPertemuan = data.pertemuan.length;
-
-    totalPertemuanKeseluruhan += totalPertemuan;
-    totalHadirKeseluruhan += hadir;
-  });
-
-  const persentaseKeseluruhan =
-    totalPertemuanKeseluruhan > 0
-      ? ((totalHadirKeseluruhan / totalPertemuanKeseluruhan) * 100).toFixed(1)
-      : 0;
-
-  const statusColor = persentaseKeseluruhan >= 75 ? "#0070f3" : "#f5a623";
-  const statusBackground =
-    persentaseKeseluruhan >= 75
-      ? "rgba(0, 112, 243, 0.1)"
-      : "rgba(245, 166, 35, 0.1)";
-
-  overallStatus.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-      <div style="font-size: 14px; color: #666;">Status Kehadiran:</div>
-      <div style="background-color: ${statusBackground}; color: ${statusColor}; padding: 4px 12px; border-radius: 16px; font-weight: 500;">
-        ${persentaseKeseluruhan}% Keseluruhan
-      </div>
-    </div>
-  `;
-
-  // Close button
-  const closeButton = document.createElement("button");
-  closeButton.textContent = "Tutup";
-  closeButton.style.cssText = `
-    padding: 8px 16px;
-    background-color: #0070f3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    margin-left: auto;
-  `;
-  closeButton.onmouseover = function () {
-    this.style.backgroundColor = "#0060df";
-  };
-  closeButton.onmouseout = function () {
-    this.style.backgroundColor = "#0070f3";
-  };
-  closeButton.onclick = function () {
-    document.body.removeChild(popupContainer);
-  };
-
-  footer.appendChild(overallStatus);
-  footer.appendChild(closeButton);
-
-  // Assemble all elements
-  tableContainer.appendChild(table);
-  popupContainer.appendChild(header);
-  popupContainer.appendChild(tableContainer);
-  popupContainer.appendChild(footer);
-
-  // Add to body
-  document.body.appendChild(popupContainer);
-
-  // Fill table with data
-  const tableBody = document.getElementById("presensi-table-body");
-
-  presensiData.forEach((data, index) => {
-    const hadir = data.pertemuan.filter(
-      (p) => p.presensi_status === "hadir"
-    ).length;
-    const totalPertemuan = data.pertemuan.length;
-    const persentase =
-      totalPertemuan > 0 ? ((hadir / totalPertemuan) * 100).toFixed(1) : 0;
-
-    // Determine percentage color
-    let statusColor, statusBg;
-    if (persentase >= 85) {
-      statusColor = "#10b981"; // green
-      statusBg = "rgba(16, 185, 129, 0.1)";
-    } else if (persentase >= 75) {
-      statusColor = "#0070f3"; // blue
-      statusBg = "rgba(0, 112, 243, 0.1)";
-    } else if (persentase >= 50) {
-      statusColor = "#f5a623"; // orange
-      statusBg = "rgba(245, 166, 35, 0.1)";
-    } else {
-      statusColor = "#f43f5e"; // red
-      statusBg = "rgba(244, 63, 94, 0.1)";
-    }
-
-    const row = document.createElement("tr");
-    row.style.cssText = `
-      transition: background-color 0.15s ease;
-      cursor: pointer;
-    `;
-
-    row.onmouseover = function () {
-      this.style.backgroundColor = "#f9fafb";
-    };
-    row.onmouseout = function () {
-      this.style.backgroundColor = "";
-    };
-
-    // Add click event to show detailed attendance
-    row.onclick = function () {
-      showAttendanceDetails(data.pertemuan, data.nama_mata_kuliah);
-    };
-
-    // Add SKS (if missing, use default)
-    const sks = data.sks || "3";
-
-    row.innerHTML = `
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea;">${
-        index + 1
-      }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; font-weight: 500;">${
-        data.nama_mata_kuliah
-      }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">${
-        data.id_mata_kuliah
-      }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; font-weight: bold;">${sks}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">${totalPertemuan}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; color: #10b981;">${hadir}</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center; color: #f43f5e;">${
-        totalPertemuan - hadir
-      }</td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #eaeaea; text-align: center;">
-        <div style="display: inline-flex; align-items: center; gap: 6px; background-color: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 12px; font-weight: 500; font-size: 13px;">
-          ${persentase}%
-        </div>
-      </td>
-    `;
-
-    tableBody.appendChild(row);
-  });
-}
-
-// Rest of the original script remains the same
-
-// Fungsi untuk menampilkan loading spinner
-function showLoadingSpinner() {
-  const spinnerContainer = document.createElement("div");
-  spinnerContainer.id = "loading-spinner";
-  spinnerContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10001;
-    `;
-
-  const spinner = document.createElement("div");
-  spinner.style.cssText = `
-      width: 50px;
-      height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #0070f3;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 15px;
-    `;
-
-  const messageContainer = document.createElement("div");
-  messageContainer.style.cssText = `
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      font-size: 16px;
-      color: #333;
-    `;
-  messageContainer.innerHTML = `
-      <div style="font-weight: 500; margin-bottom: 5px;">Memuat Data Presensi</div>
-      <div style="font-size: 14px; color: #666;">Mohon tunggu sebentar...</div>
-    `;
-
-  const loadingContent = document.createElement("div");
-  loadingContent.style.cssText = `
-      display: flex;
-      align-items: center;
-      padding: 20px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    `;
-
-  loadingContent.appendChild(spinner);
-  loadingContent.appendChild(messageContainer);
-  spinnerContainer.appendChild(loadingContent);
-
-  // Tambahkan style untuk animasi
-  const styleElement = document.createElement("style");
-  styleElement.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-  document.head.appendChild(styleElement);
-
-  // Tambahkan ke body
-  document.body.appendChild(spinnerContainer);
-
-  return spinnerContainer;
-}
-
-// Fungsi untuk hide loading spinner
-function hideLoadingSpinner() {
-  const spinner = document.getElementById("loading-spinner");
-  if (spinner) {
-    document.body.removeChild(spinner);
-  }
-}
-
-// Modifikasi tombol floating
-function addFloatingButton() {
-  // Cek apakah sudah ada container
-  let container = document.getElementById("floatingButtonContainer");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "floatingButtonContainer";
-    container.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      display: flex;
-      flex-direction: row;
-      gap: 10px;
-      z-index: 9999;
-    `;
-    document.body.appendChild(container);
-  }
-
-  // Tambahkan tombol presensi
-  let button = document.getElementById("presensiButton");
-  if (!button) {
-    button = document.createElement("button");
-    button.id = "presensiButton";
-    button.textContent = "Lihat Presensi";
-    button.style.cssText = `
-      padding: 10px 16px;
-      background-color: #0070f3;
-      color: white;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      font-weight: 500;
-      font-size: 14px;
-      transition: background 0.2s;
-      box-shadow: none;
-    `;
-    button.onmouseover = function () {
-      this.style.backgroundColor = "#0059b2";
-    };
-    button.onmouseout = function () {
-      this.style.backgroundColor = "#0070f3";
-    };
-    button.onclick = function () {
-      this.disabled = true;
-      this.textContent = "Memuat...";
-      const spinner = showLoadingSpinner();
-      fetchAllPresensiData()
-        .then(() => {
-          this.disabled = false;
-          this.textContent = "Lihat Presensi";
-          hideLoadingSpinner();
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          this.disabled = false;
-          this.textContent = "Lihat Presensi";
-          hideLoadingSpinner();
-        });
-    };
-    container.appendChild(button);
-  }
-}
 
 // Fungsi untuk menampilkan pesan popup
 function showPopupMessage(message, type = "info") {

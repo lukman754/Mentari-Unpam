@@ -121,295 +121,250 @@ function automateFlow(mode) {
   setTimeout(clickNextButton, 500);
 }
 
-function createQuickSurveyToggle() {
-  // Remove existing elements first
-  const existingToggle = document.getElementById("quickSurveyToggle");
-  if (existingToggle) existingToggle.remove();
+const SurveyConfig = {
+  APP_VERSION: "2.0",
+  STYLES: `
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    
+    #quick-survey-popup-root {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 10000; font-family: 'Roboto', sans-serif;
+      animation: fadeIn 0.3s;
+    }
+    .survey-container {
+      background: #121212; color: #eee; width: 90%; max-width: 450px;
+      border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Light Theme Adaptation */
+    #quick-survey-popup-root.light-theme .survey-container {
+      background: #ffffff; color: #1a1c1e; border-color: rgba(0,0,0,0.1);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    #quick-survey-popup-root.light-theme .popup-header { background: #f8f9fa; border-bottom-color: rgba(0,0,0,0.08); }
+    #quick-survey-popup-root.light-theme .popup-title { color: #0d47a1; }
+    #quick-survey-popup-root.light-theme .survey-card { background: #f8fafc; border-color: rgba(0,0,0,0.06); }
+    #quick-survey-popup-root.light-theme .card-label { color: #64748b; }
+    #quick-survey-popup-root.light-theme .survey-footer { background: #f8f9fa; border-top-color: rgba(0,0,0,0.08); }
+    
+    .popup-header { padding: 18px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .popup-title { font-weight: 700; font-size: 18px; color: #3d99e3; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .popup-close-btn { background: none; border: none; color: inherit; opacity: 0.5; cursor: pointer; transition: 0.2s; }
+    .popup-close-btn:hover { opacity: 1; transform: rotate(90deg); }
+    
+    .survey-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .survey-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; }
+    .card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.6; margin-bottom: 12px; letter-spacing: 0.5px; }
+    
+    .star-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .rating-btn { 
+      padding: 10px 0; border-radius: 8px; border: 1px solid transparent; 
+      font-weight: 700; cursor: pointer; transition: all 0.2s; 
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .rating-btn span { font-size: 9px; opacity: 0.8; font-weight: 500; text-align: center; }
+    
+    .btn-r1 { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+    .btn-r2 { background: rgba(255, 152, 0, 0.1); color: #ff9800; }
+    .btn-r3 { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .btn-r4 { background: rgba(139, 195, 74, 0.1); color: #8bc34a; }
+    .btn-r5 { background: rgba(76, 175, 80, 0.1); color: #4caf50; }
+    
+    .rating-btn:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); border-color: currentColor; }
+    
+    .option-btn { 
+      width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.02); color: inherit; font-weight: 600;
+      cursor: pointer; transition: 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    }
+    .option-btn:hover { background: rgba(61, 153, 227, 0.1); border-color: #3d99e3; color: #3d99e3; padding-left: 20px; }
+    
+    .survey-warning {
+      background: rgba(250, 204, 21, 0.08); border: 1px solid rgba(250, 204, 21, 0.2);
+      border-radius: 10px; padding: 12px; font-size: 11px; color: #facc15;
+      line-height: 1.5; display: flex; gap: 10px; margin-bottom: 5px;
+    }
+    .survey-warning .ms { color: #facc15; font-size: 18px; flex-shrink: 0; }
+    
+    .survey-guide {
+      background: rgba(61, 153, 227, 0.08); border: 1px solid rgba(61, 153, 227, 0.2);
+      border-radius: 10px; padding: 12px; font-size: 11px; color: #3d99e3;
+      line-height: 1.5; display: flex; gap: 10px; margin-bottom: 8px;
+    }
+    .survey-guide .ms { color: #3d99e3; font-size: 18px; flex-shrink: 0; }
+    
+    .survey-footer { padding: 16px 24px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; text-align: center; opacity: 0.6; }
+    
+    .quick-survey-trigger { 
+      background: #1e293b; color: white; border: none; border-radius: 50px; 
+      width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative;
+      overflow: hidden; isolation: isolate;
+    }
+    
+    /* Animation Glow Purple */
+    .quick-survey-trigger::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      background: radial-gradient(circle at center, rgba(168, 85, 247, 0.9) 0%, rgba(181, 102, 255, 0.52) 40%, transparent 75%);
+      border-radius: 50%;
+      filter: blur(10px);
+      z-index: 1;
+      animation: survey-glow 2.5s ease-in-out infinite;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+    
+    @keyframes survey-glow {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 0.9; transform: scale(1.1); }
+    }
+    
+    .quick-survey-trigger:hover { 
+      background: #3d99e3; transform: translateY(-4px) scale(1.1); 
+      box-shadow: 0 8px 25px rgba(61, 153, 227, 0.4);
+    }
+    .quick-survey-trigger:hover::after {
+      background: radial-gradient(circle at center, rgba(181, 102, 255, 1) 0%, rgba(181, 102, 255, 0.5) 40%, transparent 75%);
+      animation-duration: 1.2s;
+    }
+    
+    /* Tooltip override - need higher z-index than after */
+    .quick-survey-trigger::before {
+      content: attr(data-title);
+      position: absolute; bottom: 50px; left: 0;
+      background: #1e293b; color: white; padding: 6px 12px; border-radius: 6px;
+      font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none;
+      transition: 0.2s; font-weight: 700;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    .quick-survey-trigger:hover::before { opacity: 1; bottom: 55px; }
 
-  // Gunakan container yang sama dengan presensi jika ada
+    #quick-survey-popup-root.light-theme .quick-survey-trigger {
+      background: #ffffff; color: #1e293b; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .ms { font-family: 'Material Symbols Rounded'; font-size: 20px; font-style: normal; font-weight: normal; line-height: 1; display: inline-flex; align-items: center; vertical-align: middle; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  `
+};
+
+function injectSurveyStyles() {
+  if (document.getElementById("mentari-survey-styles")) return;
+  const s = document.createElement("style"); s.id = "mentari-survey-styles";
+  s.textContent = SurveyConfig.STYLES; document.head.appendChild(s);
+  
+  if (!document.getElementById("ms-presensi-icons")) {
+    const l = document.createElement("link"); l.id = "ms-presensi-icons"; l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
+    document.head.appendChild(l);
+  }
+}
+
+function createQuickSurveyToggle() {
+  injectSurveyStyles();
   let container = document.getElementById("floatingButtonContainer");
   if (!container) {
     container = document.createElement("div");
     container.id = "floatingButtonContainer";
-    container.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      display: flex;
-      flex-direction: row;
-      gap: 10px;
-      z-index: 9999;
-    `;
+    container.style.cssText = "position:fixed; bottom:20px; left:20px; display:flex; flex-direction:row; gap:12px; z-index:9999; align-items:flex-end;";
     document.body.appendChild(container);
   }
 
-  // Buat tombol Quick Survey
-  const toggleButton = document.createElement("button");
-  toggleButton.id = "quickSurveyToggle";
-  toggleButton.textContent = "Quick Survey";
-  toggleButton.style.cssText = `
-    padding: 8px 14px;
-    background-color: #1e293b;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    transition: background 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  `;
-  toggleButton.onmouseover = function () {
-    this.style.backgroundColor = "#334155";
-  };
-  toggleButton.onmouseout = function () {
-    this.style.backgroundColor = "#1e293b";
-  };
-  // Add click handler
-  toggleButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const popup = document.getElementById("quickSurveyPopup");
-    const overlay = document.getElementById("quickSurveyPopupOverlay");
-
-    if (popup && overlay) {
-      const isVisible = popup.style.display === "block";
-
-      if (isVisible) {
-        popup.style.display = "none";
-        overlay.style.display = "none";
-        toggleButton.style.backgroundColor = "#1e293b";
-      } else {
-        popup.style.display = "block";
-        overlay.style.display = "block";
-        toggleButton.style.backgroundColor = "#334155";
-      }
-    } else {
-      console.log("Popup or overlay not found, creating new ones...");
-      createQuickSurveyPopup();
-      // Try again after creation
-      setTimeout(() => {
-        const newPopup = document.getElementById("quickSurveyPopup");
-        const newOverlay = document.getElementById("quickSurveyPopupOverlay");
-        if (newPopup && newOverlay) {
-          newPopup.style.display = "block";
-          newOverlay.style.display = "block";
-          toggleButton.style.backgroundColor = "#059669";
-        }
-      }, 100);
-    }
-  });
-
-  container.appendChild(toggleButton);
+  if (document.getElementById("quickSurveyToggle")) return;
+  const btn = document.createElement("button");
+  btn.id = "quickSurveyToggle";
+  btn.className = "quick-survey-trigger";
+  btn.setAttribute("data-title", "Quick Survey Otomatis");
+  btn.innerHTML = `<span class="ms">auto_awesome</span>`;
+  btn.onclick = () => createQuickSurveyPopup();
+  container.appendChild(btn);
 }
 
 function createQuickSurveyPopup() {
-  // Remove existing popup elements
-  const existingPopup = document.getElementById("quickSurveyPopup");
-  if (existingPopup) {
-    existingPopup.remove();
-  }
+  const isLight = document.querySelector(".css-1yxmbwk") !== null;
+  let root = document.getElementById("quick-survey-popup-root");
+  if (root) root.remove();
 
-  const existingOverlay = document.getElementById("quickSurveyPopupOverlay");
-  if (existingOverlay) {
-    existingOverlay.remove();
-  }
+  root = document.createElement("div");
+  root.id = "quick-survey-popup-root";
+  if (isLight) root.classList.add("light-theme");
 
-  // Create popup container
-  const popupContainer = document.createElement("div");
-  popupContainer.id = "quickSurveyPopup";
-  popupContainer.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #1e1e1e;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    z-index: 10000;
-    width: 90%;
-    max-width: 400px;
-    max-height: 90vh;
-    overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    color: #e0e0e0;
-    display: none;
-  `;
-
-  popupContainer.innerHTML = `
-    <div style="margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #fff;">Quick Survey</h2>
-        <button id="close-quick-survey" style="background: none; border: none; cursor: pointer; color: #aaa; font-size: 20px;">×</button>
+  root.innerHTML = `
+    <div class="survey-container">
+      <div class="popup-header">
+        <div class="popup-title"><span class="ms" style="color:#f0872d; font-size:24px;">bolt</span> Quick Survey</div>
+        <button class="popup-close-btn" id="s-close-btn"><span class="ms">close</span></button>
       </div>
-      <p style="margin: 0; font-size: 13px; color: #aaa;">Pilih salah satu opsi untuk mengisi kuisioner</p>
-    </div>
+      
+      <div class="survey-body">
+        <div class="survey-guide">
+          <span class="ms">info</span>
+          <div>
+            <strong>Cara Penggunaan:</strong> Klik "Isi Kuesioner" pada mata kuliah yang diinginkan di halaman KHS, lalu gunakan tombol di bawah ini untuk pengisian otomatis.
+          </div>
+        </div>
 
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      <div style="background-color: #2a2a2a; border-radius: 8px; padding: 14px; border: 1px solid #333;">
-        <p style="margin: 0 0 10px 0; font-weight: 500; color: #ddd;">Penilaian kinerja dosen:</p>
-        <div style="display: flex; justify-content: space-between; gap: 5px;">
-          <button class="star-btn" data-rating="1" style="flex: 1; background-color: #7f1d1d; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">1<br><span style="font-size: 10px;">Sangat Kurang</span></button>
-          <button class="star-btn" data-rating="2" style="flex: 1; background-color: #92400e; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">2<br><span style="font-size: 10px;">Kurang</span></button>
-          <button class="star-btn" data-rating="3" style="flex: 1; background-color: #854d0e; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">3<br><span style="font-size: 10px;">Cukup</span></button>
-          <button class="star-btn" data-rating="4" style="flex: 1; background-color: #3f6212; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">4<br><span style="font-size: 10px;">Baik</span></button>
-          <button class="star-btn" data-rating="5" style="flex: 1; background-color: #065f46; color: white; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">5<br><span style="font-size: 10px;">Sangat Baik</span></button>
+        <div class="survey-warning">
+          <span class="ms">report</span>
+          <div>
+            <strong>Peringatan:</strong> Gunakan fitur ini dengan bijak. Quick Survey bekerja dengan mengisi penilaian secara otomatis berdasarkan rata-rata statistik dari rentang yang Anda pilih, bukan berdasarkan penilaian manual per poin.
+          </div>
+        </div>
+
+        <div class="survey-card">
+          <div class="card-label">Penilaian Kinerja Dosen</div>
+          <div class="star-grid">
+            <button class="rating-btn btn-r1" data-v="star1">1<span>Buruk</span></button>
+            <button class="rating-btn btn-r2" data-v="star2">2<span>Kurang</span></button>
+            <button class="rating-btn btn-r3" data-v="star3">3<span>Cukup</span></button>
+            <button class="rating-btn btn-r4" data-v="star4">4<span>Baik</span></button>
+            <button class="rating-btn btn-r5" data-v="star5">5<span>Sangat Baik</span></button>
+          </div>
+        </div>
+        
+        <div class="survey-card" style="padding:10px;">
+          <div class="card-label" style="margin-bottom:8px;">Opsi Otomasi</div>
+          <button class="option-btn" id="opt-all-good"><span class="ms">done_all</span> Pilih Semua "Setuju"</button>
+          <button class="option-btn" id="opt-random-safe"><span class="ms">shuffle</span> Random (Aman)</button>
+          <button class="option-btn" id="opt-chaos"><span class="ms">warning</span> Acak Total</button>
         </div>
       </div>
-
-      <div style="background-color: #2a2a2a; border-radius: 8px; padding: 14px; border: 1px solid #333;">
-        <p style="margin: 0 0 10px 0; font-weight: 500; color: #ddd;">Opsi lainnya:</p>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <button id="setuju" style="background-color: #3f6212; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Pilih Semua "Setuju"</button>
-          <button id="random" style="background-color: #854d0e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Random (Tanpa "Sangat Tidak Setuju")</button>
-          <button id="fullRandom" style="background-color: #5b21b6; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Acak Total</button>
-        </div>
+      
+      <div class="survey-footer">
+        Mod by Lukman754 • v${SurveyConfig.APP_VERSION}
       </div>
     </div>
-
-    <div style="margin-top: 16px; text-align: center; font-size: 11px; color: #777;">
-      &copy; 2025 Created by <a href="https://github.com/Lukman754" target="_blank" style="color: #6d9ee7; text-decoration: none;">Lukman754</a>
-    </div>
   `;
 
-  // Create overlay
-  const overlay = document.createElement("div");
-  overlay.id = "quickSurveyPopupOverlay";
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    display: none;
-  `;
+  document.body.appendChild(root);
+  root.onclick = (e) => { if (e.target === root) root.remove(); };
+  document.getElementById("s-close-btn").onclick = () => root.remove();
 
-  // Add elements to document
-  document.body.appendChild(overlay);
-  document.body.appendChild(popupContainer);
-
-  // Add close functionality
-  document
-    .getElementById("close-quick-survey")
-    .addEventListener("click", () => {
-      const toggleButton = document.getElementById("quickSurveyToggle");
-      if (toggleButton) {
-        toggleButton.click();
-      }
-    });
-
-  overlay.addEventListener("click", () => {
-    const toggleButton = document.getElementById("quickSurveyToggle");
-    if (toggleButton) {
-      toggleButton.click();
-    }
+  // Setup Event Listeners
+  document.querySelectorAll(".rating-btn").forEach(btn => {
+    btn.onclick = () => { automateFlow(btn.dataset.v); root.remove(); };
   });
 
-  // Add hover effects to buttons
-  const buttons = popupContainer.querySelectorAll(
-    "button:not(#close-quick-survey)"
-  );
-  buttons.forEach((button) => {
-    button.onmouseover = function () {
-      this.style.opacity = "0.9";
-      this.style.transform = "translateY(-1px)";
-    };
-    button.onmouseout = function () {
-      this.style.opacity = "1";
-      this.style.transform = "translateY(0)";
-    };
-  });
+  const actions = {
+    "opt-all-good": "Setuju",
+    "opt-random-safe": "Random",
+    "opt-chaos": "FullRandom"
+  };
 
-  // Setup event listeners immediately after creating the popup
-  setupQuickSurveyEventListeners();
-
-  console.log("Popup created and added to DOM"); // Debug log
-}
-
-function setupQuickSurveyEventListeners() {
-  // Check if we're in a Chrome extension context
-  const isExtension =
-    typeof chrome !== "undefined" && chrome.tabs && chrome.scripting;
-
-  // Event listeners for star rating buttons
-  document.querySelectorAll(".star-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      const rating = button.getAttribute("data-rating");
-      console.log(`Star ${rating} button clicked`); // Debug log
-
-      if (isExtension) {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          chrome.scripting.executeScript({
-            target: { tabId: tabs[0].id },
-            function: automateFlow,
-            args: [`star${rating}`],
-          });
-        });
-      } else {
-        // If not in extension context, run directly
-        automateFlow(`star${rating}`);
-      }
-
-      // Hide popup
-      const popup = document.getElementById("quickSurveyPopup");
-      const overlay = document.getElementById("quickSurveyPopupOverlay");
-      if (popup && overlay) {
-        popup.style.display = "none";
-        overlay.style.display = "none";
-        const toggleButton = document.getElementById("quickSurveyToggle");
-        if (toggleButton) {
-          toggleButton.style.backgroundColor = "#1e293b";
-        }
-      }
-    });
-  });
-
-  // Other button event listeners
-  const buttons = [
-    { id: "setuju", mode: "Setuju" },
-    { id: "random", mode: "Random" },
-    { id: "fullRandom", mode: "FullRandom" },
-  ];
-
-  buttons.forEach(({ id, mode }) => {
-    const button = document.getElementById(id);
-    if (button) {
-      button.addEventListener("click", () => {
-        console.log(`${id} button clicked`); // Debug log
-
-        if (isExtension) {
-          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome.scripting.executeScript({
-              target: { tabId: tabs[0].id },
-              function: automateFlow,
-              args: [mode],
-            });
-          });
-        } else {
-          // If not in extension context, run directly
-          automateFlow(mode);
-        }
-
-        // Hide popup
-        const popup = document.getElementById("quickSurveyPopup");
-        const overlay = document.getElementById("quickSurveyPopupOverlay");
-        if (popup && overlay) {
-          popup.style.display = "none";
-          overlay.style.display = "none";
-          const toggleButton = document.getElementById("quickSurveyToggle");
-          if (toggleButton) {
-            toggleButton.style.backgroundColor = "#1e293b";
-        }
-        }
-      });
-    }
+  Object.entries(actions).forEach(([id, mode]) => {
+    document.getElementById(id).onclick = () => { automateFlow(mode); root.remove(); };
   });
 }
+
 
 // Fungsi untuk mengecek URL dan menampilkan popup jika sesuai
 function checkUrlAndInitialize() {
@@ -497,9 +452,8 @@ function initializeQuickSurvey() {
     existingOverlay.remove();
   }
 
-  // Buat elemen baru
+  // Buat elemen baru (Hanya toggle, popup dibuat saat diklik)
   createQuickSurveyToggle();
-  createQuickSurveyPopup();
 }
 
 // Jalankan observasi URL saat script dimuat

@@ -1,5 +1,5 @@
 (function () {
-  const APP_VERSION = "1.9.1";
+  const APP_VERSION = "2.0";
   console.log("Mentari Mod Token script loaded.");
 
   const Config = {
@@ -178,7 +178,7 @@
       .popup-content { display: flex; flex-direction: column; height: 100%; max-height: 90vh; }
       .popup-header { padding: 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
       .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-      .popup-title { font-weight: 700; font-size: 16px; color: #3d99e3; line-height: 1.2; }
+      .popup-title { font-weight: 700; font-size: 16px; color: #f0872d; line-height: 1.2; }
       .popup-subtitle { font-size: 8px; color: rgba(197, 197, 197, 0.5); font-weight: 500; letter-spacing: 0.5px; margin-top: -2px; display: block; }
       .token-tabs { display: flex; justify-content: space-around; border-bottom: 1px solid rgba(255,255,255,0.04); padding: 0; flex-shrink: 0; }
       .token-tab { flex: 1; padding: 14px 0; font-size: 14px; color: rgba(255,255,255,0.4); border-bottom: 2px solid transparent; background: none; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -688,8 +688,8 @@
     },
     settings(info) {
       const el = document.getElementById("set-tab-tab"); if (!el || !info) return;
-      const currentModel = Utils.get(Config.STORAGE_KEYS.GEMINI_MODEL) || 'gemini-2.0-flash-lite';
-      const isCustom = !['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-3-flash-preview'].includes(currentModel);
+      const currentModel = Utils.get(Config.STORAGE_KEYS.GEMINI_MODEL) || 'gemini-2.5-flash-lite';
+      const isCustom = !['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3-flash-preview'].includes(currentModel);
 
       el.innerHTML = `
         <div class="data-card" style="padding:15px; border-radius:15px;">
@@ -730,8 +730,8 @@
             <div style="margin-top:5px;">
               <span style="font-size:10px; font-weight:700; color:rgba(128,128,128,0.5); text-transform:uppercase; margin-bottom:5px; display:block; letter-spacing:0.5px;">Konfigurasi Model</span>
               <select id="set-gemini-model" style="width:100%; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:6px; padding:6px; font-size:12px; outline:none; cursor:pointer;">
-                <option value="gemini-2.0-flash" ${currentModel === 'gemini-2.0-flash' ? 'selected' : ''}>Gemini 2.0 Flash</option>
-                <option value="gemini-2.0-flash-lite" ${currentModel === 'gemini-2.0-flash-lite' ? 'selected' : ''}>Gemini 2.0 Flash Lite</option>
+                <option value="gemini-2.5-flash" ${currentModel === 'gemini-2.5-flash' ? 'selected' : ''}>Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-flash-lite" ${currentModel === 'gemini-2.5-flash-lite' ? 'selected' : ''}>Gemini 2.5 Flash Lite</option>
                 <option value="gemini-3-flash-preview" ${currentModel === 'gemini-3-flash-preview' ? 'selected' : ''}>Gemini 3 Flash Preview</option>
                 <option value="custom" ${isCustom ? 'selected' : ''}>Custom Model...</option>
               </select>
@@ -757,7 +757,7 @@
 
           <!-- Footer -->
           <div class="settings-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; opacity:0.6; font-size:10px;">
-            <span>v${APP_VERSION}</span>
+            <span style="display:flex; align-items:center; gap:5px;">v${APP_VERSION} <span style="opacity:0.8;">• by <a href="https://github.com/Lukman754" style="color:#f0872d; text-decoration:none;" target="_blank">Lukman754</a></span></span>
             <button id="set-update-btn" style="background:none; border:none; color:inherit; font-size:inherit; cursor:pointer; text-decoration:underline;">Cek Update</button>
           </div>
         </div>
@@ -766,7 +766,10 @@
       const modelSelect = document.getElementById("set-gemini-model");
       const customInput = document.getElementById("set-gemini-custom");
 
-      document.getElementById("set-gemini").onchange = (e) => Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, e.target.checked);
+      document.getElementById("set-gemini").onchange = (e) => {
+        Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, e.target.checked);
+        location.reload();
+      };
       document.getElementById("set-quiz").onchange = (e) => Utils.save(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ, e.target.checked);
       
       modelSelect.onchange = (e) => {
@@ -778,6 +781,7 @@
           customInput.style.display = "none";
           Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
           Utils.toast("Model diperbarui: " + val);
+          setTimeout(() => location.reload(), 800);
         }
       };
 
@@ -786,6 +790,7 @@
         if (val) {
           Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
           Utils.toast("Model kustom aktif: " + val);
+          setTimeout(() => location.reload(), 800);
         }
       };
 
