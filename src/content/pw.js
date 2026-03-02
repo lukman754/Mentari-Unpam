@@ -1,7 +1,6 @@
 // Auto generate password untuk login MUI/Quasar/React di Mentari UNPAM
 function generatePasswordFromUsername(username) {
-  const lastSix = username.slice(-6);
-  return lastSix.length > 0 ? `unpam#${lastSix}` : "unpam#";
+  return username ? `${username}unpam#` : "";
 }
 
 function tryAttachAutoPassword() {
