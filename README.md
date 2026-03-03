@@ -20,11 +20,9 @@
 </div>
 
 ## 📦 Download
-<h3 align="center">Mentari Mod v2.0</h3>
-
 <p align="center">
    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v2.0/Mentari-Unpam-v2.0.zip" style="display: block; width: 60%;">
-    <img src="https://img.shields.io/badge/⬇%20Download-Latest%20Release-00C853?style=for-the-badge&logo=github&logoColor=white"/>
+    <img src="https://img.shields.io/badge/⬇%20Download-Mentari%20Mod%20v2.0-00C853?style=for-the-badge&logo=github&logoColor=white"/>
   </a>
 </p>
 
