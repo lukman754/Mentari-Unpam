@@ -19,30 +19,15 @@
   <img width="1920" height="887" alt="{9292697D-E7C6-449D-839F-CCAC2C95D736}" src="https://github.com/user-attachments/assets/44c82042-ae47-447c-aef1-ab86b9926409" />
 </div>
 
-## Fitur Utama
-### Mentari Mod
-- **Pelacakan Forum Diskusi** — Melacak Forum Diskusi yang diupload oleh dosen dan harus dikerjakan oleh mahasiswa.
-- **Notifikasi** — Menampilkan notifikasi balasan dosen di forum diskusi.
-
-### Quiz Helper
-- **Jawaban Otomatis** — Menjawab semua soal quiz secara otomatis tanpa intervensi manual dalam waktu kurang dari 10 detik
-
-### Gemini Assistant
-- **Chatbot AI** — Asisten berbasis AI menggunakan model gemini
-- **Format Prompt** — Berbagai pilihan format respons untuk kebutuhan yang berbeda
-- **Paste Questions** — Ekstraksi otomatis pertanyaan dari dosen atau soal kuis
-- **Copy To Textarea** — Transfer jawaban AI langsung ke kotak teks Reply
-
-### My Unpam
-- **Ringkasan Presensi** — Menampilkan hasil ringkasan prsensi seluruh mata kuliah dengan statistik realtime tanpa perlu membuka presensi satu-persatu
-- **Quick Survey** — Menyelesaikan Kuisioner dengan cepat berdasarkan rating yang ditentukan
-
 ## 📦 Download
-<div style="width: 100%; display: flex; gap: 10px;">
-    <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v2.0/Mentari-Unpam-v2.0.zip" style="display: block; width: 60%;">
-        <img width="100" height="100" alt="image" src="https://github.com/user-attachments/assets/08e57491-f4cf-454b-8daa-8313e9bc58a6" />
-    </a>
-</div>
+<h3 align="center">Mentari Mod v2.0</h3>
+
+<p align="center">
+   <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v2.0/Mentari-Unpam-v2.0.zip" style="display: block; width: 60%;">
+    <img src="https://img.shields.io/badge/⬇%20Download-Latest%20Release-00C853?style=for-the-badge&logo=github&logoColor=white"/>
+  </a>
+</p>
+
 
 ## Cara Instalasi
 ### Windows/macOS (Chrome, Edge, Brave)
@@ -70,12 +55,8 @@
 
 ## FAQ
 > [!IMPORTANT]
-> **Apakah penggunaan Quick Survey aman?**
-> Ya, fitur ini hanya membantu melakukan otomasi input. Namun, kami sangat menyarankan untuk tetap meninjau hasil penilaian sebelum melakukan submit akhir demi integritas akademik.
-
-> [!TIP]
-> **Kenapa data presensi saya tidak lengkap?**
-> Mentari Mod mengambil data langsung dari My Unpam. Jika data tidak muncul, kemungkinan besar dosen yang bersangkutan belum menginputkan presensi ke dalam sistem.
+> **Apakah Extension ini aman?**
+> Ya, extension ini hanya membantu mahasiswa untuk melacak forum diskusi yang sedang berjalan tanpa mencarinya satu-persatu dan mempermudah penggunaan mentari dengan berbagai shortcut
 
 ## 📄 Lisensi
 
