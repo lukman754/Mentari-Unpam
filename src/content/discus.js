@@ -29,6 +29,16 @@
   };
 
   const Utils = {
+    updateModelLimit(model, isLimited) {
+      try {
+        const statsKey = "gemini_model_stats";
+        const raw = localStorage.getItem(statsKey);
+        const stats = raw ? JSON.parse(raw) : {};
+        if (!stats[model]) stats[model] = {};
+        stats[model].limited = isLimited ? true : false;
+        localStorage.setItem(statsKey, JSON.stringify(stats));
+      } catch (e) {}
+    },
     getApiKey() {
       const stored = localStorage.getItem(Config.STORAGE_KEYS.API_KEY);
       if (stored) return atob(stored);
@@ -80,11 +90,13 @@
 
       if (!res.ok) {
         if (res.status === 429) {
+          Utils.updateModelLimit(model, true);
           throw new Error("Rate Limit Tercapai! Kuota API model ini sudah habis. Silakan ganti Model atau API Key lain di menu Pengaturan (Mentari Mod).");
         }
         throw new Error("Gagal mendapatkan jawaban dari Gemini (Cek Koneksi atau API Key)");
       }
       Utils.updateQuota(res.headers);
+      Utils.updateModelLimit(model, false);
       const data = await res.json();
       return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada jawaban.";
     }

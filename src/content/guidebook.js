@@ -194,15 +194,6 @@
             </div>
           </div>
 
-          <div class="guide-section">
-            <span class="tip-badge">Fitur Forum</span>
-            <h3><span class="ms" style="font-size:18px;">forum</span> Pantau Balasan Dosen</h3>
-            <p>Tidak perlu cek forum satu per satu. Cukup buka popup Mentari Mod (Ikon Api) dan cek tab <b>Notifikasi</b>.</p>
-            <div class="guide-card">
-              • Seluruh balasan terbaru dari Dosen akan dikumpulkan di satu tempat lengkap dengan link menuju diskusinya.
-            </div>
-          </div>
-
           <div style="text-align:center; opacity:0.3; font-size:10px; padding-bottom:10px;">
             Dibuat dengan ❤️ untuk mahasiswa UNPAM • v1.9.1
           </div>

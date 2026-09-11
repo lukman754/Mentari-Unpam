@@ -281,10 +281,11 @@ Aturan Jawab Dasar:
         })
       });
 
-      Utils.updateQuota(res.headers); // Added this line
+      Utils.updateQuota(res.headers);
 
       if (!res.ok) {
         if (res.status === 429) {
+          this._updateModelLimit(model, true);
           throw new Error("Rate Limit Tercapai! Kuota API model ini sudah habis. Silakan ganti Model atau API Key lain di menu Pengaturan (Mentari Mod).");
         }
         const err = await res.json();
@@ -292,8 +293,20 @@ Aturan Jawab Dasar:
       }
 
       const data = await res.json();
+      this._updateModelLimit(model, false);
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, saya tidak bisa mejawab itu.";
-    }
+    },
+
+    _updateModelLimit(model, isLimited) {
+      try {
+        const statsKey = "gemini_model_stats";
+        const raw = localStorage.getItem(statsKey);
+        const stats = raw ? JSON.parse(raw) : {};
+        if (!stats[model]) stats[model] = {};
+        stats[model].limited = isLimited ? true : false;
+        localStorage.setItem(statsKey, JSON.stringify(stats));
+      } catch (e) {}
+    },
   };
 
   const UIRenderer = {

@@ -40,12 +40,6 @@ async function verifyApiKeyOnServer(apiKey) {
   }
 }
 
-function validateApiKeyFormat(apiKey) {
-  const apiKeyRegex = /^AIza[a-zA-Z0-9_-]{30,}$/;
-  if (!apiKeyRegex.test(apiKey)) return { valid: false, message: "Format API key tidak valid (Harus diawali AIza...)" };
-  return { valid: true };
-}
-
 function showApiKeyPopup() {
   if (document.getElementById("gemini_apiKeyPopup")) return;
   const savedApiKey = localStorage.getItem("geminiApiKey");
@@ -68,7 +62,7 @@ function showApiKeyPopup() {
         </div>
         
         <div style="position:relative; width:100%; margin-bottom:12px; display:flex; align-items:center;">
-          <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan AIza..." value="${decodedApiKey}" 
+          <input type="password" id="gemini_apiKeyInput" placeholder="Masukkan API Key..." value="${decodedApiKey}" 
             style="width:100%; padding:10px 40px 10px 10px; background:#1a1a1a; border:1px solid #333; border-radius:8px; color:#fff; font-size:13px; outline:none; transition:border-color 0.2s;">
           <button id="gemini_toggleVis" style="position:absolute; right:8px; background:none; border:none; color:#555; cursor:pointer; display:flex; align-items:center;">
              <span class="ms" id="gemini_visIcon">visibility</span>
@@ -115,18 +109,16 @@ function setupApiKeyPopupEventListeners() {
     saveBtn.onclick = async () => {
       const key = input.value.trim();
       
-      // 1. Validasi Format
-      const valFormat = validateApiKeyFormat(key);
-      if (!valFormat.valid) {
+      if (!key) {
         msg.style.display = "block"; 
         msg.style.background = "rgba(244, 67, 54, 0.1)";
         msg.style.color = "#f44336"; 
-        msg.innerText = valFormat.message;
+        msg.innerText = "API key tidak boleh kosong";
         input.style.borderColor = "#f44336";
         return;
       }
 
-      // 2. Validasi Server (Asli)
+      // Validasi Server
       saveBtn.disabled = true;
       btnText.innerHTML = `<span style="display:flex; gap:4px;"><span class="ms-spin" style="animation:spin 1s linear infinite;">sync</span> Cek...</span>`;
       msg.style.display = "none";

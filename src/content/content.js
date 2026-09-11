@@ -151,9 +151,34 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
       }
     }
 
-    // MutationObserver untuk deteksi header secara instan
-    const observer = new MutationObserver(() => injectHeaderToggle());
+    // MutationObserver untuk deteksi header dan course list secara instan
+    const observer = new MutationObserver(() => {
+      injectHeaderToggle();
+      injectDummyCourseCard();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
+
+    function injectDummyCourseCard() {
+      if (document.getElementById("mentari-dummy-course-card")) return;
+      
+      const headings = Array.from(document.querySelectorAll("h6, h5, h4, h3, h2, h1"));
+      const courseHeading = headings.find(el => el.textContent.trim() === "Courses");
+      
+      if (courseHeading) {
+        const courseContainer = courseHeading.parentElement.parentElement;
+        if (courseContainer) {
+          const dummyCard = document.createElement("div");
+          dummyCard.id = "mentari-dummy-course-card";
+          // Menyediakan style container dasar agar posisinya pas, lalu dalamnya pakai DOM asli
+          dummyCard.style.cssText = "margin-bottom: 20px;";
+          dummyCard.innerHTML = `
+<div class="card MuiBox-root css-1okr6i4"><div class="MuiStack-root css-kwufl9"><div class="MuiStack-root css-j7qwjs"><p class="MuiTypography-root MuiTypography-body1 css-fh2987">DUMMY EXTENSION COURSE</p><span class="MuiTypography-root MuiTypography-caption css-nhrcu1">[3] DUMMY EXTENSION COURSE # 01SIFE001 (Sabtu) [E-1]</span></div><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">Dosen</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">MENTARI EXTENSION S.Kom., M.Kom.</p></div><div class="MuiStack-root css-1dl0njk"><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">Kode Kelas</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">DUMMY001</p></div><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">SKS</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">3</p></div></div><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">Hari</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">Setiap Saat</p></div></div><div class="MuiStack-root css-n4rzf0"><div class="card__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" color="rgb(224, 223, 220)" style="user-select: none; width: 100%; height: 100%; display: inline-block; fill: rgb(224, 223, 220); flex-shrink: 0; cursor: auto;"><g color="rgb(224, 223, 220)"><circle cx="128" cy="128" r="96" opacity="0.2"></circle><circle cx="128" cy="128" r="96" fill="none" stroke="rgb(224, 223, 220)" stroke-miterlimit="10" stroke-width="16"></circle><polyline points="134.1 161.9 168 128 134.1 94.1" fill="none" stroke="rgb(224, 223, 220)" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></polyline><line x1="88" y1="128" x2="168" y2="128" fill="none" stroke="rgb(224, 223, 220)" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line></g></svg></div></div></div>
+          `;
+          courseContainer.parentNode.insertBefore(dummyCard, courseContainer);
+          console.log("Mentari dummy course card injected.");
+        }
+      }
+    }
 
     // Interval cadangan yang lebih cepat
     const headerCheckInterval = setInterval(injectHeaderToggle, 500);
