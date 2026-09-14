@@ -9,7 +9,8 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
       const link = document.createElement("link");
       link.id = "material-icons-css";
       link.rel = "stylesheet";
-      link.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
       document.head.appendChild(link);
     }
 
@@ -99,15 +100,22 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     document.head.appendChild(style);
 
     function injectHeaderToggle() {
-      const themeIcon = document.querySelector('svg[data-testid="DarkModeIcon"], svg[data-testid="LightModeIcon"]');
+      const themeIcon = document.querySelector(
+        'svg[data-testid="DarkModeIcon"], svg[data-testid="LightModeIcon"]',
+      );
       if (themeIcon) {
-        const themeButton = themeIcon.closest('button');
-        const headerStack = themeIcon.closest('.MuiStack-root');
+        const themeButton = themeIcon.closest("button");
+        const headerStack = themeIcon.closest(".MuiStack-root");
 
-        if (headerStack && themeButton && !document.getElementById("mentari-header-toggle")) {
+        if (
+          headerStack &&
+          themeButton &&
+          !document.getElementById("mentari-header-toggle")
+        ) {
           const mentariButton = document.createElement("button");
           mentariButton.id = "mentari-header-toggle";
-          mentariButton.className = "MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium";
+          mentariButton.className =
+            "MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium";
           mentariButton.style.marginRight = "8px";
           mentariButton.style.padding = "8px";
           mentariButton.style.backgroundColor = "transparent";
@@ -119,7 +127,8 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
           mentariButton.style.outline = "0";
           mentariButton.style.color = "#ff7b00ff";
           mentariButton.style.cursor = "pointer";
-          mentariButton.style.transition = "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms";
+          mentariButton.style.transition =
+            "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms";
 
           // Theme Detection Logic for Glow
           const applyTheme = () => {
@@ -137,8 +146,12 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
 
           `;
 
-          mentariButton.onmouseover = () => { mentariButton.style.backgroundColor = "rgba(212, 175, 55, 0.08)"; };
-          mentariButton.onmouseout = () => { mentariButton.style.backgroundColor = "transparent"; };
+          mentariButton.onmouseover = () => {
+            mentariButton.style.backgroundColor = "rgba(212, 175, 55, 0.08)";
+          };
+          mentariButton.onmouseout = () => {
+            mentariButton.style.backgroundColor = "transparent";
+          };
 
           mentariButton.onclick = (e) => {
             e.preventDefault();
@@ -159,23 +172,83 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     observer.observe(document.body, { childList: true, subtree: true });
 
     function injectDummyCourseCard() {
-      if (document.getElementById("mentari-dummy-course-card")) return;
-      
-      const headings = Array.from(document.querySelectorAll("h6, h5, h4, h3, h2, h1"));
-      const courseHeading = headings.find(el => el.textContent.trim() === "Courses");
-      
+      if (
+        localStorage.getItem("mentari_developer_changelog_dismissed") ===
+          "true" ||
+        document.getElementById("mentari-developer-changelog")
+      )
+        return;
+
+      const headings = Array.from(
+        document.querySelectorAll("h6, h5, h4, h3, h2, h1"),
+      );
+      const courseHeading = headings.find(
+        (el) => el.textContent.trim() === "Courses",
+      );
+
       if (courseHeading) {
         const courseContainer = courseHeading.parentElement.parentElement;
         if (courseContainer) {
-          const dummyCard = document.createElement("div");
-          dummyCard.id = "mentari-dummy-course-card";
-          // Menyediakan style container dasar agar posisinya pas, lalu dalamnya pakai DOM asli
-          dummyCard.style.cssText = "margin-bottom: 20px;";
-          dummyCard.innerHTML = `
-<div class="card MuiBox-root css-1okr6i4"><div class="MuiStack-root css-kwufl9"><div class="MuiStack-root css-j7qwjs"><p class="MuiTypography-root MuiTypography-body1 css-fh2987">DUMMY EXTENSION COURSE</p><span class="MuiTypography-root MuiTypography-caption css-nhrcu1">[3] DUMMY EXTENSION COURSE # 01SIFE001 (Sabtu) [E-1]</span></div><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">Dosen</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">MENTARI EXTENSION S.Kom., M.Kom.</p></div><div class="MuiStack-root css-1dl0njk"><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">Kode Kelas</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">DUMMY001</p></div><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">SKS</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">3</p></div></div><div class="MuiStack-root css-j7qwjs"><span class="MuiTypography-root MuiTypography-caption css-1a9m09r">Hari</span><p class="MuiTypography-root MuiTypography-body1 css-6yss1h">Setiap Saat</p></div></div><div class="MuiStack-root css-n4rzf0"><div class="card__icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" color="rgb(224, 223, 220)" style="user-select: none; width: 100%; height: 100%; display: inline-block; fill: rgb(224, 223, 220); flex-shrink: 0; cursor: auto;"><g color="rgb(224, 223, 220)"><circle cx="128" cy="128" r="96" opacity="0.2"></circle><circle cx="128" cy="128" r="96" fill="none" stroke="rgb(224, 223, 220)" stroke-miterlimit="10" stroke-width="16"></circle><polyline points="134.1 161.9 168 128 134.1 94.1" fill="none" stroke="rgb(224, 223, 220)" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></polyline><line x1="88" y1="128" x2="168" y2="128" fill="none" stroke="rgb(224, 223, 220)" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line></g></svg></div></div></div>
+          const changelog = document.createElement("div");
+          changelog.id = "mentari-developer-changelog";
+          changelog.style.cssText =
+            "width:100%; margin:10px; box-sizing:border-box;";
+          changelog.innerHTML = `
+            <div style="width:100%; box-sizing:border-box; overflow:hidden; border:1px solid rgba(240,135,45,0.28); border-radius:14px; background:linear-gradient(118deg, rgba(240,135,45,0.16), rgba(240,135,45,0.04) 42%, rgba(255,255,255,0.025)); color:inherit; box-shadow:0 10px 28px rgba(0,0,0,0.12);">
+              <div style="height:3px;"></div>
+              <div style="padding:16px 18px 14px;">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:14px;">
+                  <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+                    <div style="width:38px; height:38px; flex:0 0 38px; display:flex; align-items:center; justify-content:center; border-radius:11px; background:#f0872d; color:#fff; box-shadow:0 5px 14px rgba(240,135,45,0.28);">
+                      <span class="ms" style="font-size:21px;">campaign</span>
+                    </div>
+                    <div style="min-width:0;">
+                      <div style="font-size:14px; font-weight:750; letter-spacing:0.01em;">Pesan Developer</div>
+                      <div style="font-size:10px; opacity:0.58; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Catatan pembaruan Mentari Mod</div>
+                    </div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                    <span style="padding:5px 8px; border:1px solid rgba(240,135,45,0.3); border-radius:6px; color:#f0872d; font-size:9px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">Update</span>
+                    <button type="button" class="mentari-changelog-close" title="Tutup pesan" aria-label="Tutup pesan" style="width:26px; height:26px; display:flex; align-items:center; justify-content:center; padding:0; border:0; border-radius:7px; background:rgba(255,255,255,0.06); color:inherit; opacity:0.65; cursor:pointer;">
+                      <span class="ms" style="font-size:17px;">close</span>
+                    </button>
+                  </div>
+                </div>
+                <div style="margin-top:15px; padding:11px 12px; border-left:2px solid #f0872d; border-radius:0 7px 7px 0; background:rgba(0,0,0,0.12); font-size:11px; line-height:1.6; opacity:0.82;">
+                  Beberapa fitur sedang dalam tahap pengembangan dan pengujian. Terima kasih sudah mencoba Mentari Mod.
+                </div>
+              </div>
+              <div style="border-top:1px solid rgba(255,255,255,0.08); padding:12px 18px 14px;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:9px; font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; opacity:0.5;"><span class="ms" style="font-size:14px;">history</span> Changelog</div>
+                <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px;">
+                  <div style="min-width:0; padding:10px; border:1px solid rgba(240,135,45,0.2); border-radius:8px; background:rgba(240,135,45,0.08);">
+                    <span class="ms" style="font-size:17px; color:#f0872d;">auto_awesome</span>
+                    <div style="margin-top:6px; font-size:11px; font-weight:700;">AI Quiz</div>
+                    <div style="margin-top:3px; font-size:9px; line-height:1.4; opacity:0.55;">Pengisian quiz dengan bantuan AI</div>
+                  </div>
+                  <div style="min-width:0; padding:10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(255,255,255,0.035);">
+                    <span class="ms" style="font-size:17px; opacity:0.7;">bolt</span>
+                    <div style="margin-top:6px; font-size:11px; font-weight:700;">Auto Finish</div>
+                    <div style="margin-top:3px; font-size:9px; line-height:1.4; opacity:0.55;">Alur penyelesaian quiz lebih praktis</div>
+                  </div>
+                  <div style="min-width:0; padding:10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(255,255,255,0.035);">
+                    <span class="ms" style="font-size:17px; opacity:0.7;">build</span>
+                    <div style="margin-top:6px; font-size:11px; font-weight:700;">Perbaikan</div>
+                    <div style="margin-top:3px; font-size:9px; line-height:1.4; opacity:0.55;">Penyempurnaan tampilan dan stabilitas</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           `;
-          courseContainer.parentNode.insertBefore(dummyCard, courseContainer);
-          console.log("Mentari dummy course card injected.");
+          courseContainer.parentNode.insertBefore(changelog, courseContainer);
+          changelog.querySelector(".mentari-changelog-close").onclick = () => {
+            localStorage.setItem(
+              "mentari_developer_changelog_dismissed",
+              "true",
+            );
+            changelog.remove();
+          };
+          console.log("Mentari developer changelog injected.");
         }
       }
     }
@@ -188,10 +261,13 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     let loadQueue = [];
 
     function loadScripts(callback) {
-      if (scriptsLoaded) { if (callback) callback(); return; }
+      if (scriptsLoaded) {
+        if (callback) callback();
+        return;
+      }
       if (callback) loadQueue.push(callback);
       if (isLoading) return;
-      
+
       isLoading = true;
       let apiScript = document.createElement("script");
       apiScript.src = chrome.runtime.getURL("src/content/apiKeyManager.js");
@@ -204,7 +280,7 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
           guideScript.onload = function () {
             scriptsLoaded = true;
             isLoading = false;
-            loadQueue.forEach(cb => cb());
+            loadQueue.forEach((cb) => cb());
             loadQueue = [];
           };
           document.body.appendChild(guideScript);
@@ -216,7 +292,7 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
 
     function clickButton() {
       loadScripts(() => {
-        window.dispatchEvent(new CustomEvent('mentari-toggle-popup'));
+        window.dispatchEvent(new CustomEvent("mentari-toggle-popup"));
       });
     }
 
@@ -224,6 +300,5 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     setTimeout(() => {
       loadScripts(null); // null = jangan buka popup setelah load
     }, 300);
-
   })();
 }

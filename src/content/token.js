@@ -35,66 +35,66 @@
       /* Light Theme Adaptation */
       #token-runner-popup.light-theme {
         background: #ffffff; 
-        color: #1a1c1e;
-        border: 1px solid rgba(0,0,0,0.12);
+        color: #17202a;
+        border: 1px solid #cbd5e1;
         box-shadow: 0 8px 32px rgba(0,0,0,0.08);
       }
       #token-runner-popup.light-theme .popup-header {
-        background: #f8f9fa;
-        border-bottom-color: rgba(0,0,0,0.08);
+        background: #eef2f6;
+        border-bottom-color: #cbd5e1;
       }
       #token-runner-popup.light-theme .popup-title {
         color: #0d47a1;
       }
       #token-runner-popup.light-theme .token-tab {
-        color: rgba(0,0,0,0.4);
+        color: #475569;
       }
       #token-runner-popup.light-theme .token-tab.active {
-        color: #1976d2;
-        border-bottom-color: #1976d2;
-        background: rgba(25, 118, 210, 0.04);
+        color: #075985;
+        background: #dbeafe;
       }
       #token-runner-popup.light-theme .data-card, 
       #token-runner-popup.light-theme .course-card {
         background: #ffffff;
-        border-color: rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
       }
       #token-runner-popup.light-theme .course-card-header {
-        background: #f2f2f2;
-        border-bottom-color: rgba(0,0,0,0.05);
+        background: #e2e8f0;
+        border-bottom-color: #cbd5e1;
       }
       #token-runner-popup.light-theme .course-card-header h2 {
         color: #0d47a1;
       }
       #token-runner-popup.light-theme .section-header {
-        background: #;
+        background: #e8eef5;
               
       }
       #token-runner-popup.light-theme .section-header:hover {
-        background: #f8f9fa;
+        background: #dbe7f2;
       }
       #token-runner-popup.light-theme .section-header h3 {
-        color: #1e293b;
+        color: #17202a;
       }
       #token-runner-popup.light-theme .section-content {
         background: #ffffff;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid #cbd5e1;
       }
       #token-runner-popup.light-theme .item-row {
-        background: #f1f1f1;
-        border-color: rgba(0,0,0,0.06);
+        background: #f8fafc;
+        border-color: #cbd5e1;
       }
       #token-runner-popup.light-theme .item-row:hover {
-        background: #f8fafc!important;
+        background: #e2e8f0!important;
       }
       #token-runner-popup.light-theme .item-row:hover .item-title {
         color: #ff7b00;
       }
       #token-runner-popup.light-theme .item-title {
-        color: #334155;
+        color: #1e293b;
       }
       #token-runner-popup.light-theme .item-meta {
-        color: #64748b;
+        color: #475569;
+        opacity: 1;
       }
       #token-runner-popup.light-theme .card-title {
          color: #1e293b;
@@ -109,64 +109,64 @@
         color: #1e293b;
       }
       #token-runner-popup.light-theme .settings-desc {
-        color: #64748b;
+        color: #475569;
       }
       #token-runner-popup.light-theme .settings-area {
-        background: #ffffff;
-        border-color: rgba(0,0,0,0.05);
+        background: #f8fafc;
+        border-color: #cbd5e1;
       }
       #token-runner-popup.light-theme .settings-card-inner {
-        background: rgba(25, 118, 210, 0.04);
-        border-color: rgba(25, 118, 210, 0.08);
+        background: #e0f2fe;
+        border-color: #7dd3fc;
       }
       #token-runner-popup.light-theme select,
       #token-runner-popup.light-theme input[type="text"] {
         background: #ffffff;
-        color: #1a1c1e;
-        border-color: rgba(0,0,0,0.12);
+        color: #17202a;
+        border-color: #94a3b8;
       }
       #token-runner-popup.light-theme .token-button.btn-outline {
         background: #ffffff;
-        color: #475569;
-        border-color: rgba(0,0,0,0.06);
+        color: #1e293b;
+        border-color: #94a3b8;
       }
       #token-runner-popup.light-theme .token-button.btn-outline:hover {
         background: #e2e8f0;
       }
       #token-runner-popup.light-theme .settings-footer {
-        color: #94a3b8;
+        color: #64748b;
       }
       #token-runner-popup.light-theme .topic-badge {
-        background: #f1f5f9;
-        border-color: rgba(0,0,0,0.08);
-        color: #1976d2!important;
+        background: #e0f2fe;
+        border-color: #7dd3fc;
+        color: #075985!important;
       }
       #token-runner-popup.light-theme .topic-badge:hover {
         background: #e2e8f0;
-        border-color: #1976d2;
+        border-color: #0284c7;
       }
       #token-runner-popup.light-theme .forum-html-preview {
-        color: #1a1c1e;
+        color: #17202a;
       }
       #token-runner-popup.light-theme .forum-toggle-btn {
-        background: #f1f5f9;
-        color: #f0872d;
+        background: #e2e8f0;
+        color: #c2410c;
       }
       #token-runner-popup.light-theme .icon-forum {
-        background: rgba(13, 71, 161, 0.1);
-        color: #0d47a1;
+        background: #dbeafe;
+        color: #1d4ed8;
       }
       #token-runner-popup.light-theme .icon-quiz {
-        background: rgba(46, 125, 50, 0.1);
-        color: #2e7d32;
+        background: #dcfce7;
+        color: #166534;
       }
       #token-runner-popup.light-theme .icon-material {
-        background: rgba(230, 81, 0, 0.1);
-        color: #e65100;
+        background: #ffedd5;
+        color: #c2410c;
       }
       #token-runner-popup.light-theme .section-toggle {
-        color: #1a1c1e;
-        opacity: 0.5;
+        color: #334155;
+        opacity: 0.85;
       }
       #token-runner-popup.light-theme .section-toggle.active {
         color: #f0872d;
@@ -182,9 +182,9 @@
       .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
       .popup-title { font-weight: 700; font-size: 16px; color: #f0872d; line-height: 1.2; }
       .popup-subtitle { font-size: 8px; color: rgba(197, 197, 197, 0.5); font-weight: 500; letter-spacing: 0.5px; margin-top: -2px; display: block; }
-      .token-tabs { display: flex; justify-content: space-around; border-bottom: 1px solid rgba(255,255,255,0.04); padding: 0; flex-shrink: 0; }
-      .token-tab { flex: 1; padding: 14px 0; font-size: 14px; color: rgba(255,255,255,0.4); border-bottom: 2px solid transparent; background: none; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-      .token-tab.active { color: #3d99e3; border-bottom-color: #3d99e3; background: rgba(144, 202, 249, 0.05); }
+      .token-tabs { display: flex; justify-content: space-around; padding: 0; flex-shrink: 0; }
+      .token-tab { flex: 1; padding: 14px 0; font-size: 14px; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+      .token-tab.active { color: #3d99e3; background: rgb(40, 40, 40); border-radius: 8px;}
       .token-tab .ms { font-size: 20px; }
       .token-tab-content { display: none; padding: 16px; flex: 1; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; }
       .token-tab-content.active { display: block; }
@@ -194,6 +194,8 @@
       @keyframes toastIn { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
       .token-button { background: #3d99e3; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); }
       .token-button:hover { background: #1976d2; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+      .mentari-spin { display: inline-flex; animation: mentari-spin 0.9s linear infinite; }
+      @keyframes mentari-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
       .switch input { opacity: 0; width: 0; height: 0; }
       .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 22px; }
@@ -216,12 +218,12 @@
       .course-card-header h2 { margin: 0; font-size: 14px; color: #3d99e3; font-weight: 700; }
       .course-card-code { font-size: 10px; opacity: 0.5; margin-top: 4px; display: block; }
       .section-card {  margin-bottom: 10px; }
-      .section-header { padding: 10px 16px; border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); transition: background 0.2s; }
-      .section-header:hover { background: rgba(255,255,255,0.04); }
+      .section-header { padding: 10px 16px; border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); transition: background 0.2s; }
+      .section-header:hover { background: rgba(255,255,255,0.09); }
       .section-header h3 { margin: 0; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); pointer-events: none; }
       .section-toggle { font-size: 10px; transition: transform 0.2s; opacity: 0.5; pointer-events: none; }
       .section-toggle.active { transform: rotate(180deg); opacity: 1; color: #f0872d; }
-      .section-content { display: none; padding: 12px; }
+      .section-content { display: none; padding: 12px; background: rgba(255,255,255,0.015); }
       .section-content.active { display: block; }
       .section-actions { padding: 0 4px 10px; display: flex; justify-content: center; }
       .item-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
@@ -230,14 +232,14 @@
       .icon-material { background: rgba(240, 135, 45, 0.1); color: #f0872d; }
       .item-info { flex: 1; overflow: hidden; }
       .item-title { font-size: 12px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s; color: #eee; }
-      .item-meta { font-size: 10px; opacity: 0.5; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+      .item-meta { font-size: 10px; opacity: 0.65; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
       .item-status { font-size: 10px; font-weight: 700; text-transform: uppercase; }
       .status-done { color: #79bb7c; }
       .status-todo { color: #f0872d; }
       .topic-badge { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: rgba(255,255,255,0.04); border-radius: 5px; font-size: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.06); color: #3d99e3!important; text-decoration: none!important; transition: all 0.2s; width: 100%; box-sizing: border-box; overflow: hidden; }
       .topic-badge:hover { background: rgba(144, 202, 249, 0.1); border-color: rgba(144,202,249,0.2); }
-      .item-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: inherit; transition: all 0.2s; cursor: pointer; }
-      .item-row:hover { background: rgba(255,255,255,0.06)!important; transform: translateX(5px); }
+      .item-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); text-decoration: none; color: inherit; transition: all 0.2s; cursor: pointer; }
+      .item-row:hover { background: rgba(255,255,255,0.1)!important; transform: translateX(5px); }
       .item-row:hover .item-title { color: #f0872d; }
       .ms { font-family: 'Material Symbols Rounded'; font-size: 14px; font-style: normal; font-weight: normal; line-height: 1; display: inline-flex; align-items: center; vertical-align: middle; user-select: none; letter-spacing: normal; text-transform: none; white-space: nowrap; }
       /* Forum Content Reset */
@@ -312,6 +314,21 @@
       document.body.appendChild(t);
       setTimeout(() => t.remove(), 2500);
     },
+    progressToast(msg) {
+      const id = "mentari-progress-toast";
+      let t = document.getElementById(id);
+      if (!t) {
+        t = document.createElement("div");
+        t.id = id;
+        t.style =
+          "position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#f0872d;padding:9px 16px;border-radius:8px;font-size:11px;font-weight:600;z-index:100000;box-shadow:0 5px 15px rgba(0,0,0,0.5);border:1px solid rgba(240,135,45,0.3);animation:msgIn 0.3s;white-space:nowrap;";
+        document.body.appendChild(t);
+      }
+      t.innerHTML = `<span class="ms" style="font-size:15px;vertical-align:middle;margin-right:6px;">sync</span>${msg}`;
+    },
+    closeProgressToast() {
+      document.getElementById("mentari-progress-toast")?.remove();
+    },
     successToast(msg) {
       const t = document.createElement("div");
       t.style =
@@ -373,7 +390,14 @@
         "Content-Type": "application/json",
       };
       const res = await fetch(url, { ...options, headers });
-      if (!res.ok) throw new Error(res.status);
+      if (!res.ok) {
+        let message = `HTTP ${res.status}`;
+        try {
+          const errorBody = await res.json();
+          message = errorBody.message || errorBody.error || message;
+        } catch (error) {}
+        throw new Error(`${res.status}: ${message}`);
+      }
       return res.json();
     },
     async fetchCourses() {
@@ -381,6 +405,114 @@
     },
     async fetchCourseDetails(code) {
       return this.fetch(`${Config.API.BASE_URL}/user-course/${code}`);
+    },
+    getGeminiApiKey() {
+      const rawKey = localStorage.getItem("geminiApiKey");
+      if (!rawKey) throw new Error("API Key Gemini belum diset");
+      try {
+        return atob(rawKey);
+      } catch (error) {
+        return rawKey;
+      }
+    },
+    async startQuiz(quizId) {
+      return this.fetch(`${Config.API.BASE_URL}/quiz/start/${quizId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          id_trx_course_sub_section: quizId,
+          reset: true,
+        }),
+      });
+    },
+    async fetchQuizQuestions(quizId) {
+      return this.fetch(`${Config.API.BASE_URL}/quiz/soal/${quizId}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+    },
+    async fetchQuizParticipant(quizId) {
+      return this.fetch(`${Config.API.BASE_URL}/quiz/peserta/${quizId}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+    },
+    async submitQuizAnswer(answer) {
+      return this.fetch(`${Config.API.BASE_URL}/quiz/jawab`, {
+        method: "PUT",
+        body: JSON.stringify(answer),
+      });
+    },
+    async endQuiz(quizId) {
+      return this.fetch(`${Config.API.BASE_URL}/quiz/end`, {
+        method: "PUT",
+        body: JSON.stringify({
+          id_trx_course_sub_section: quizId,
+        }),
+      });
+    },
+    async askGeminiQuiz(apiKey, questions) {
+      const model = (
+        localStorage.getItem("gemini_model") || "gemini-2.5-flash-lite"
+      ).replace(/"/g, "");
+      const questionText = questions
+        .map((question, index) => {
+          const options = (question.list_jawaban || [])
+            .map(
+              (option, optionIndex) => `${optionIndex + 1}. ${option.jawaban}`,
+            )
+            .join("\n");
+          return `SOAL ${index + 1}\nID: ${question.id}\n${question.deskripsi}\n${options}`;
+        })
+        .join("\n\n");
+      const prompt = `Kamu adalah AI akademik. Pilih satu opsi paling benar untuk setiap soal.
+Balas HANYA JSON array valid tanpa markdown dengan format:
+[{"question_id":"ID_SOAL","answer_index":1}]
+answer_index dimulai dari 1 sesuai urutan pilihan.
+
+${questionText}`;
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 4096,
+              responseMimeType: "application/json",
+            },
+          }),
+        },
+      );
+      if (!response.ok) throw new Error(`Gemini API ${response.status}`);
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const cleaned = text
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+      const candidates = [cleaned];
+      const arrayStart = cleaned.indexOf("[");
+      const arrayEnd = cleaned.lastIndexOf("]");
+      if (arrayStart >= 0 && arrayEnd > arrayStart)
+        candidates.push(cleaned.slice(arrayStart, arrayEnd + 1));
+      const objectStart = cleaned.indexOf("{");
+      const objectEnd = cleaned.lastIndexOf("}");
+      if (objectStart >= 0 && objectEnd > objectStart)
+        candidates.push(cleaned.slice(objectStart, objectEnd + 1));
+
+      for (const candidate of candidates) {
+        try {
+          const parsed = JSON.parse(candidate);
+          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed.answers)) return parsed.answers;
+          if (Array.isArray(parsed.results)) return parsed.results;
+        } catch (error) {}
+      }
+
+      console.error("[Mentari] Respons mentah AI quiz bukan JSON", text);
+      throw new Error("Respons AI bukan JSON");
     },
     async fetchForumTopics(id) {
       return this.fetch(`${Config.API.BASE_URL}/forum/topic/${id}`);
@@ -448,7 +580,7 @@
                 <span class="popup-title">MENTARI MOD</span>
                 <span class="popup-subtitle">mod by <a style="color: #c8ad95ff; text-decoration: none;" href="https://github.com/Lukman754">Lukman754</a></span>
               </div>
-              <button id="token-refresh-btn" class="token-button" style="padding:6px 10px; border-radius:6px;"><span class="ms">refresh</span></button>
+              <button id="token-refresh-btn" class="token-button" title="Refresh status" style="padding:6px 10px; border-radius:8px;"><span class="ms">refresh</span></button>
             </div>
             <div class="token-tabs">
               <button class="token-tab active" data-tab="forum-tab" title="Forum"><span class="ms">forum</span></button>
@@ -502,7 +634,7 @@
         <div style="margin-bottom:15px;">
           <a href="https://my.unpam.ac.id/presensi/" class="item-row" target="_blank"
              style="background: rgba(0, 165, 80, 0.05); border-color: rgba(0, 165, 80, 0.1); display:flex;">
-            <div class="item-icon" style="background: rgba(0, 165, 80, 0.1); color: #00a550;"><span class="ms">fact_check</span></div>
+            <div class="item-icon" style="background: rgb(40, 40, 40); color: #00a550;"><span class="ms">fact_check</span></div>
             <div class="item-info">
               <span class="item-title" style="color: #00a550; font-weight: 700;">Halaman Presensi Mahasiswa</span>
               <div class="item-meta">
@@ -723,7 +855,7 @@
       const forumKontenId = `fk-${i.id}`;
 
       return `
-        <div class="item-row ${i.completion ? "completed-item" : ""}" 
+           <div class="item-row ${i.completion ? "completed-item" : ""}" 
              onclick="if(event.target.closest('a,button')) return; window.location.href='${cardUrl}';"
              style="flex-direction:column; align-items:stretch; padding:0; overflow:hidden; ${i.completion ? "opacity:0.8;" : "background: rgba(130, 130, 130, 0.13);"}" data-name="${i.judul}">
           <div style="display:flex; align-items:center; gap:10px; padding:10px;">
@@ -733,6 +865,7 @@
               <div class="item-meta">
                 <span class="item-status ${statusClass}"><span class="ms">${i.completion ? "check_circle" : "schedule"}</span> ${statusText}</span>
                 ${i.setting_quiz?.duration ? `<span style="opacity:0.7;"><span class="ms">hourglass_top</span> ${i.setting_quiz.duration} min</span>` : ""}
+                ${isQuiz ? `<span class="quiz-participant-status" data-quiz-id="${i.id}" style="opacity:0.7;">Memuat hasil...</span>` : ""}
               </div>
             </div>
             <div style="display:flex; gap:6px; flex-shrink:0;">
@@ -745,8 +878,8 @@
                   : ""
               }
               ${
-                isKuesioner
-                  ? `<button type="button" class="token-button kuesioner-submit-btn" title="${actionLabel}" data-course-code="${c.kode_course}" data-section-code="${s.kode_section}" onclick="event.stopPropagation();" style="width:28px; height:28px; padding:0; background:#e05c2a; border-radius:6px;"><span class="ms" style="font-size:16px;">${actionIcon}</span></button>`
+                isQuiz || isKuesioner
+                  ? `<button type="button" class="token-button ${isQuiz ? "quiz-ai-submit-btn" : "kuesioner-submit-btn"}" title="${actionLabel}" data-course-code="${c.kode_course}" data-section-code="${s.kode_section}" data-quiz-id="${isQuiz ? i.id : ""}" data-quiz-title="${isQuiz ? i.judul : ""}" onclick="event.stopPropagation();" style="width:28px; height:28px; padding:0; background:#e05c2a; border-radius:6px;"><span class="ms" style="font-size:16px;">${actionIcon}</span></button>`
                   : actionUrl !== "#"
                     ? `<a href="${actionUrl}" class="token-button" title="${actionLabel}" onclick="event.stopPropagation();" style="width:28px; height:28px; padding:0; background: ${actionLabel === "Download" ? "#79bb7c" : actionLabel === "Mulai Quiz" ? "#e05c2a" : "#f0872d"}; border-radius:6px;"><span class="ms" style="font-size:16px;">${actionIcon}</span></a>`
                     : ""
@@ -814,9 +947,10 @@
           const sectionCode = button.dataset.sectionCode;
           const originalContent = button.innerHTML;
           button.disabled = true;
-          button.innerHTML = `<span class="ms" style="font-size:16px;">sync</span>`;
+          button.innerHTML = `<span class="ms mentari-spin" style="font-size:16px;">sync</span>`;
 
           try {
+            Utils.progressToast("Sedang mengambil pertanyaan kuisioner...");
             const detail = await ApiService.fetchKuesioner(
               courseCode,
               sectionCode,
@@ -825,11 +959,13 @@
             if (!questions.length)
               throw new Error("Pertanyaan kuisioner kosong");
 
+            Utils.progressToast("Sedang mengirim jawaban kuisioner...");
             await ApiService.submitKuesioner(
               courseCode,
               sectionCode,
               questions,
             );
+            Utils.closeProgressToast();
             Utils.successToast("Kuisioner berhasil dikirim");
             setTimeout(() => App.refreshData(true), 700);
           } catch (error) {
@@ -838,6 +974,7 @@
               kode_section: sectionCode,
               error,
             });
+            Utils.closeProgressToast();
             Utils.toast("Kuisioner gagal dikirim");
             button.disabled = false;
             button.innerHTML = originalContent;
@@ -845,8 +982,96 @@
         };
       });
 
+      document.querySelectorAll(".quiz-ai-submit-btn").forEach((button) => {
+        button.onclick = async (e) => {
+          e.stopPropagation();
+          if (button.disabled) return;
+
+          const quizId = button.dataset.quizId;
+          const quizTitle = button.dataset.quizTitle;
+          const originalContent = button.innerHTML;
+          button.disabled = true;
+          button.innerHTML = `<span class="ms mentari-spin" style="font-size:16px;">sync</span>`;
+
+          try {
+            Utils.progressToast("Sedang memulai quiz...");
+            await ApiService.startQuiz(quizId);
+            Utils.progressToast("Sedang mencari soal quiz...");
+            const questions =
+              (await ApiService.fetchQuizQuestions(quizId))?.data || [];
+            if (!questions.length) throw new Error("Soal quiz kosong");
+
+            Utils.progressToast("AI sedang menjawab quiz...");
+            const answers = await ApiService.askGeminiQuiz(
+              ApiService.getGeminiApiKey(),
+              questions,
+            );
+            const answersByQuestion = new Map(
+              answers.map((answer) => [
+                answer.question_id,
+                answer.answer_index,
+              ]),
+            );
+
+            for (const question of questions) {
+              const answerIndex = answersByQuestion.get(question.id);
+              const answer = question.list_jawaban?.[Number(answerIndex) - 1];
+              if (!answer?.id)
+                throw new Error(`Jawaban AI tidak valid untuk ${question.id}`);
+              Utils.progressToast("Sedang mengirim jawaban quiz...");
+              await ApiService.submitQuizAnswer({
+                id_trx_quiz_user_soal: question.id,
+                id_jawaban: answer.id,
+                jawaban: null,
+              });
+            }
+
+            Utils.progressToast("Sedang menyelesaikan quiz...");
+            await ApiService.endQuiz(quizId);
+            Utils.closeProgressToast();
+            Utils.successToast("Jawaban quiz berhasil diisi AI");
+            setTimeout(() => App.refreshData(true), 700);
+          } catch (error) {
+            console.error("[Mentari] Gagal mengisi quiz dengan AI", {
+              quizId,
+              quizTitle,
+              error,
+            });
+            Utils.closeProgressToast();
+            Utils.toast(`AI quiz gagal: ${error.message}`);
+          } finally {
+            button.disabled = false;
+            button.innerHTML = originalContent;
+          }
+        };
+      });
+
       this.loadKuesioner(data);
+      this.loadQuizParticipants();
       this.loadTopics();
+    },
+
+    loadQuizParticipants() {
+      document
+        .querySelectorAll(".quiz-participant-status[data-quiz-id]")
+        .forEach(async (statusEl) => {
+          try {
+            const result = await ApiService.fetchQuizParticipant(
+              statusEl.dataset.quizId,
+            );
+            const quiz = result?.quiz;
+            if (!quiz) {
+              statusEl.textContent = "Belum dikerjakan";
+              return;
+            }
+
+            const endInSecond = quiz.end_in_second ?? "-";
+            const grade = quiz.grade ?? "-";
+            statusEl.innerHTML = `<span class="ms" style="font-size:12px;">timer</span> ${endInSecond}s <span style="margin-left:4px;">Nilai: ${grade}</span>`;
+          } catch (error) {
+            statusEl.textContent = "Status tidak tersedia";
+          }
+        });
     },
 
     loadKuesioner(data) {
@@ -1226,6 +1451,7 @@
     },
     async refreshData(force = false) {
       if (State.isFetching || !State.authToken) return;
+      const forumUiState = force ? this.captureForumUiState() : null;
       if (!force) {
         const cached = Utils.get(Config.STORAGE_KEYS.COURSE_DATA);
         if (cached) {
@@ -1254,11 +1480,80 @@
 
         Utils.save(Config.STORAGE_KEYS.COURSE_DATA, State.courseDataList);
         this.render();
+        this.restoreForumUiState(forumUiState);
       } catch (e) {
       } finally {
         State.isFetching = false;
         UIRenderer.setLoading(false);
       }
+    },
+    captureForumUiState() {
+      const forum = document.getElementById("forum-tab-tab");
+      if (!forum) return null;
+
+      const forumRect = forum.getBoundingClientRect();
+      const anchor = Array.from(forum.querySelectorAll(".section-header"))
+        .map((header) => ({
+          header,
+          rect: header.getBoundingClientRect(),
+        }))
+        .find(
+          ({ rect }) =>
+            rect.bottom > forumRect.top && rect.top < forumRect.bottom,
+        );
+
+      return {
+        scrollTop: forum.scrollTop,
+        anchor: anchor
+          ? {
+              id: anchor.header.dataset.target,
+              offset: anchor.rect.top - forumRect.top,
+            }
+          : null,
+        openSections: Array.from(
+          forum.querySelectorAll(".section-content.active"),
+        ).map((section) => ({
+          id: section.id,
+          scrollTop: section.scrollTop,
+        })),
+      };
+    },
+    restoreForumUiState(uiState) {
+      if (!uiState) return;
+      const forum = document.getElementById("forum-tab-tab");
+      if (!forum) return;
+
+      uiState.openSections.forEach(({ id, scrollTop }) => {
+        const section = document.getElementById(id);
+        if (!section) return;
+        section.classList.add("active");
+        section
+          .closest(".section-card")
+          ?.querySelector(".section-toggle")
+          ?.classList.add("active");
+        section.scrollTop = scrollTop;
+      });
+
+      const restoreScroll = () => {
+        if (uiState.anchor?.id) {
+          const section = document.getElementById(uiState.anchor.id);
+          const header = section
+            ?.closest(".section-card")
+            ?.querySelector(
+              `.section-header[data-target="${uiState.anchor.id}"]`,
+            );
+          if (header) {
+            const forumRect = forum.getBoundingClientRect();
+            const headerRect = header.getBoundingClientRect();
+            forum.scrollTop +=
+              headerRect.top - forumRect.top - uiState.anchor.offset;
+            return;
+          }
+        }
+        forum.scrollTop = uiState.scrollTop;
+      };
+
+      requestAnimationFrame(() => requestAnimationFrame(restoreScroll));
     },
     render() {
       Renderers.forum(State.courseDataList);
