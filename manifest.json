@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Mentari Mod v2.0",
+  "name": "Mentari Mod v2.0 Sunset",
   "version": "2.0",
   "description": "Ekstensi untuk meningkatkan pengalaman belajar di MENTARI UNPAM dengan fitur pelacakan forum, asisten AI, bantuan quiz, dan manajemen presensi.",
   "permissions": ["scripting", "activeTab"],
@@ -16,7 +16,7 @@
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"],
-      "js": ["src/content/apiKeyManager.js", "src/content/content.js", "src/content/gemini.js"]
+      "js": ["src/content/apiKeyManager.js", "src/content/content.js"]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/login"],
@@ -49,7 +49,13 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/content/token.js", "src/content/apiKeyManager.js", "src/content/guidebook.js", "src/assets/background.png"],
+      "resources": [
+        "src/content/token.js",
+        "src/content/apiKeyManager.js",
+        "src/assets/background.png",
+        "pet.html",
+        "pet.js"
+      ],
       "matches": ["https://mentari.unpam.ac.id/*"]
     }
   ],

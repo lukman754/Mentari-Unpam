@@ -122,7 +122,7 @@ function automateFlow(mode) {
 }
 
 const SurveyConfig = {
-  APP_VERSION: "2.0",
+  APP_VERSION: "2.0 Sunset",
   STYLES: `
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     

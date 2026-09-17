@@ -26,12 +26,15 @@ Penting:
     },
     API: {
       BASE_URL: "https://mentari.unpam.ac.id/api",
-      QUIZ_ENDPOINT: (quizId) => `https://mentari.unpam.ac.id/api/quiz/soal/${quizId}`,
+      QUIZ_ENDPOINT: (quizId) =>
+        `https://mentari.unpam.ac.id/api/quiz/soal/${quizId}`,
     },
     POLL_INTERVAL_MS: 1000,
     SELECTORS: {
-      START_BUTTON: "button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary",
-      CONFIRM_BUTTON: 'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]',
+      START_BUTTON:
+        "button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedPrimary",
+      CONFIRM_BUTTON:
+        'button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary svg[data-testid="ThumbUpOffAltRoundedIcon"]',
       AUTO_FINISH_QUIZ_BUTTONS: [
         'button.MuiButtonBase-root:has(span:contains("Selesai Quiz"))',
         'button.MuiButton-contained:has(span:contains("Selesai Quiz"))',
@@ -44,15 +47,31 @@ Penting:
   const Utils = {
     delay: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 
+    updateModelLimit(model, isLimited) {
+      try {
+        const statsKey = "gemini_model_stats";
+        const raw = localStorage.getItem(statsKey);
+        const stats = raw ? JSON.parse(raw) : {};
+        if (!stats[model]) stats[model] = {};
+        stats[model].limited = isLimited ? true : false;
+        localStorage.setItem(statsKey, JSON.stringify(stats));
+      } catch (e) {}
+    },
+
     getGeminiApiKey() {
       const stored = localStorage.getItem("geminiApiKey");
       if (stored) return atob(stored);
 
       const errorEl = document.createElement("div");
-      errorEl.style = "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#f44336;color:white;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;";
+      errorEl.style =
+        "position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#f44336;color:white;padding:12px 20px;border-radius:6px;box-shadow:0 3px 15px rgba(0,0,0,0.3);z-index:10000;font-family:system-ui;";
       errorEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span>❌</span><span>API Key tidak ditemukan. Pastikan Anda telah mengatur API Key di Settings.</span></div>`;
       document.body.appendChild(errorEl);
-      setTimeout(() => { errorEl.style.opacity = "0"; errorEl.style.transition = "opacity 0.5s"; setTimeout(() => errorEl.remove(), 500); }, 5000);
+      setTimeout(() => {
+        errorEl.style.opacity = "0";
+        errorEl.style.transition = "opacity 0.5s";
+        setTimeout(() => errorEl.remove(), 500);
+      }, 5000);
       throw new Error("Gemini API Key not found in localStorage");
     },
 
@@ -60,7 +79,8 @@ Penting:
       const raw = localStorage.getItem("access");
       if (!raw) throw new Error("Token akses tidak ditemukan");
       const data = JSON.parse(raw);
-      if (!Array.isArray(data) || !data[0]?.token) throw new Error("Struktur token tidak valid");
+      if (!Array.isArray(data) || !data[0]?.token)
+        throw new Error("Struktur token tidak valid");
       return data[0].token;
     },
 
@@ -77,9 +97,12 @@ Penting:
       div.querySelectorAll("table").forEach((table) => {
         let text = "\n==TABLE==\n";
         table.querySelectorAll("tr").forEach((row, idx) => {
-          const cells = Array.from(row.querySelectorAll("td, th")).map((c) => c.textContent.trim()).join(" | ");
+          const cells = Array.from(row.querySelectorAll("td, th"))
+            .map((c) => c.textContent.trim())
+            .join(" | ");
           text += cells + "\n";
-          if (idx === 0 && row.querySelectorAll("th").length > 0) text += "-".repeat(cells.length) + "\n";
+          if (idx === 0 && row.querySelectorAll("th").length > 0)
+            text += "-".repeat(cells.length) + "\n";
         });
         text += "==END TABLE==\n";
         const pre = document.createElement("pre");
@@ -93,35 +116,70 @@ Penting:
         .replace(/<em>(.*?)<\/em>/gi, "_$1_")
         .replace(/<\/p>/g, "\n\n")
         .replace(/<br\s*\/?>/g, "\n")
-        .replace(/<ul[^>]*>/g, "\n").replace(/<\/ul>/g, "\n")
-        .replace(/<ol[^>]*>/g, "\n").replace(/<\/ol>/g, "\n")
-        .replace(/<li>/g, "• ").replace(/<\/li>/g, "\n")
+        .replace(/<ul[^>]*>/g, "\n")
+        .replace(/<\/ul>/g, "\n")
+        .replace(/<ol[^>]*>/g, "\n")
+        .replace(/<\/ol>/g, "\n")
+        .replace(/<li>/g, "• ")
+        .replace(/<\/li>/g, "\n")
         .replace(/<img[^>]*alt="([^"]*)"[^>]*>/gi, "[IMG: $1]")
         .replace(/<img[^>]*>/gi, "[IMG]")
         .replace(/<[^>]*>/g, "")
-        .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
         .replace(/\n\s*\n\s*\n/g, "\n\n")
         .trim();
     },
 
     showError(message) {
       const el = document.createElement("div");
-      el.style = "position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:50px;box-shadow:0 5px 15px rgba(0,0,0,0.4);z-index:10000;font-family:system-ui;border:1px solid #444;font-size:11px;animation:toastIn 0.3s;";
+      el.style =
+        "position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:50px;box-shadow:0 5px 15px rgba(0,0,0,0.4);z-index:10000;font-family:system-ui;border:1px solid #444;font-size:11px;animation:toastIn 0.3s;";
       el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#f44336;">❌</span><span>${message}</span></div>`;
       document.body.appendChild(el);
-      setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity 0.5s"; setTimeout(() => el.remove(), 500); }, 5000);
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.5s";
+        setTimeout(() => el.remove(), 500);
+      }, 5000);
     },
 
     updateQuota(headers) {
       try {
         const quota = {
-          rpm: { remaining: parseInt(headers.get('x-ratelimit-remaining-requests')), limit: parseInt(headers.get('x-ratelimit-limit-requests')) },
-          tpm: { remaining: parseInt(headers.get('x-ratelimit-remaining-tokens')), limit: parseInt(headers.get('x-ratelimit-limit-tokens')) },
-          updated: Date.now()
+          rpm: {
+            remaining: parseInt(headers.get("x-ratelimit-remaining-requests")),
+            limit: parseInt(headers.get("x-ratelimit-limit-requests")),
+          },
+          tpm: {
+            remaining: parseInt(headers.get("x-ratelimit-remaining-tokens")),
+            limit: parseInt(headers.get("x-ratelimit-limit-tokens")),
+          },
+          updated: Date.now(),
         };
-        if (!isNaN(quota.rpm.limit)) localStorage.setItem("gemini_quota", JSON.stringify(quota));
+        if (!isNaN(quota.rpm.limit))
+          localStorage.setItem("gemini_quota", JSON.stringify(quota));
       } catch (e) {}
+    },
+
+    parseMinutesToMs(val) {
+      if (!val) return 0;
+      const numStr = String(val).trim();
+      const num = parseFloat(numStr);
+      if (isNaN(num) || num <= 0) return 0;
+
+      if (numStr.includes(".")) {
+        const parts = numStr.split(".");
+        const mins = parseInt(parts[0], 10) || 0;
+        const secsStr = parts[1].padEnd(2, "0").slice(0, 2);
+        const secs = parseInt(secsStr, 10) || 0;
+        return (mins * 60 + secs) * 1000;
+      } else {
+        return Math.round(num * 60 * 1000);
+      }
     },
   };
 
@@ -130,7 +188,10 @@ Penting:
     async fetchQuiz(token, quizId) {
       const res = await fetch(Config.API.QUIZ_ENDPOINT(quizId), {
         method: "GET",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         cache: "no-store",
       });
       if (!res.ok) return null;
@@ -142,19 +203,26 @@ Penting:
     async askGeminiBatch(apiKey, questions) {
       const CHUNK_SIZE = 5;
       const results = [];
-      const modelRaw = localStorage.getItem("gemini_model") || Config.GEMINI.MODEL;
-      const model = modelRaw.replace(/"/g, '');
+      const modelRaw =
+        localStorage.getItem("gemini_model") || Config.GEMINI.MODEL;
+      const model = modelRaw.replace(/"/g, "");
 
       for (let i = 0; i < questions.length; i += CHUNK_SIZE) {
         const chunk = questions.slice(i, i + CHUNK_SIZE);
         const startIndex = i + 1;
-        
-        console.log(`[Batch] Memproses chunk ${Math.floor(i/CHUNK_SIZE) + 1} (${chunk.length} soal)...`);
-        
-        const chunkBlock = chunk.map((q, j) => {
-          const opts = q.options.map((o, k) => `  ${String.fromCharCode(65+k)}. ${o}`).join("\n");
-          return `### SOAL ${startIndex + j}\n${q.question}\n\nPilihan:\n${opts}`;
-        }).join("\n\n---\n\n");
+
+        console.log(
+          `[Batch] Memproses chunk ${Math.floor(i / CHUNK_SIZE) + 1} (${chunk.length} soal)...`,
+        );
+
+        const chunkBlock = chunk
+          .map((q, j) => {
+            const opts = q.options
+              .map((o, k) => `  ${String.fromCharCode(65 + k)}. ${o}`)
+              .join("\n");
+            return `### SOAL ${startIndex + j}\n${q.question}\n\nPilihan:\n${opts}`;
+          })
+          .join("\n\n---\n\n");
 
         const prompt = `Kamu adalah pakar akademik yang sangat teliti. Jawab soal-soal berikut dengan akurasi 100%. 
 Langkah kerja:
@@ -166,7 +234,7 @@ DAFTAR SOAL:
 ${chunkBlock}
 
 Wajib tulis REKAP JAWABAN di baris paling akhir dengan format persis seperti ini:
-${chunk.map((_, j) => `JAWABAN_${startIndex+j}: [HURUF]`).join("\n")}
+${chunk.map((_, j) => `JAWABAN_${startIndex + j}: [HURUF]`).join("\n")}
 
 Berikan penjelasan ringkas per soal sebelum rekap.`;
 
@@ -175,44 +243,56 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
         while (retries >= 0 && !chunkSuccess) {
           try {
-            const res = await fetch(`${Config.GEMINI.ENDPOINT}/${model}:generateContent?key=${apiKey}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                  temperature: 0.1, // Sangat rendah untuk akurasi maksimal/deterministik
-                  topP: 0.1,
-                  maxOutputTokens: 2048
-                }
-              })
-            });
+            const res = await fetch(
+              `${Config.GEMINI.ENDPOINT}/${model}:generateContent?key=${apiKey}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    temperature: 0.1, // Sangat rendah untuk akurasi maksimal/deterministik
+                    topP: 0.1,
+                    maxOutputTokens: 2048,
+                  },
+                }),
+              },
+            );
 
-            if (!res.ok) throw new Error(`API Error ${res.status}`);
+            if (!res.ok) {
+              if (res.status === 429) Utils.updateModelLimit(model, true);
+              throw new Error(`API Error ${res.status}`);
+            }
             Utils.updateQuota(res.headers);
+            Utils.updateModelLimit(model, false);
             const data = await res.json();
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            
+
             // Ekstrak jawaban dari chunk ini
             chunk.forEach((_, j) => {
               const idx = startIndex + j;
               const reg = new RegExp(`JAWABAN_${idx}\\s*:\\s*([A-E])`, "i");
               const match = text.match(reg);
               results.push({
-                letter: match ? match[1].toLowerCase() : this.fallbackAnswer(chunk[j].question, chunk[j].options).letter,
-                explanation: text
+                letter: match
+                  ? match[1].toLowerCase()
+                  : this.fallbackAnswer(chunk[j].question, chunk[j].options)
+                      .letter,
+                explanation: text,
               });
             });
-            
+
             chunkSuccess = true;
           } catch (err) {
             console.error(`[Batch] Error pada chunk ${startIndex}:`, err);
             if (retries === 0) {
               // Failback chunk ini
-              chunk.forEach(q => results.push(this.fallbackAnswer(q.question, q.options)));
+              chunk.forEach((q) =>
+                results.push(this.fallbackAnswer(q.question, q.options)),
+              );
             }
             retries--;
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise((r) => setTimeout(r, 2000));
           }
         }
       }
@@ -221,11 +301,21 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
     // Fallback: keyword matching jika Gemini gagal
     fallbackAnswer(question, options) {
-      const keywords = question.toLowerCase().replace(/[.,?!;:()]/g, "").split(/\s+/).filter((w) => w.length > 3);
-      let bestIdx = 0, bestScore = 0;
+      const keywords = question
+        .toLowerCase()
+        .replace(/[.,?!;:()]/g, "")
+        .split(/\s+/)
+        .filter((w) => w.length > 3);
+      let bestIdx = 0,
+        bestScore = 0;
       options.forEach((opt, idx) => {
-        const score = keywords.filter((kw) => opt.toLowerCase().includes(kw)).length;
-        if (score > bestScore) { bestScore = score; bestIdx = idx; }
+        const score = keywords.filter((kw) =>
+          opt.toLowerCase().includes(kw),
+        ).length;
+        if (score > bestScore) {
+          bestScore = score;
+          bestIdx = idx;
+        }
       });
       return {
         letter: String.fromCharCode(97 + (bestScore > 0 ? bestIdx : 0)),
@@ -241,10 +331,12 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
     createPopup() {
       const popup = document.createElement("div");
-      popup.style = "position:fixed;z-index:10000;min-width:300px;max-width:450px;width:auto;top:20px;right:20px;background:#1e1e1e;color:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-family:system-ui;font-size:13px;border:1px solid #333;overflow:hidden;";
+      popup.style =
+        "position:fixed;z-index:10000;min-width:300px;max-width:450px;width:auto;top:20px;right:20px;background:#1e1e1e;color:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-family:system-ui;font-size:13px;border:1px solid #333;overflow:hidden;";
 
       const header = document.createElement("div");
-      header.style = "padding:10px 14px;background:#2a2a2a;color:#fff;cursor:move;user-select:none;display:flex;justify-content:space-between;align-items:center;font-weight:500;border-bottom:1px solid #333;";
+      header.style =
+        "padding:10px 14px;background:#2a2a2a;color:#fff;cursor:move;user-select:none;display:flex;justify-content:space-between;align-items:center;font-weight:500;border-bottom:1px solid #333;";
       header.innerHTML = `
         <div>Quiz Helper</div>
         <div style="display:flex;gap:8px;">
@@ -283,9 +375,20 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
     },
 
     _makeDraggable(popup, handle) {
-      let dragging = false, ox, oy;
-      handle.addEventListener("mousedown", (e) => { dragging = true; ox = e.clientX - popup.getBoundingClientRect().left; oy = e.clientY - popup.getBoundingClientRect().top; });
-      document.addEventListener("mousemove", (e) => { if (!dragging) return; popup.style.left = e.clientX - ox + "px"; popup.style.top = e.clientY - oy + "px"; popup.style.right = "auto"; });
+      let dragging = false,
+        ox,
+        oy;
+      handle.addEventListener("mousedown", (e) => {
+        dragging = true;
+        ox = e.clientX - popup.getBoundingClientRect().left;
+        oy = e.clientY - popup.getBoundingClientRect().top;
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        popup.style.left = e.clientX - ox + "px";
+        popup.style.top = e.clientY - oy + "px";
+        popup.style.right = "auto";
+      });
       document.addEventListener("mouseup", () => (dragging = false));
     },
 
@@ -297,7 +400,9 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
         popup.style.height = open ? "auto" : undefined;
         document.getElementById("toggle-popup").textContent = open ? "−" : "+";
       });
-      document.getElementById("close-popup").addEventListener("click", () => popup.remove());
+      document
+        .getElementById("close-popup")
+        .addEventListener("click", () => popup.remove());
     },
 
     showLoading(content) {
@@ -350,9 +455,9 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
           </button>
           
           <div style="display:flex;gap:2px;background:#2a2a2a;padding:2px;border-radius:6px;border:1px solid #444;">
-            <button class="mode-btn ${App.viewMode === 1 ? 'active' : ''}" data-mode="1" title="Mode Ringkas">R</button>
-            <button class="mode-btn ${App.viewMode === 2 ? 'active' : ''}" data-mode="2" title="Mode Standar">S</button>
-            <button class="mode-btn ${App.viewMode === 3 ? 'active' : ''}" data-mode="3" title="Mode Detail">D</button>
+            <button class="mode-btn ${App.viewMode === 1 ? "active" : ""}" data-mode="1" title="Mode Ringkas">R</button>
+            <button class="mode-btn ${App.viewMode === 2 ? "active" : ""}" data-mode="2" title="Mode Standar">S</button>
+            <button class="mode-btn ${App.viewMode === 3 ? "active" : ""}" data-mode="3" title="Mode Detail">D</button>
           </div>
         </div>
 
@@ -363,19 +468,23 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
         </div>`;
 
       // Event Copy All
-      document.getElementById("copy-all-questions").addEventListener("click", () => App.copyAllQuestions());
+      document
+        .getElementById("copy-all-questions")
+        .addEventListener("click", () => App.copyAllQuestions());
 
       // Event Switch Mode
-      content.querySelectorAll(".mode-btn").forEach(btn => {
+      content.querySelectorAll(".mode-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const mode = parseInt(btn.dataset.mode);
           if (App.viewMode === mode) return;
           App.viewMode = mode;
-          
+
           // Toggle active class
-          content.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+          content
+            .querySelectorAll(".mode-btn")
+            .forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
-          
+
           // Re-render all questions
           App.renderAllQuestions();
         });
@@ -385,7 +494,8 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
     createQuestionItem(index, questionId, statusHtml) {
       const el = document.createElement("div");
       el.dataset.questionId = questionId;
-      el.style = "padding:8px 12px;margin-bottom:8px;border-radius:6px;background-color:#2a2a2a;position:relative;border-left:3px solid #333;transition:all 0.2s ease;";
+      el.style =
+        "padding:8px 12px;margin-bottom:8px;border-radius:6px;background-color:#2a2a2a;position:relative;border-left:3px solid #333;transition:all 0.2s ease;";
       el.innerHTML = `<small>${index + 1}. <span style="color:#ffcc5c;">${statusHtml}</span></small>`;
       return el;
     },
@@ -397,12 +507,12 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
       if (answer) {
         const answerIndex = answer.charCodeAt(0) - 97;
         const answerText = options[answerIndex] || "";
-        
+
         element.style.borderLeftColor = "#4CAF50";
         element.style.padding = viewMode === 1 ? "6px 12px" : "10px 12px";
 
         let html = "";
-        
+
         if (viewMode === 1) {
           // MODE 1: Ringkas (Nomor, Jawaban, Tombol Set)
           html = `
@@ -428,17 +538,19 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
               </div>
             </div>
 
-            <div style="font-size:12px;color:#ddd;line-height:1.5;margin-bottom:8px;white-space:pre-wrap;word-break:break-word;">${question.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+            <div style="font-size:12px;color:#ddd;line-height:1.5;margin-bottom:8px;white-space:pre-wrap;word-break:break-word;">${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
 
-            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:${viewMode === 3 ? '10px' : '0'};">
-              ${options.map((opt, idx) => {
-                const letter = String.fromCharCode(97 + idx);
-                const isAnswer = letter === answer;
-                return `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 7px;border-radius:5px;font-size:11px;background:${isAnswer ? 'rgba(76,175,80,0.12)' : 'rgba(255,255,255,0.03)'};border:1px solid ${isAnswer ? 'rgba(76,175,80,0.3)' : 'rgba(255,255,255,0.05)'};">
-                  <span style="font-weight:700;color:${isAnswer ? '#4CAF50' : '#777'};flex-shrink:0;min-width:14px;">${letter}.</span>
-                  <span style="color:${isAnswer ? '#c8f0c9' : '#aaa'};line-height:1.4;">${opt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:${viewMode === 3 ? "10px" : "0"};">
+              ${options
+                .map((opt, idx) => {
+                  const letter = String.fromCharCode(97 + idx);
+                  const isAnswer = letter === answer;
+                  return `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 7px;border-radius:5px;font-size:11px;background:${isAnswer ? "rgba(76,175,80,0.12)" : "rgba(255,255,255,0.03)"};border:1px solid ${isAnswer ? "rgba(76,175,80,0.3)" : "rgba(255,255,255,0.05)"};">
+                  <span style="font-weight:700;color:${isAnswer ? "#4CAF50" : "#777"};flex-shrink:0;min-width:14px;">${letter}.</span>
+                  <span style="color:${isAnswer ? "#c8f0c9" : "#aaa"};line-height:1.4;">${opt.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>
                 </div>`;
-              }).join('')}
+                })
+                .join("")}
             </div>`;
 
           if (viewMode === 3) {
@@ -448,7 +560,7 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                   PENJELASAN AI
                 </div>
-                ${explanation.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br>')}
+                ${explanation.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}
               </div>`;
           }
         }
@@ -456,7 +568,10 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
         element.innerHTML = html;
 
         element.querySelector(".apply-answer").addEventListener("click", () => {
-          if (QuizEngine.selectRadioAnswer(index, answer) && document.getElementById("auto-next")?.checked) {
+          if (
+            QuizEngine.selectRadioAnswer(index, answer) &&
+            document.getElementById("auto-next")?.checked
+          ) {
             setTimeout(() => QuizEngine.clickNextButton(), 500);
           }
         });
@@ -468,16 +583,22 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
             infoBtn.style.color = "#fff";
             const tooltip = document.createElement("div");
             tooltip.className = "q-tooltip explanation-tooltip";
-            tooltip.style = "position:fixed;width:320px;padding:12px;background:#1e1e1e;border:1px solid #444;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:10001;font-size:12px;white-space:pre-wrap;max-height:350px;overflow-y:auto;line-height:1.5;";
+            tooltip.style =
+              "position:fixed;width:320px;padding:12px;background:#1e1e1e;border:1px solid #444;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:10001;font-size:12px;white-space:pre-wrap;max-height:350px;overflow-y:auto;line-height:1.5;";
             tooltip.innerHTML = `
               <div style="font-weight:600;color:#4CAF50;margin-bottom:6px;">💡 Penjelasan AI:</div>
-              <div style="color:#ccc;">${explanation.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g, '<br>')}</div>
+              <div style="color:#ccc;">${explanation.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}</div>
               <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;font-size:10px;color:#666;">⚠️ Jawaban AI mungkin tidak selalu tepat.</div>`;
             document.body.appendChild(tooltip);
 
             const btnRect = infoBtn.getBoundingClientRect();
-            tooltip.style.top = Math.min(btnRect.bottom + 6, window.innerHeight - 360) + "px";
-            tooltip.style.left = Math.max(10, Math.min(btnRect.left - 280, window.innerWidth - 340)) + "px";
+            tooltip.style.top =
+              Math.min(btnRect.bottom + 6, window.innerHeight - 360) + "px";
+            tooltip.style.left =
+              Math.max(
+                10,
+                Math.min(btnRect.left - 280, window.innerWidth - 340),
+              ) + "px";
           });
           infoBtn.addEventListener("mouseleave", () => {
             infoBtn.style.backgroundColor = "#333";
@@ -514,7 +635,13 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
           if (radio) {
             radio.checked = true;
             radio.dispatchEvent(new Event("change", { bubbles: true }));
-            radio.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+            radio.dispatchEvent(
+              new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+              }),
+            );
             return true;
           }
         } catch (_) {}
@@ -539,33 +666,82 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
         try {
           const buttons = document.querySelectorAll(sel);
           for (const btn of buttons) {
-            if (btn && !btn.disabled && btn.offsetParent !== null) { btn.click(); return true; }
-          }
-        } catch (_) {}
-      }
-
-      // Cek auto_finish_quiz
-      const autoFinish = localStorage.getItem("auto_finish_quiz") === "true";
-      if (!autoFinish) {
-        const delay = Math.floor(Math.random() * 60000) + 120000;
-        console.log(`Auto finish tidak aktif, menunggu ${Math.round(delay / 1000)}s untuk humanize...`);
-        setTimeout(() => this.clickNextButton(), delay);
-        return false;
-      }
-
-      for (const sel of Config.SELECTORS.AUTO_FINISH_QUIZ_BUTTONS) {
-        try {
-          const buttons = document.querySelectorAll(sel);
-          for (const btn of buttons) {
             if (btn && !btn.disabled && btn.offsetParent !== null) {
               btn.click();
-              this._watchConfirmDialog();
               return true;
             }
           }
         } catch (_) {}
       }
+
+      // Ketika tidak ada lagi tombol next, trigger penyelesaian quiz
+      this.triggerEndQuiz();
       return false;
+    },
+
+    isEndingQuiz: false,
+
+    async triggerEndQuiz() {
+      if (this.isEndingQuiz) return;
+      this.isEndingQuiz = true;
+
+      const quizId = Utils.getQuizId();
+      const delaySetting = localStorage.getItem("mentari_quiz_delay") || "0";
+      const delayMs = Utils.parseMinutesToMs(delaySetting);
+
+      const progressText = document.getElementById("progress-text");
+      const progressBar = document.getElementById("progress-bar");
+
+      if (delayMs > 0) {
+        if (progressBar) progressBar.style.width = "100%";
+        let remaining = Math.ceil(delayMs / 1000);
+        while (remaining > 0) {
+          const m = Math.floor(remaining / 60);
+          const s = remaining % 60;
+          const formatted = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+          if (progressText) {
+            progressText.textContent = `⏱️ Menunggu ${formatted} sebelum menyelesaikan quiz...`;
+            progressText.style.color = "#f0872d";
+          }
+          await new Promise((r) => setTimeout(r, 1000));
+          remaining--;
+        }
+      }
+
+      if (progressText) {
+        progressText.textContent = "🚀 Menyelesaikan quiz...";
+        progressText.style.color = "#38bdf8";
+      }
+
+      try {
+        const token = Utils.getToken();
+        const res = await fetch(`${Config.API.BASE_URL}/quiz/end`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_trx_course_sub_section: quizId,
+          }),
+        });
+
+        if (res.ok) {
+          if (progressText) {
+            progressText.textContent =
+              "🎉 Quiz Berhasil Diselesaikan!";
+            progressText.style.color = "#4CAF50";
+          }
+          setTimeout(() => location.reload(), 2000);
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (err) {
+        if (progressText) {
+          progressText.textContent = `❌ Gagal menyelesaikan quiz: ${err.message}`;
+          progressText.style.color = "#f44336";
+        }
+      }
     },
 
     _watchConfirmDialog() {
@@ -575,35 +751,56 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
         const obs = new MutationObserver((_, o) => {
           const btn = check();
-          if (btn) { btn.click(); o.disconnect(); }
+          if (btn) {
+            btn.click();
+            o.disconnect();
+          }
         });
         obs.observe(document.body, { childList: true, subtree: true });
         const btn = check();
-        if (btn) { btn.click(); obs.disconnect(); }
+        if (btn) {
+          btn.click();
+          obs.disconnect();
+        }
       }, 500);
     },
 
     sequentiallyAnswerAllQuestions(questionData) {
       if (!document.getElementById("auto-answer")?.checked) return;
-      const questions = Array.from(questionData.values()).sort((a, b) => a.index - b.index);
-      let i = 0, noNextCount = 0;
+      const questions = Array.from(questionData.values()).sort(
+        (a, b) => a.index - b.index,
+      );
+      let i = 0,
+        noNextCount = 0;
 
       const processNext = () => {
-        if (i >= questions.length) return;
+        if (i >= questions.length) {
+          this.triggerEndQuiz();
+          return;
+        }
         const q = questions[i];
         const selected = this.selectRadioAnswer(q.index, q.answer);
         if (selected) {
           if (document.getElementById("auto-next")?.checked) {
             setTimeout(() => {
-              if (this.clickNextButton()) { noNextCount = 0; i++; setTimeout(processNext, 100); }
-              else {
+              if (this.clickNextButton()) {
+                noNextCount = 0;
+                i++;
+                setTimeout(processNext, 100);
+              } else {
                 noNextCount++;
-                if (noNextCount >= 2) { for (let j = 0; j < 3; j++) setTimeout(() => this.clickNextButton(), j * 50); }
-                else setTimeout(processNext, 100);
+                if (noNextCount >= 2) {
+                  this.triggerEndQuiz();
+                } else setTimeout(processNext, 100);
               }
             }, 100);
-          } else { i++; setTimeout(processNext, 100); }
-        } else { setTimeout(processNext, 100); }
+          } else {
+            i++;
+            setTimeout(processNext, 100);
+          }
+        } else {
+          setTimeout(processNext, 100);
+        }
       };
 
       processNext();
@@ -640,7 +837,9 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
       }
 
       const lines = [];
-      const sorted = Array.from(this.questionData.values()).sort((a, b) => a.index - b.index);
+      const sorted = Array.from(this.questionData.values()).sort(
+        (a, b) => a.index - b.index,
+      );
 
       sorted.forEach((data) => {
         lines.push(`Soal ${data.number}:`);
@@ -651,25 +850,36 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
           const mark = letter === data.answer ? " ✓ (Jawaban AI)" : "";
           lines.push(`${letter}. ${opt}${mark}`);
         });
-        lines.push(`→ Jawaban AI: ${data.answer?.toUpperCase() ?? "Tidak diketahui"}`);
+        lines.push(
+          `→ Jawaban AI: ${data.answer?.toUpperCase() ?? "Tidak diketahui"}`,
+        );
         lines.push("─".repeat(50));
         lines.push("");
       });
 
-      lines.push("⚠️ Catatan: Jawaban di atas dihasilkan oleh AI dan mungkin tidak selalu tepat.");
+      lines.push(
+        "⚠️ Catatan: Jawaban di atas dihasilkan oleh AI dan mungkin tidak selalu tepat.",
+      );
       lines.push("Tetap baca soal dan verifikasi jawabannya sendiri ya!");
 
       const text = lines.join("\n");
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById("copy-all-questions");
-        if (btn) {
-          const orig = btn.innerHTML;
-          btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!`;
-          btn.style.color = "#4CAF50";
-          btn.style.borderColor = "#4CAF50";
-          setTimeout(() => { btn.innerHTML = orig; btn.style.color = "#ccc"; btn.style.borderColor = "#444"; }, 2000);
-        }
-      }).catch(() => Utils.showError("Gagal menyalin ke clipboard."));
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          const btn = document.getElementById("copy-all-questions");
+          if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!`;
+            btn.style.color = "#4CAF50";
+            btn.style.borderColor = "#4CAF50";
+            setTimeout(() => {
+              btn.innerHTML = orig;
+              btn.style.color = "#ccc";
+              btn.style.borderColor = "#444";
+            }, 2000);
+          }
+        })
+        .catch(() => Utils.showError("Gagal menyalin ke clipboard."));
     },
     async init() {
       this.apiKey = Utils.getGeminiApiKey();
@@ -699,9 +909,9 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
     },
 
     async processQuiz(quizData) {
-      const isFirstRun = !this.popup.content.querySelector("#answers-container");
+      const isFirstRun =
+        !this.popup.content.querySelector("#answers-container");
       if (isFirstRun) UIRenderer.initAnswerContainer(this.popup.content);
-
 
       // Restore already-answered questions on re-render
       const answersContainer = document.getElementById("answers-container");
@@ -710,11 +920,15 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
       if (!isFirstRun) {
         this.questionData.forEach((data, questionId) => {
           if (!document.querySelector(`[data-question-id="${questionId}"]`)) {
-            const item = UIRenderer.createQuestionItem(data.index, questionId, "...");
+            const item = UIRenderer.createQuestionItem(
+              data.index,
+              questionId,
+              "...",
+            );
             answersContainer.appendChild(item);
             UIRenderer.updateQuestionItem(
               document.querySelector(`[data-question-id="${questionId}"]`),
-              data
+              data,
             );
           }
         });
@@ -737,38 +951,57 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
         const pBar = document.getElementById("progress-bar");
         const pText = document.getElementById("progress-text");
-        if (pBar) pBar.style.width = `${Math.round(((i + 1) / quizData.data.length) * 100)}%`;
-        if (pText) pText.textContent = `Mencari jawaban ${i + 1} dari ${quizData.data.length}`;
+        if (pBar)
+          pBar.style.width = `${Math.round(((i + 1) / quizData.data.length) * 100)}%`;
+        if (pText)
+          pText.textContent = `Mencari jawaban ${i + 1} dari ${quizData.data.length}`;
 
-        const questionItem = UIRenderer.createQuestionItem(i, q.id, "Mencari jawaban...");
+        const questionItem = UIRenderer.createQuestionItem(
+          i,
+          q.id,
+          "Mencari jawaban...",
+        );
         answersContainer.appendChild(questionItem);
 
         const title = Utils.cleanText(q.judul || "");
         const desc = Utils.cleanText(q.deskripsi || "");
         const fullQuestion = [title, desc].filter(Boolean).join("\n\n");
-        const options = (q.list_jawaban || []).map((j) => Utils.cleanText(j.jawaban));
+        const options = (q.list_jawaban || []).map((j) =>
+          Utils.cleanText(j.jawaban),
+        );
 
         if (options.length === 0) {
           questionItem.innerHTML = `<small>${i + 1}. <span style="color:#ff6b6b;">Tidak ada pilihan</span></small>`;
           continue;
         }
 
-        pending.push({ question: fullQuestion, options, questionId: q.id, index: i, questionItem });
+        pending.push({
+          question: fullQuestion,
+          options,
+          questionId: q.id,
+          index: i,
+          questionItem,
+        });
       }
 
       // ── BATCH REQUEST: 1 request untuk semua soal sekaligus ──
       if (pending.length > 0) {
         const pText = document.getElementById("progress-text");
         const pBar = document.getElementById("progress-bar");
-        if (pText) pText.textContent = `Memproses ${pending.length} soal dalam 1 request...`;
+        if (pText)
+          pText.textContent = `Memproses ${pending.length} soal dalam 1 request...`;
         if (pBar) pBar.style.width = "50%";
 
-        const batchResults = await ApiService.askGeminiBatch(this.apiKey, pending);
+        const batchResults = await ApiService.askGeminiBatch(
+          this.apiKey,
+          pending,
+        );
 
         if (pBar) pBar.style.width = "100%";
 
         batchResults.forEach((result, batchIdx) => {
-          const { question, options, questionId, index, questionItem } = pending[batchIdx];
+          const { question, options, questionId, index, questionItem } =
+            pending[batchIdx];
           const data = {
             id: questionId,
             number: index + 1,
@@ -791,10 +1024,14 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
       if (answeredCount === quizData.data.length && !this.allAnswered) {
         this.allAnswered = true;
-        progressText.textContent = "✅ Semua jawaban ditemukan! Mulai menjawab...";
+        progressText.textContent =
+          "✅ Semua jawaban ditemukan! Mulai menjawab...";
         progressText.style.color = "#4CAF50";
         if (document.getElementById("auto-answer")?.checked) {
-          setTimeout(() => QuizEngine.sequentiallyAnswerAllQuestions(this.questionData), 100);
+          setTimeout(
+            () => QuizEngine.sequentiallyAnswerAllQuestions(this.questionData),
+            100,
+          );
         }
       } else {
         progressBar.style.width = "100%";
@@ -819,7 +1056,12 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
 
       if (!tryClick(null)) {
         const obs = new MutationObserver((_, o) => tryClick(o));
-        obs.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+        obs.observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          characterData: true,
+        });
       }
     },
 
