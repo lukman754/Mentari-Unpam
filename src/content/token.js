@@ -1,5 +1,5 @@
 (function () {
-  const APP_VERSION = "2.0";
+  const APP_VERSION = "2.0 Sunset";
   console.log("Mentari Mod Token script loaded.");
 
   const Config = {
@@ -9,7 +9,7 @@
       COURSE_DATA: "mentari_course_data",
       LAST_UPDATE: "mentari_last_update",
       GEMINI_ENABLED: "gemini_enabled",
-      AUTO_FINISH_QUIZ: "mentari_auto_finish_quiz",
+      QUIZ_DELAY: "mentari_quiz_delay",
       GEMINI_MODEL: "gemini_model",
       GEMINI_QUOTA: "gemini_quota",
       GEMINI_API_KEY: "geminiApiKey",
@@ -180,6 +180,16 @@
       #token-runner-popup.light-theme .student-row:hover,
       #token-runner-popup.light-theme .settings-row:hover {
         background: #f1f5f9;
+        border-color: rgba(0, 0, 0, 0.12);
+      }
+      #token-runner-popup.light-theme .student-row {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.06);
+      }
+      #token-runner-popup.light-theme .student-avatar {
+        background: #e0f2fe;
+        color: #0284c7;
+        border-color: #7dd3fc;
       }
       #token-runner-popup.light-theme .student-name,
       #token-runner-popup.light-theme .settings-row-title {
@@ -198,10 +208,13 @@
       #token-runner-popup.light-theme .student-meta,
       #token-runner-popup.light-theme .settings-row-desc {
         color: #475569;
+        opacity: 0.85;
       }
       #token-runner-popup.light-theme .student-rank,
       #token-runner-popup.light-theme .settings-section-label {
         color: #64748b;
+        background: #f1f5f9;
+        border-color: #cbd5e1;
       }
       #token-runner-popup.light-theme .settings-section-title {
         color: #0f172a;
@@ -390,15 +403,15 @@
       .student-list-title, .settings-section-title { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; }
       .student-list-title .ms, .settings-section-title .ms { color: #3d99e3; font-size: 17px; }
       .student-count { min-width: 20px; padding: 2px 7px; border: 1px solid rgba(61,153,227,0.2); border-radius: 5px; background: rgba(61,153,227,0.12); color: #38bdf8; font-size: 10px; font-weight: 800; line-height: 1.2; text-align: center; }
-      .student-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s; }
-      .student-row:last-child { border-bottom: 0; }
-      .student-row:hover, .settings-row:hover { background: rgba(255,255,255,0.05); }
-      .student-avatar { width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px; background: rgba(61,153,227,0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+      .student-model-list { display: flex; flex-direction: column; gap: 5px; max-height: 580px; overflow-y: auto; padding: 8px; }
+      .student-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); transition: all 0.15s; }
+      .student-row:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+      .student-avatar { width: 26px; height: 26px; flex-shrink: 0; border-radius: 6px; background: rgba(61,153,227,0.12); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 1px solid rgba(61,153,227,0.2); }
       .student-info { flex: 1; min-width: 0; }
       .student-name { color: #f1f5f9; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .student-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; color: #94a3b8; font-size: 9px; }
-      .student-nim { font-family: monospace; color: #3d99e3; }
-      .student-rank { min-width: 20px; color: #64748b; font-size: 10px; font-weight: 700; text-align: right; }
+      .student-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 1px; color: #94a3b8; font-size: 10px; opacity: 0.6; }
+      .student-nim { font-family: monospace; color: #3d99e3; font-weight: 500; opacity: 1; }
+      .student-rank { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; background: rgba(255,255,255,0.04); color: #94a3b8; font-size: 9px; font-weight: 700; flex-shrink: 0; text-align: center; }
       .settings-profile { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-color: rgba(240,135,45,0.18); background: rgba(240,135,45,0.06); }
       .settings-avatar { width: 38px; height: 38px; flex-shrink: 0; border-radius: 8px; background: linear-gradient(135deg, #f0872d, #ffb36b); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 900; }
       .settings-profile-info { min-width: 0; }
@@ -698,6 +711,33 @@
       link.href =
         "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
       document.head.appendChild(link);
+    },
+    parseMinutesToMs(val) {
+      if (!val) return 0;
+      const numStr = String(val).trim();
+      const num = parseFloat(numStr);
+      if (isNaN(num) || num <= 0) return 0;
+
+      if (numStr.includes(".")) {
+        const parts = numStr.split(".");
+        const mins = parseInt(parts[0], 10) || 0;
+        const secsStr = parts[1].padEnd(2, "0").slice(0, 2);
+        const secs = parseInt(secsStr, 10) || 0;
+        return (mins * 60 + secs) * 1000;
+      } else {
+        return Math.round(num * 60 * 1000);
+      }
+    },
+    async countdownDelay(ms, onTick) {
+      let remaining = Math.ceil(ms / 1000);
+      while (remaining > 0) {
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        const formatted = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        if (onTick) onTick(formatted, remaining);
+        await new Promise((r) => setTimeout(r, 1000));
+        remaining--;
+      }
     },
     applyTheme() {
       const container = document.getElementById("token-runner-popup");
@@ -1500,10 +1540,21 @@ ${questionText}`;
               await ApiService.submitQuizAnswer(payload);
             }
 
+            const quizDelaySetting =
+              Utils.get(Config.STORAGE_KEYS.QUIZ_DELAY) || "0";
+            const delayMs = Utils.parseMinutesToMs(quizDelaySetting);
+            if (delayMs > 0) {
+              await Utils.countdownDelay(delayMs, (formattedTime) => {
+                Utils.progressToast(
+                  `Menunggu ${formattedTime} sebelum menyelesaikan quiz...`,
+                );
+              });
+            }
+
             Utils.progressToast("Sedang menyelesaikan quiz...");
             await ApiService.endQuiz(quizId);
             Utils.closeProgressToast();
-            Utils.successToast("Jawaban quiz berhasil diisi AI");
+            Utils.successToast("Jawaban quiz berhasil diisi AI & diselesaikan");
             setTimeout(() => App.refreshData(true), 700);
           } catch (error) {
             console.error("[Mentari] Gagal mengisi quiz dengan AI", {
@@ -1539,9 +1590,18 @@ ${questionText}`;
               return;
             }
 
-            const endInSecond = quiz.end_in_second ?? "-";
+            const endInSecond = quiz.end_in_second ?? null;
             const grade = quiz.grade ?? "-";
-            statusEl.innerHTML = `<span class="ms" style="font-size:12px;">timer</span> ${endInSecond}s <span style="margin-left:4px;">Nilai: ${grade}</span>`;
+            const timeDisplay =
+              endInSecond !== null
+                ? (() => {
+                    const totalSec = Number(endInSecond);
+                    const m = Math.floor(totalSec / 60);
+                    const s = totalSec % 60;
+                    return s > 0 ? `${m}m ${s}s` : `${m} menit`;
+                  })()
+                : "-";
+            statusEl.innerHTML = `<span class="ms" style="font-size:12px;">timer</span> ${timeDisplay} <span style="margin-left:4px;">Nilai: ${grade}</span>`;
           } catch (error) {
             statusEl.textContent = "Status tidak tersedia";
           }
@@ -1992,8 +2052,8 @@ ${questionText}`;
               <div class="student-name">${p.nama_mahasiswa}</div>
               <div class="student-meta">
                 <span class="student-nim">${p.nim}</span>
-                ${email ? `<span style="font-size:9px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;" title="${email}">${email}</span>` : ""}
-                ${hp ? `<span style="font-size:9px; color:#64748b;">${hp}</span>` : ""}
+                ${email ? `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;" title="${email}">${email}</span>` : ""}
+                ${hp ? `<span>${hp}</span>` : ""}
               </div>
             </div>
             <span class="student-rank">${i + 1}</span>
@@ -2009,7 +2069,7 @@ ${questionText}`;
             <span class="ms" style="font-size:14px;">content_copy</span> Salin
           </button>
           </div>
-          <div style="max-height:580px; overflow-y:auto;">${rows}</div>
+          <div class="student-model-list">${rows}</div>
         </div>`;
 
       document.getElementById("copy-mhs").onclick = (e) => {
@@ -2046,22 +2106,21 @@ ${questionText}`;
         </div>
 
         <div class="settings-section">
-          <div class="settings-section-header"><span class="settings-section-title"><span class="ms">tune</span> Fitur</span></div>
-            <div class="settings-row">
-              <div class="settings-row-main">
-                <div class="settings-row-title"><span class="ms">auto_awesome</span> Gemini AI Chatbot</div>
-                <div class="settings-row-desc">Aktifkan asisten AI pada forum</div>
+          <div class="settings-section-header"><span class="settings-section-title"><span class="ms">timer</span> Auto Finish Quiz</span></div>
+          <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px; padding:12px;">
+            <div class="settings-row-main" style="width:100%;">
+              <div class="settings-row-title"><span class="ms">hourglass_top</span> Waktu Penyelesaian Quiz (Menit)</div>
+              <div class="settings-row-desc" style="margin-left:0; margin-top:4px; line-height:1.4;">
+                Durasi Pengerjaan Quiz, Contoh: <strong>3.21</strong> (3 mnt 21 dtk), atau <strong>0</strong> untuk langsung selesai.
               </div>
-              <label class="switch"><input type="checkbox" id="set-gemini" ${Utils.get(Config.STORAGE_KEYS.GEMINI_ENABLED) ? "checked" : ""}><span class="slider"></span></label>
             </div>
-            <div class="settings-row">
-              <div class="settings-row-main">
-                <div class="settings-row-title"><span class="ms">quiz</span> Auto Finish Quiz</div>
-                <div class="settings-row-desc">Selesaikan kuis secara otomatis</div>
-              </div>
-              <label class="switch"><input type="checkbox" id="set-quiz" ${Utils.get(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ) ? "checked" : ""}><span class="slider"></span></label>
+            <div style="display:flex; align-items:center; gap:8px; width:100%; margin-top:4px;">
+              <input type="text" id="set-quiz-delay" placeholder="0 (Default)" value="${Utils.get(Config.STORAGE_KEYS.QUIZ_DELAY) || "0"}"
+                style="flex:1; height:32px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:0 10px; color:#f1f5f9; font-size:12px; font-family:monospace; outline:none;" />
+              <button id="save-quiz-delay" class="token-button" style="height:32px; padding:0 12px; font-size:11px; border-radius:6px; flex-shrink:0;">Simpan</button>
             </div>
           </div>
+        </div>
 
         <div class="settings-section">
           <div class="settings-section-header">
@@ -2092,23 +2151,21 @@ ${questionText}`;
         </div>
       `;
 
-      document.getElementById("set-gemini").onchange = (e) => {
-        Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, e.target.checked);
-        location.reload();
+      document.getElementById("save-quiz-delay").onclick = () => {
+        const val = document.getElementById("set-quiz-delay").value.trim();
+        Utils.save(Config.STORAGE_KEYS.QUIZ_DELAY, val);
+        Utils.toast(
+          "Waktu penundaan quiz disimpan: " + (val || "0") + " menit",
+        );
       };
-      document.getElementById("set-quiz").onchange = (e) =>
-        Utils.save(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ, e.target.checked);
 
       document.getElementById("set-api-btn").onclick = (e) => {
         e.stopPropagation();
         window.dispatchEvent(new CustomEvent("mentari-update-api-key"));
       };
-      document.getElementById("set-update-btn").onclick = async (e) => {
+      document.getElementById("set-update-btn").onclick = (e) => {
         e.stopPropagation();
-        const v = await ApiService.checkUpdate();
-        if (v && v.tag_name !== "v" + APP_VERSION)
-          Utils.toast("Update tersedia: " + v.tag_name);
-        else Utils.toast("Versi terbaru sudah terpasang.");
+        Utils.toast("Adminnya dah lulus, ga bakal update lagi!");
       };
 
       // Load model list from Gemini API
@@ -2411,20 +2468,15 @@ ${questionText}`;
   };
 
   window.toggleTokenPopup = () => {
-    const p = document.getElementById("token-runner-popup");
+    let p = document.getElementById("token-runner-popup");
     if (!p) {
+      UIRenderer.injectStyles();
       UIRenderer.createPopup();
-      return;
+      p = document.getElementById("token-runner-popup");
     }
-    if (!p.classList.contains("active")) {
-      // Close other popups for consistency
-      document
-        .getElementById("gemini-chat-container")
-        ?.classList.remove("active");
-      document
-        .getElementById("mentari-guide-container")
-        ?.classList.remove("active");
+    if (!p) return;
 
+    if (!p.classList.contains("active")) {
       UIRenderer.updatePosition();
       p.classList.add("active");
       const close = (e) => {
@@ -2440,7 +2492,9 @@ ${questionText}`;
         }
       };
       document.addEventListener("mousedown", close);
-    } else p.classList.remove("active");
+    } else {
+      p.classList.remove("active");
+    }
   };
 
   if (document.readyState === "loading")

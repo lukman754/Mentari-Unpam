@@ -164,6 +164,23 @@ Penting:
           localStorage.setItem("gemini_quota", JSON.stringify(quota));
       } catch (e) {}
     },
+
+    parseMinutesToMs(val) {
+      if (!val) return 0;
+      const numStr = String(val).trim();
+      const num = parseFloat(numStr);
+      if (isNaN(num) || num <= 0) return 0;
+
+      if (numStr.includes(".")) {
+        const parts = numStr.split(".");
+        const mins = parseInt(parts[0], 10) || 0;
+        const secsStr = parts[1].padEnd(2, "0").slice(0, 2);
+        const secs = parseInt(secsStr, 10) || 0;
+        return (mins * 60 + secs) * 1000;
+      } else {
+        return Math.round(num * 60 * 1000);
+      }
+    },
   };
 
   // ─── API SERVICE ─────────────────────────────────────────────────────────────
@@ -657,31 +674,74 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
         } catch (_) {}
       }
 
-      // Cek auto finish quiz
-      const autoFinish =
-        localStorage.getItem("mentari_auto_finish_quiz") === "true";
-      if (!autoFinish) {
-        const delay = Math.floor(Math.random() * 60000) + 120000;
-        console.log(
-          `Auto finish tidak aktif, menunggu ${Math.round(delay / 1000)}s untuk humanize...`,
-        );
-        setTimeout(() => this.clickNextButton(), delay);
-        return false;
+      // Ketika tidak ada lagi tombol next, trigger penyelesaian quiz
+      this.triggerEndQuiz();
+      return false;
+    },
+
+    isEndingQuiz: false,
+
+    async triggerEndQuiz() {
+      if (this.isEndingQuiz) return;
+      this.isEndingQuiz = true;
+
+      const quizId = Utils.getQuizId();
+      const delaySetting = localStorage.getItem("mentari_quiz_delay") || "0";
+      const delayMs = Utils.parseMinutesToMs(delaySetting);
+
+      const progressText = document.getElementById("progress-text");
+      const progressBar = document.getElementById("progress-bar");
+
+      if (delayMs > 0) {
+        if (progressBar) progressBar.style.width = "100%";
+        let remaining = Math.ceil(delayMs / 1000);
+        while (remaining > 0) {
+          const m = Math.floor(remaining / 60);
+          const s = remaining % 60;
+          const formatted = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+          if (progressText) {
+            progressText.textContent = `⏱️ Menunggu ${formatted} sebelum menyelesaikan quiz...`;
+            progressText.style.color = "#f0872d";
+          }
+          await new Promise((r) => setTimeout(r, 1000));
+          remaining--;
+        }
       }
 
-      for (const sel of Config.SELECTORS.AUTO_FINISH_QUIZ_BUTTONS) {
-        try {
-          const buttons = document.querySelectorAll(sel);
-          for (const btn of buttons) {
-            if (btn && !btn.disabled && btn.offsetParent !== null) {
-              btn.click();
-              this._watchConfirmDialog();
-              return true;
-            }
-          }
-        } catch (_) {}
+      if (progressText) {
+        progressText.textContent = "🚀 Menyelesaikan quiz...";
+        progressText.style.color = "#38bdf8";
       }
-      return false;
+
+      try {
+        const token = Utils.getToken();
+        const res = await fetch(`${Config.API.BASE_URL}/quiz/end`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_trx_course_sub_section: quizId,
+          }),
+        });
+
+        if (res.ok) {
+          if (progressText) {
+            progressText.textContent =
+              "🎉 Quiz Berhasil Diselesaikan!";
+            progressText.style.color = "#4CAF50";
+          }
+          setTimeout(() => location.reload(), 2000);
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (err) {
+        if (progressText) {
+          progressText.textContent = `❌ Gagal menyelesaikan quiz: ${err.message}`;
+          progressText.style.color = "#f44336";
+        }
+      }
     },
 
     _watchConfirmDialog() {
@@ -714,7 +774,10 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
         noNextCount = 0;
 
       const processNext = () => {
-        if (i >= questions.length) return;
+        if (i >= questions.length) {
+          this.triggerEndQuiz();
+          return;
+        }
         const q = questions[i];
         const selected = this.selectRadioAnswer(q.index, q.answer);
         if (selected) {
@@ -727,8 +790,7 @@ Berikan penjelasan ringkas per soal sebelum rekap.`;
               } else {
                 noNextCount++;
                 if (noNextCount >= 2) {
-                  for (let j = 0; j < 3; j++)
-                    setTimeout(() => this.clickNextButton(), j * 50);
+                  this.triggerEndQuiz();
                 } else setTimeout(processNext, 100);
               }
             }, 100);

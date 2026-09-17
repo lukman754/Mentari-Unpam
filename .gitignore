@@ -1,6 +1,3 @@
-# --- SOURCE CODE & CONFIG (DIIZINKAN KARENA REPO PRIVATE) ---
-node_modules/
-
 # --- IDE & SYSTEM ---
 .gemini/
 .vscode/
@@ -8,7 +5,4 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
-
-# --- DISTRIBUTION ---
-# Folder dist juga tetap diikutkan
-dist/
+*.zip

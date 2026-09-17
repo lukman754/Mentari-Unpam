@@ -177,7 +177,7 @@ const intervalId = setInterval(() => {
   // Ganti Konten "Selamat Datang" & "Panduan" dengan Info Mentari Mod
   const welcomeText = document.querySelector(".MuiTypography-h4");
   if (welcomeText && welcomeText.innerText.includes("Selamat Datang")) {
-    welcomeText.innerHTML = "Mentari Mod v2.0 <span style='font-size:14px; font-weight:500; display:block; margin-top:5px; color:#d4af37;'>The Ultimate Learning Assistant</span>";
+    welcomeText.innerHTML = "Mentari Mod v2.0 Sunset <span style='font-size:14px; font-weight:500; display:block; margin-top:5px; color:#d4af37;'>The Ultimate Learning Assistant</span>";
   }
 
   const welcomeSub = document.querySelector(".MuiTypography-subtitle1");
@@ -233,7 +233,7 @@ const intervalId = setInterval(() => {
       <div style="font-size:11px; color:#4a4d51; display:flex; flex-direction:column; gap:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="opacity:0.6; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Project</span>
-          <span style="color:#1a1c1e; font-weight:800;">Mentari Mod v2.0</span>
+          <span style="color:#1a1c1e; font-weight:800;">Mentari Mod v2.0 Sunset</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="opacity:0.6; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Author</span>

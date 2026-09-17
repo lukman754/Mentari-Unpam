@@ -172,12 +172,7 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     observer.observe(document.body, { childList: true, subtree: true });
 
     function injectDummyCourseCard() {
-      if (
-        localStorage.getItem("mentari_developer_changelog_dismissed") ===
-          "true" ||
-        document.getElementById("mentari-developer-changelog")
-      )
-        return;
+      if (document.getElementById("mentari-developer-changelog")) return;
 
       const headings = Array.from(
         document.querySelectorAll("h6, h5, h4, h3, h2, h1"),
@@ -194,61 +189,12 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
           changelog.style.cssText =
             "width:100%; margin:10px; box-sizing:border-box;";
           changelog.innerHTML = `
-            <div style="width:100%; box-sizing:border-box; overflow:hidden; border:1px solid rgba(240,135,45,0.28); border-radius:14px; background:linear-gradient(118deg, rgba(240,135,45,0.16), rgba(240,135,45,0.04) 42%, rgba(255,255,255,0.025)); color:inherit; box-shadow:0 10px 28px rgba(0,0,0,0.12);">
-              <div style="height:3px;"></div>
-              <div style="padding:16px 18px 14px;">
-                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:14px;">
-                  <div style="display:flex; align-items:center; gap:11px; min-width:0;">
-                    <div style="width:38px; height:38px; flex:0 0 38px; display:flex; align-items:center; justify-content:center; border-radius:11px; background:#f0872d; color:#fff; box-shadow:0 5px 14px rgba(240,135,45,0.28);">
-                      <span class="ms" style="font-size:21px;">campaign</span>
-                    </div>
-                    <div style="min-width:0;">
-                      <div style="font-size:14px; font-weight:750; letter-spacing:0.01em;">Pesan Developer</div>
-                      <div style="font-size:10px; opacity:0.58; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Catatan pembaruan Mentari Mod</div>
-                    </div>
-                  </div>
-                  <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                    <span style="padding:5px 8px; border:1px solid rgba(240,135,45,0.3); border-radius:6px; color:#f0872d; font-size:9px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">Update</span>
-                    <button type="button" class="mentari-changelog-close" title="Tutup pesan" aria-label="Tutup pesan" style="width:26px; height:26px; display:flex; align-items:center; justify-content:center; padding:0; border:0; border-radius:7px; background:rgba(255,255,255,0.06); color:inherit; opacity:0.65; cursor:pointer;">
-                      <span class="ms" style="font-size:17px;">close</span>
-                    </button>
-                  </div>
-                </div>
-                <div style="margin-top:15px; padding:11px 12px; border-left:2px solid #f0872d; border-radius:0 7px 7px 0; background:rgba(0,0,0,0.12); font-size:11px; line-height:1.6; opacity:0.82;">
-                  Beberapa fitur sedang dalam tahap pengembangan dan pengujian. Terima kasih sudah mencoba Mentari Mod.
-                </div>
-              </div>
-              <div style="border-top:1px solid rgba(255,255,255,0.08); padding:12px 18px 14px;">
-                <div style="display:flex; align-items:center; gap:6px; margin-bottom:9px; font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; opacity:0.5;"><span class="ms" style="font-size:14px;">history</span> Changelog</div>
-                <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px;">
-                  <div style="min-width:0; padding:10px; border:1px solid rgba(240,135,45,0.2); border-radius:8px; background:rgba(240,135,45,0.08);">
-                    <span class="ms" style="font-size:17px; color:#f0872d;">auto_awesome</span>
-                    <div style="margin-top:6px; font-size:11px; font-weight:700;">AI Quiz</div>
-                    <div style="margin-top:3px; font-size:9px; line-height:1.4; opacity:0.55;">Pengisian quiz dengan bantuan AI</div>
-                  </div>
-                  <div style="min-width:0; padding:10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(255,255,255,0.035);">
-                    <span class="ms" style="font-size:17px; opacity:0.7;">bolt</span>
-                    <div style="margin-top:6px; font-size:11px; font-weight:700;">Auto Finish</div>
-                    <div style="margin-top:3px; font-size:9px; line-height:1.4; opacity:0.55;">Alur penyelesaian quiz lebih praktis</div>
-                  </div>
-                  <div style="min-width:0; padding:10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(255,255,255,0.035);">
-                    <span class="ms" style="font-size:17px; opacity:0.7;">build</span>
-                    <div style="margin-top:6px; font-size:11px; font-weight:700;">Perbaikan</div>
-                    <div style="margin-top:3px; font-size:9px; line-height:1.4; opacity:0.55;">Penyempurnaan tampilan dan stabilitas</div>
-                  </div>
-                </div>
-              </div>
+            <div style="width:100%; box-sizing:border-box; overflow:hidden; border-radius:16px; border:1px solid rgba(240,135,45,0.28); box-shadow:0 10px 28px rgba(0,0,0,0.12);">
+              <iframe src="${chrome.runtime.getURL("pet.html")}" style="width:100%; height:360px; border:none; display:block; overflow:hidden;" title="Mentari Fox Playground"></iframe>
             </div>
           `;
           courseContainer.parentNode.insertBefore(changelog, courseContainer);
-          changelog.querySelector(".mentari-changelog-close").onclick = () => {
-            localStorage.setItem(
-              "mentari_developer_changelog_dismissed",
-              "true",
-            );
-            changelog.remove();
-          };
-          console.log("Mentari developer changelog injected.");
+          console.log("Mentari Fox Playground injected.");
         }
       }
     }
@@ -275,15 +221,10 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
         let tokenScript = document.createElement("script");
         tokenScript.src = chrome.runtime.getURL("src/content/token.js");
         tokenScript.onload = function () {
-          let guideScript = document.createElement("script");
-          guideScript.src = chrome.runtime.getURL("src/content/guidebook.js");
-          guideScript.onload = function () {
-            scriptsLoaded = true;
-            isLoading = false;
-            loadQueue.forEach((cb) => cb());
-            loadQueue = [];
-          };
-          document.body.appendChild(guideScript);
+          scriptsLoaded = true;
+          isLoading = false;
+          loadQueue.forEach((cb) => cb());
+          loadQueue = [];
         };
         document.body.appendChild(tokenScript);
       };
