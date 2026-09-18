@@ -623,6 +623,41 @@
         return null;
       }
     },
+    remove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {}
+    },
+    findTokenFromStorage() {
+      try {
+        const direct =
+          localStorage.getItem("access") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("mentari_auth_token");
+        if (direct) {
+          const cleaned = direct
+            .replace(/^"|"$/g, "")
+            .replace(/^Bearer\s+/i, "");
+          if (this.decodeToken(cleaned)) return cleaned;
+        }
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          const v = localStorage.getItem(k);
+          if (
+            v &&
+            (k.toLowerCase().includes("token") ||
+              k.toLowerCase().includes("access") ||
+              v.startsWith("eyJ"))
+          ) {
+            const cleaned = v
+              .replace(/^"|"$/g, "")
+              .replace(/^Bearer\s+/i, "");
+            if (this.decodeToken(cleaned)) return cleaned;
+          }
+        }
+      } catch (e) {}
+      return null;
+    },
     decodeToken(token) {
       try {
         if (!token) return null;
@@ -2297,7 +2332,9 @@ ${questionText}`;
       UIRenderer.injectStyles();
       UIRenderer.createPopup();
       this.intercept();
-      const t = Utils.get(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const t =
+        Utils.get(Config.STORAGE_KEYS.AUTH_TOKEN) ||
+        Utils.findTokenFromStorage();
       if (t) this.handleToken(t);
       else this.render();
       window.addEventListener("mentari-toggle-popup", () =>
@@ -2347,12 +2384,20 @@ ${questionText}`;
       if (token.startsWith("Bearer ")) token = token.substring(7);
       const info = Utils.decodeToken(token);
       if (!info || State.authToken === token) return;
+      const isNewUser =
+        !State.userInfo ||
+        State.userInfo.username !== info.username ||
+        State.userInfo.userId !== info.userId;
       State.authToken = token;
       State.userInfo = info;
       Utils.save(Config.STORAGE_KEYS.AUTH_TOKEN, token);
       Utils.save(Config.STORAGE_KEYS.USER_INFO, info);
+      if (isNewUser) {
+        Utils.remove(Config.STORAGE_KEYS.COURSE_DATA);
+        State.courseDataList = [];
+      }
       Renderers.settings(info);
-      this.refreshData();
+      this.refreshData(isNewUser);
     },
     async refreshData(force = false) {
       if (State.isFetching || !State.authToken) return;
@@ -2491,13 +2536,20 @@ ${questionText}`;
           document.removeEventListener("mousedown", close);
         }
       };
-      document.addEventListener("mousedown", close);
+      setTimeout(() => {
+        document.addEventListener("mousedown", close);
+      }, 50);
     } else {
       p.classList.remove("active");
     }
   };
 
   window.addEventListener("mentari-toggle-popup", () => {
+    if (typeof window.toggleTokenPopup === "function") {
+      window.toggleTokenPopup();
+    }
+  });
+  document.addEventListener("mentari-toggle-popup", () => {
     if (typeof window.toggleTokenPopup === "function") {
       window.toggleTokenPopup();
     }

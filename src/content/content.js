@@ -195,9 +195,17 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
           changelog.id = "mentari-developer-changelog";
           changelog.style.cssText =
             "width:100%; margin:10px 0; box-sizing:border-box;";
+          let petUrl = "pet.html";
+          try {
+            if (typeof chrome !== "undefined" && chrome.runtime && typeof chrome.runtime.getURL === "function") {
+              petUrl = chrome.runtime.getURL("pet.html");
+            }
+          } catch (_) {
+            // Extension context invalidated, fallback ke path relatif
+          }
           changelog.innerHTML = `
             <div style="width:100%; box-sizing:border-box; overflow:hidden; border-radius:16px; border:1px solid rgba(240,135,45,0.28); box-shadow:0 10px 28px rgba(0,0,0,0.12);">
-              <iframe src="${chrome.runtime.getURL("pet.html")}" style="width:100%; height:360px; border:none; display:block; overflow:hidden;" title="Mentari Fox Playground"></iframe>
+              <iframe src="${petUrl}" style="width:100%; height:360px; border:none; display:block; overflow:hidden;" title="Mentari Fox Playground"></iframe>
             </div>
           `;
           courseContainer.parentNode.insertBefore(changelog, courseContainer);
@@ -214,6 +222,7 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
         window.toggleTokenPopup();
       } else {
         window.dispatchEvent(new CustomEvent("mentari-toggle-popup"));
+        document.dispatchEvent(new CustomEvent("mentari-toggle-popup"));
       }
     }
   })();

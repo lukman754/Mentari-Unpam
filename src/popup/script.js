@@ -3,11 +3,12 @@ document.getElementById("runToken").addEventListener("click", async () => {
 
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    function: () => {
-      if (window.runToken) {
-        window.runToken();
+    world: "MAIN",
+    func: () => {
+      if (typeof window.toggleTokenPopup === "function") {
+        window.toggleTokenPopup();
       } else {
-        alert("Ekstensi tidak dapat dijalankan di halaman ini!");
+        window.dispatchEvent(new CustomEvent("mentari-toggle-popup"));
       }
     },
   });
