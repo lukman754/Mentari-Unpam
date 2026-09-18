@@ -169,8 +169,10 @@ class Pet {
   }
 
   chooseTarget() {
-    const margin = 80;
-    this.targetX = margin + Math.random() * (window.innerWidth - margin * 2);
+    const margin = 10;
+    const minX = margin;
+    const maxX = Math.max(minX, window.innerWidth - this.width - margin);
+    this.targetX = minX + Math.random() * (maxX - minX);
     this.direction = this.targetX > this.x ? 1 : -1;
   }
 
@@ -209,8 +211,8 @@ class Pet {
     }
     this.direction = distance > 0 ? 1 : -1;
     this.x += this.direction * this.speed;
-    const min = 30,
-      max = window.innerWidth - this.width;
+    const min = 10,
+      max = Math.max(min, window.innerWidth - this.width - 10);
     if (this.x < min) {
       this.x = min;
       this.direction = 1;
@@ -330,7 +332,10 @@ function handleFoxClick(fox) {
   /* 30% kemungkinan langsung kabur */
   if (Math.random() < 0.3) {
     fox.setState("run");
-    fox.targetX = Math.random() > 0.5 ? window.innerWidth - 80 : 80;
+    fox.targetX =
+      Math.random() > 0.5
+        ? Math.max(10, window.innerWidth - fox.width - 10)
+        : 10;
     fox.direction = fox.targetX > fox.x ? 1 : -1;
     fox.lockedUntil = performance.now() + 1800;
 
@@ -564,9 +569,9 @@ document.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("resize", () => {
-  orange.x = Math.min(orange.x, window.innerWidth - 110);
-  white.x = Math.min(white.x, window.innerWidth - 110);
-  chicken.x = Math.min(chicken.x, window.innerWidth - 65);
+  orange.x = Math.min(orange.x, window.innerWidth - orange.width - 10);
+  white.x = Math.min(white.x, window.innerWidth - white.width - 10);
+  chicken.x = Math.min(chicken.x, window.innerWidth - chicken.width - 10);
 });
 
 function loop(time) {

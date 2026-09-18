@@ -1405,7 +1405,6 @@ ${questionText}`;
                 <span class="item-status ${statusClass}"><span class="ms" style="font-size:10px;">${i.completion ? "check_circle" : "schedule"}</span> ${statusText}</span>
                 ${i.setting_quiz?.duration ? `<span style="opacity:0.7;"><span class="ms">hourglass_top</span> ${i.setting_quiz.duration} min</span>` : ""}
                 ${isQuiz ? `<span class="quiz-participant-status" data-quiz-id="${i.id}" style="opacity:0.7;">Memuat hasil...</span>` : ""}
-                ${isForum ? `<span class="forum-reply-count" data-forum-id="${i.id}" style="opacity:0.7;"><span class="ms" style="font-size:12px;">reply</span> Reply Kamu: -</span>` : ""}
               </div>
             </div>
             <div style="display:flex; gap:6px; flex-shrink:0;">
@@ -1439,7 +1438,15 @@ ${questionText}`;
             </div>`
               : ""
           }
-          ${isForum && i.id ? `<div class="topics-container" data-forum-id="${i.id}" data-course-code="${c.kode_course}" style="padding:0 8px 8px;"></div>` : ""}
+          ${
+            isForum && i.id
+              ? `
+            <div style="display:flex; justify-content:flex-end; padding:4px 10px 0 10px;">
+              <span class="forum-reply-count" data-forum-id="${i.id}" style="font-size:11px; opacity:0.8; font-weight:600; color:#f0872d; display:inline-flex; align-items:center; gap:3px;"><span class="ms" style="font-size:12px;">reply</span> Reply Kamu: -</span>
+            </div>
+            <div class="topics-container" data-forum-id="${i.id}" data-course-code="${c.kode_course}" style="padding:0 8px 8px;"></div>`
+              : ""
+          }
         </div>
       `;
     },
