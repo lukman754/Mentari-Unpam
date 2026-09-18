@@ -628,31 +628,56 @@
         localStorage.removeItem(key);
       } catch (e) {}
     },
-    findTokenFromStorage() {
+    extractJwt(raw) {
+      if (!raw) return null;
       try {
-        const direct =
-          localStorage.getItem("access") ||
-          localStorage.getItem("token") ||
-          localStorage.getItem("mentari_auth_token");
-        if (direct) {
-          const cleaned = direct
-            .replace(/^"|"$/g, "")
-            .replace(/^Bearer\s+/i, "");
+        const parsed = JSON.parse(raw);
+        // Format: [{role, token}, ...] — format Mentari
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            if (item && item.token && this.decodeToken(item.token)) return item.token;
+          }
+        }
+        // Format: {token: "eyJ..."} atau {access: "eyJ..."}
+        if (typeof parsed === "object" && parsed !== null) {
+          const val = parsed.token || parsed.access || parsed.jwt;
+          if (val && this.decodeToken(val)) return val;
+        }
+        // Format: plain string yang di-stringify
+        if (typeof parsed === "string") {
+          const cleaned = parsed.replace(/^Bearer\s+/i, "");
           if (this.decodeToken(cleaned)) return cleaned;
         }
+      } catch (_) {
+        // Bukan JSON, coba langsung sebagai plain JWT
+        const cleaned = raw.replace(/^"|"$/g, "").replace(/^Bearer\s+/i, "");
+        if (this.decodeToken(cleaned)) return cleaned;
+      }
+      return null;
+    },
+    findTokenFromStorage() {
+      try {
+        // Coba key utama Mentari lebih dulu
+        for (const key of ["access", "token"]) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const jwt = this.extractJwt(raw);
+            if (jwt) return jwt;
+          }
+        }
+        // Scan semua key, skip key milik Mentari mod agar tidak pakai cache lama
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
+          if (!k || k.startsWith("mentari_")) continue;
           const v = localStorage.getItem(k);
           if (
             v &&
             (k.toLowerCase().includes("token") ||
               k.toLowerCase().includes("access") ||
-              v.startsWith("eyJ"))
+              v.includes("eyJ"))
           ) {
-            const cleaned = v
-              .replace(/^"|"$/g, "")
-              .replace(/^Bearer\s+/i, "");
-            if (this.decodeToken(cleaned)) return cleaned;
+            const jwt = this.extractJwt(v);
+            if (jwt) return jwt;
           }
         }
       } catch (e) {}
@@ -2332,9 +2357,28 @@ ${questionText}`;
       UIRenderer.injectStyles();
       UIRenderer.createPopup();
       this.intercept();
-      const t =
-        Utils.get(Config.STORAGE_KEYS.AUTH_TOKEN) ||
-        Utils.findTokenFromStorage();
+
+      // Cek apakah token tersimpan masih sesuai dengan sesi aktif Mentari
+      const savedToken = Utils.get(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const liveToken = Utils.findTokenFromStorage(); // baca dari localStorage["access"] dll
+
+      // Jika ada token aktif dari Mentari, decode untuk perbandingan
+      const savedInfo = savedToken ? Utils.decodeToken(savedToken) : null;
+      const liveInfo = liveToken ? Utils.decodeToken(liveToken) : null;
+
+      // Jika user yang aktif berbeda → hapus cache akun lama
+      if (
+        savedInfo &&
+        liveInfo &&
+        (savedInfo.userId !== liveInfo.userId ||
+          savedInfo.username !== liveInfo.username)
+      ) {
+        Utils.remove(Config.STORAGE_KEYS.AUTH_TOKEN);
+        Utils.remove(Config.STORAGE_KEYS.USER_INFO);
+        Utils.remove(Config.STORAGE_KEYS.COURSE_DATA);
+      }
+
+      const t = liveToken || savedToken;
       if (t) this.handleToken(t);
       else this.render();
       window.addEventListener("mentari-toggle-popup", () =>
