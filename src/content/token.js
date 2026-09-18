@@ -2497,6 +2497,12 @@ ${questionText}`;
     }
   };
 
+  window.addEventListener("mentari-toggle-popup", () => {
+    if (typeof window.toggleTokenPopup === "function") {
+      window.toggleTokenPopup();
+    }
+  });
+
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", () => App.init());
   else App.init();
