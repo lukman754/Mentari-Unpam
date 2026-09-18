@@ -242,19 +242,49 @@
       }
       #token-runner-popup.light-theme select,
       #token-runner-popup.light-theme input[type="text"] {
-        background: #ffffff;
-        color: #17202a;
-        border-color: #94a3b8;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #64748b !important;
+      }
+      #token-runner-popup.light-theme #set-quiz-delay {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #64748b !important;
+        font-weight: 600;
+      }
+      #token-runner-popup.light-theme input[type="text"]::placeholder,
+      #token-runner-popup.light-theme #set-quiz-delay::placeholder {
+        color: #64748b;
       }
       #token-runner-popup.light-theme .token-button.btn-outline {
-        background: #ffffff;
-        border-color: #94a3b8;
+        background: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        color: #1e293b !important;
       }
       #token-runner-popup.light-theme .token-button.btn-outline:hover {
-        background: #e2e8f0;
+        background: #f1f5f9 !important;
       }
       #token-runner-popup.light-theme .settings-footer {
         color: #64748b;
+      }
+      #token-runner-popup.light-theme .mentari-model-item {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        color: #1e293b;
+      }
+      #token-runner-popup.light-theme .mentari-model-item:hover {
+        background: #f1f5f9;
+      }
+      #token-runner-popup.light-theme .mentari-model-item.is-active {
+        background: #e0f2fe;
+        border-color: #0284c7;
+        color: #0284c7;
+      }
+      #token-runner-popup.light-theme .mentari-model-item .model-id-sub {
+        color: #475569;
+      }
+      #token-runner-popup.light-theme #set-model-status {
+        color: #475569;
       }
       #token-runner-popup.light-theme .topic-badge {
         background: #e0f2fe;
@@ -431,7 +461,9 @@
       .settings-disclaimer { padding: 8px 10px; margin-bottom: 12px; border-left: 2px solid rgba(240,135,45,0.45); border-radius: 4px; background: rgba(240,135,45,0.05); }
       .settings-status-badge { display: inline-flex; align-items: center; padding: 2px 6px; border: 1px solid rgba(74,222,128,0.2); border-radius: 5px; background: rgba(74,222,128,0.12); color: #4ade80; font-size: 9px; font-weight: 700; line-height: 1.2; }
       .settings-status-badge.is-error { border-color: rgba(251,146,60,0.2); background: rgba(251,146,60,0.12); color: #fb923c; }
-      .mentari-model-item { border-radius: 8px; }
+      .mentari-model-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); transition: all 0.15s; }
+      .mentari-model-item:hover { background: rgba(255,255,255,0.06); }
+      .mentari-model-item.is-active { border-color: rgba(61,153,227,0.5); background: rgba(61,153,227,0.08); }
       .mentari-model-item .model-state-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: rgba(255,255,255,0.2); }
       .mentari-model-item.is-active .model-state-dot { background: #3d99e3; box-shadow: 0 0 6px rgba(61,153,227,0.7); }
       .mentari-model-item.is-limited .model-state-dot { background: #fb923c; }
@@ -2164,10 +2196,10 @@ ${questionText}`;
         </div>
 
         <div class="settings-quick-links">
-          <a href="https://aistudio.google.com/app/api-keys" target="_blank" class="token-button btn-outline" style="height:32px; background:rgba(255,255,255,0.03); font-size:11px; gap:5px; border-radius:7px; box-shadow:none; text-decoration:none;">
+          <a href="https://aistudio.google.com/app/api-keys" target="_blank" class="token-button btn-outline" style="height:32px; font-size:11px; gap:5px; border-radius:7px; box-shadow:none; text-decoration:none;">
             <span class="ms" style="font-size:16px; color:#f0872d;">vpn_key</span> Ambil API Key
           </a>
-          <a href="https://aistudio.google.com/app/rate-limit" target="_blank" class="token-button btn-outline" style="height:32px; background:rgba(255,255,255,0.03); font-size:11px; gap:5px; border-radius:7px; box-shadow:none; text-decoration:none;">
+          <a href="https://aistudio.google.com/app/rate-limit" target="_blank" class="token-button btn-outline" style="height:32px; font-size:11px; gap:5px; border-radius:7px; box-shadow:none; text-decoration:none;">
             <span class="ms" style="font-size:16px; color:#f0872d;">speed</span> Rate Limit
           </a>
         </div>
@@ -2183,7 +2215,7 @@ ${questionText}`;
             </div>
             <div style="display:flex; align-items:center; gap:8px; width:100%; margin-top:4px;">
               <input type="text" id="set-quiz-delay" placeholder="0 (Default)" value="${Utils.get(Config.STORAGE_KEYS.QUIZ_DELAY) || "0"}"
-                style="flex:1; height:32px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:0 10px; color:#f1f5f9; font-size:12px; font-family:monospace; outline:none;" />
+                style="flex:1; height:32px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.3); border-radius:6px; padding:0 10px; color:#ffffff; font-weight:600; font-size:12px; font-family:monospace; outline:none;" />
               <button id="save-quiz-delay" class="token-button" style="height:32px; padding:0 12px; font-size:11px; border-radius:6px; flex-shrink:0;">Simpan</button>
             </div>
           </div>
@@ -2313,20 +2345,15 @@ ${questionText}`;
           const isLimited = modelStats.limited === true;
 
           return `
-          <div class="mentari-model-item ${isActive ? "is-active" : ""} ${isLimited ? "is-limited" : ""}" data-model="${modelId}"
-            style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer;
-                   border:1px solid ${isActive ? "rgba(61,153,227,0.5)" : "rgba(255,255,255,0.06)"};
-                   background:${isActive ? "rgba(61,153,227,0.08)" : "rgba(255,255,255,0.02)"};
-                   transition:all 0.15s;">
+          <div class="mentari-model-item ${isActive ? "is-active" : ""} ${isLimited ? "is-limited" : ""}" data-model="${modelId}">
             <div class="model-state-dot"></div>
             <div style="flex:1; min-width:0;">
-              <div style="font-size:12px; font-weight:${isActive ? "700" : "500"};
-                          color:${isActive ? "#3d99e3" : "inherit"};
+              <div class="model-title" style="font-size:12px; font-weight:${isActive ? "700" : "500"};
                           white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${m.displayName}
                 ${isLimited ? "<span class='model-limit-badge'>LIMIT</span>" : ""}
               </div>
-              <div style="font-size:10px; opacity:0.4; margin-top:1px;">models/${modelId}</div>
+              <div class="model-id-sub" style="font-size:10px; opacity:0.55; margin-top:1px;">models/${modelId}</div>
             </div>
             ${isActive ? `<span class="ms" style="color:#3d99e3; font-size:16px; flex-shrink:0;">check_circle</span>` : ""}
           </div>
@@ -2336,14 +2363,6 @@ ${questionText}`;
 
       // Click to select model
       listEl.querySelectorAll(".mentari-model-item").forEach((item) => {
-        item.addEventListener("mouseenter", () => {
-          if (item.dataset.model !== currentModel)
-            item.style.background = "rgba(255,255,255,0.05)";
-        });
-        item.addEventListener("mouseleave", () => {
-          if (item.dataset.model !== currentModel)
-            item.style.background = "rgba(255,255,255,0.02)";
-        });
         item.onclick = () => {
           const val = item.dataset.model;
           Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
