@@ -21,6 +21,29 @@ const ASSETS = {
   },
 };
 
+const CHICKEN_BASE =
+  "https://raw.githubusercontent.com/tonybaloney/vscode-pets/main/media/chicken/";
+const CHICKEN_ASSETS = {
+  brown: {
+    idle: CHICKEN_BASE + "brown_idle_8fps.gif",
+    walk: CHICKEN_BASE + "brown_walk_8fps.gif",
+    walkFast: CHICKEN_BASE + "brown_walk_fast_8fps.gif",
+    run: CHICKEN_BASE + "brown_run_8fps.gif",
+    lie: CHICKEN_BASE + "brown_idle_8fps.gif",
+    swipe: CHICKEN_BASE + "brown_swipe_8fps.gif",
+    ball: CHICKEN_BASE + "brown_with_ball_8fps.gif",
+  },
+  white: {
+    idle: CHICKEN_BASE + "white_idle_8fps.gif",
+    walk: CHICKEN_BASE + "white_walk_8fps.gif",
+    walkFast: CHICKEN_BASE + "white_walk_fast_8fps.gif",
+    run: CHICKEN_BASE + "white_run_8fps.gif",
+    lie: CHICKEN_BASE + "white_idle_8fps.gif",
+    swipe: CHICKEN_BASE + "white_swipe_8fps.gif",
+    ball: CHICKEN_BASE + "white_with_ball_8fps.gif",
+  },
+};
+
 const world = document.getElementById("world");
 const status = document.getElementById("status");
 const reaction = document.getElementById("reaction");
@@ -50,23 +73,56 @@ function createStars() {
 }
 createStars();
 
-class Fox {
-  constructor({ name, el, img, shadow, assets, x, direction }) {
+function createGrassBlades() {
+  const container = document.getElementById("grassBlades");
+  if (!container) return;
+  const sizes = ["short", "mid", "tall"];
+  const count = 90;
+  for (let i = 0; i < count; i++) {
+    const blade = document.createElement("div");
+    blade.className = "blade " + randomItem(sizes);
+    // Sebarkan merata, dengan sedikit kluster di sekitar batu
+    blade.style.left =
+      ((i / count) * 100 + (Math.random() - 0.5) * 3).toFixed(2) + "%";
+    blade.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
+    container.appendChild(blade);
+  }
+}
+createGrassBlades();
+
+class Pet {
+  constructor({
+    name,
+    el,
+    img,
+    shadow,
+    reactionEl,
+    assets,
+    x,
+    direction,
+    shadowOffset = 55,
+    width = 110,
+    isChicken = false,
+  }) {
     this.name = name;
     this.el = el;
     this.img = img;
     this.shadow = shadow;
+    this.reactionEl = reactionEl;
     this.assets = assets;
     this.x = x;
     this.direction = direction;
+    this.shadowOffset = shadowOffset;
+    this.width = width;
+    this.isChicken = isChicken;
     this.state = "idle";
     this.speed = 0;
     this.targetX = x;
     this.nextAction = performance.now() + 1000 + Math.random() * 2500;
     this.lockedUntil = 0;
+    this.reactionTimer = null;
     this.setImage("idle");
     this.render();
-    this.el.addEventListener("click", () => handleFoxClick(this));
   }
 
   setImage(animation) {
@@ -154,7 +210,7 @@ class Fox {
     this.direction = distance > 0 ? 1 : -1;
     this.x += this.direction * this.speed;
     const min = 30,
-      max = window.innerWidth - 110;
+      max = window.innerWidth - this.width;
     if (this.x < min) {
       this.x = min;
       this.direction = 1;
@@ -170,7 +226,7 @@ class Fox {
     const flip = this.direction === 1 ? 1 : -1;
     this.el.style.setProperty("--flip", flip);
     this.el.style.transform = `scaleX(${flip})`;
-    this.shadow.style.left = `${this.x + 55}px`;
+    this.shadow.style.left = `${this.x + this.shadowOffset}px`;
   }
 
   update(time) {
@@ -180,44 +236,71 @@ class Fox {
   }
 }
 
-const orange = new Fox({
+const orange = new Pet({
   name: "Oren",
   el: document.getElementById("orange"),
   img: document.getElementById("orangeImg"),
   shadow: document.getElementById("shadowOrange"),
+  reactionEl: document.getElementById("reactionOrange"),
   assets: ASSETS.red,
   x: window.innerWidth * 0.22,
   direction: 1,
+  shadowOffset: 55,
+  width: 110,
 });
+orange.el.addEventListener("click", () => handleFoxClick(orange));
 
-const white = new Fox({
+const white = new Pet({
   name: "Putih",
   el: document.getElementById("white"),
   img: document.getElementById("whiteImg"),
   shadow: document.getElementById("shadowWhite"),
+  reactionEl: document.getElementById("reactionWhite"),
   assets: ASSETS.white,
   x: window.innerWidth * 0.68,
   direction: -1,
+  shadowOffset: 55,
+  width: 110,
 });
+white.el.addEventListener("click", () => handleFoxClick(white));
 
-function showReaction(fox, text) {
-  clearTimeout(reactionTimer);
-  reaction.textContent = text;
+const chicken = new Pet({
+  name: "Ayam",
+  el: document.getElementById("chicken"),
+  img: document.getElementById("chickenImg"),
+  shadow: document.getElementById("shadowChicken"),
+  reactionEl: document.getElementById("reactionChicken"),
+  assets: CHICKEN_ASSETS.brown,
+  x: window.innerWidth * 0.45,
+  direction: 1,
+  shadowOffset: 32,
+  width: 65,
+  isChicken: true,
+});
+chicken.el.addEventListener("click", () => handleChickenClick(chicken));
+
+function showReaction(pet, text, duration = 1400) {
+  if (!pet || !pet.reactionEl) return;
+  if (pet.reactionTimer) clearTimeout(pet.reactionTimer);
+  pet.reactionEl.textContent = text;
   const position = () => {
-    const rect = fox.el.getBoundingClientRect();
-    reaction.style.left = `${rect.left + rect.width / 2}px`;
-    reaction.style.top = `${rect.top - 12}px`;
+    const rect = pet.el.getBoundingClientRect();
+    pet.reactionEl.style.left = `${rect.left + rect.width / 2}px`;
+    pet.reactionEl.style.top = `${rect.top - 12}px`;
   };
   position();
-  reaction.classList.add("show");
+  pet.reactionEl.classList.add("show");
   const start = performance.now();
   function follow() {
-    if (performance.now() - start > 1200) return;
+    if (performance.now() - start > duration) return;
     position();
     requestAnimationFrame(follow);
   }
   follow();
-  reactionTimer = setTimeout(() => reaction.classList.remove("show"), 1300);
+  pet.reactionTimer = setTimeout(
+    () => pet.reactionEl.classList.remove("show"),
+    duration,
+  );
 }
 
 function handleFoxClick(fox) {
@@ -389,6 +472,54 @@ function handleFoxClick(fox) {
   }, 1100);
 }
 
+const CHICKEN_QUOTES = [
+  "HIDUP JOKOWII!!!",
+  "SAYA AKAN LAWAN!!!",
+  "MBG BERMANFAAT ATAU TIDAKK??",
+  "Saya dapat laporan",
+];
+
+function handleChickenClick(chick) {
+  chick.el.classList.remove("clicked");
+  void chick.el.offsetWidth;
+  chick.el.classList.add("clicked");
+
+  const quote = randomItem(CHICKEN_QUOTES);
+  showReaction(chick, quote, 2200);
+
+  if (quote === "MBG BERMANFAAT ATAU TIDAKK??") {
+    chick.setState("swipe");
+    chick.lockedUntil = performance.now() + 2000;
+
+    setTimeout(() => {
+      orange.direction = chick.x > orange.x ? 1 : -1;
+      white.direction = chick.x > white.x ? 1 : -1;
+
+      orange.setState("swipe");
+      showReaction(orange, "TIDAKK", 1800);
+      orange.lockedUntil = performance.now() + 1800;
+
+      setTimeout(() => {
+        white.setState("swipe");
+        showReaction(white, "TIDAKK!", 1800);
+        white.lockedUntil = performance.now() + 1800;
+      }, 200);
+
+      setTimeout(() => {
+        if (chick.state === "swipe") chick.setState("idle");
+        if (orange.state === "swipe") orange.setState("idle");
+        if (white.state === "swipe") white.setState("idle");
+      }, 1500);
+    }, 550);
+  } else {
+    chick.setState("swipe");
+    chick.lockedUntil = performance.now() + 1000;
+    setTimeout(() => {
+      if (chick.state === "swipe") chick.setState("idle");
+    }, 1100);
+  }
+}
+
 function interaction(time) {
   if (time < interactionCooldown) return;
   if (orange.state === "sleep" || white.state === "sleep") return;
@@ -435,15 +566,18 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener("resize", () => {
   orange.x = Math.min(orange.x, window.innerWidth - 110);
   white.x = Math.min(white.x, window.innerWidth - 110);
+  chicken.x = Math.min(chicken.x, window.innerWidth - 65);
 });
 
 function loop(time) {
   orange.update(time);
   white.update(time);
+  chicken.update(time);
   interaction(time);
   requestAnimationFrame(loop);
 }
 
 orange.setState("idle");
 white.setState("idle");
+chicken.setState("idle");
 requestAnimationFrame(loop);

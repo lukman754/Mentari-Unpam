@@ -209,6 +209,23 @@
         background: linear-gradient(to bottom, #314b38, #182a21);
         filter: brightness(0.8);
       }
+      /* SVG wave di atas ground */
+      .ground-wave {
+        position: absolute;
+        top: -58px;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        overflow: visible;
+        pointer-events: none;
+      }
+      .ground-wave path {
+        fill: #b9df8e;
+        transition: fill 1.8s ease;
+      }
+      #world.night .ground-wave path {
+        fill: #314b38;
+      }
       .grass {
         position: absolute;
         inset: 0;
@@ -225,6 +242,102 @@
       #world.night .grass {
         opacity: 0.25;
       }
+
+      /* Blade grass */
+      .grass-blades {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 28px;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .blade {
+        position: absolute;
+        bottom: 0;
+        width: 4px;
+        border-radius: 4px 4px 2px 2px;
+        transform-origin: bottom center;
+        animation: sway 2.4s ease-in-out infinite alternate;
+      }
+      .blade.short {
+        height: 12px;
+        background: #5aab38;
+      }
+      .blade.mid {
+        height: 18px;
+        background: #4d9e30;
+      }
+      .blade.tall {
+        height: 24px;
+        background: #3f8f24;
+      }
+      #world.night .blade {
+        filter: brightness(0.45);
+      }
+      @keyframes sway {
+        from {
+          transform: rotate(-8deg);
+        }
+        to {
+          transform: rotate(8deg);
+        }
+      }
+      .blade:nth-child(odd) {
+        animation-direction: alternate-reverse;
+      }
+      .blade:nth-child(3n) {
+        animation-duration: 2s;
+      }
+      .blade:nth-child(5n) {
+        animation-duration: 3.1s;
+      }
+
+      /* Rocks */
+      .rock {
+        position: absolute;
+        bottom: 14px;
+        border-radius: 50% 55% 48% 52% / 55% 50% 58% 45%;
+        background: linear-gradient(
+          135deg,
+          #b0b5b0 0%,
+          #8a9088 60%,
+          #6e756c 100%
+        );
+        box-shadow:
+          inset -3px -3px 6px rgba(0, 0, 0, 0.18),
+          inset 2px 2px 5px rgba(255, 255, 255, 0.22),
+          0 3px 6px rgba(0, 0, 0, 0.2);
+        pointer-events: none;
+        transition: filter 1.8s ease;
+      }
+      .rock::after {
+        content: "";
+        position: absolute;
+        top: 18%;
+        left: 18%;
+        width: 35%;
+        height: 22%;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(-20deg);
+      }
+      .rock.sm {
+        width: 22px;
+        height: 16px;
+      }
+      .rock.md {
+        width: 34px;
+        height: 24px;
+      }
+      .rock.lg {
+        width: 48px;
+        height: 32px;
+      }
+      #world.night .rock {
+        filter: brightness(0.55);
+      }
       .title {
         position: absolute;
         left: 50%;
@@ -238,7 +351,6 @@
       .title h1 {
         margin: 0;
         font-size: clamp(36px, 6vw, 70px);
-        letter-spacing: -3px;
       }
       .title p {
         margin: 8px 0 0;
@@ -276,16 +388,48 @@
         position: absolute;
         width: 60px;
         height: 13px;
-        bottom: 18%;
+        bottom: 20%;
         border-radius: 50%;
-        background: rgba(40, 70, 30, 0.2);
-        filter: blur(2px);
+        background: rgba(40, 70, 30, 0.22);
+        filter: blur(3px);
         transform: translateX(-50%);
         z-index: 4;
         transition: background 1.5s ease;
       }
       #world.night .shadow {
         background: rgba(0, 0, 0, 0.35);
+      }
+      .chicken {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        left: 0;
+        bottom: 19%;
+        z-index: 10;
+        pointer-events: auto;
+        cursor: pointer;
+        transform-origin: center bottom;
+        transition:
+          left 0.05s linear,
+          bottom 0.3s ease,
+          filter 0.6s ease;
+      }
+      .chicken img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+        pointer-events: none;
+      }
+      #world.night .chicken {
+        filter: brightness(0.82) drop-shadow(0 0 5px rgba(180, 200, 255, 0.08));
+      }
+      .chicken.clicked {
+        animation: clicked 0.45s ease;
+      }
+      #shadowChicken {
+        width: 30px;
+        height: 9px;
       }
       .fox.clicked {
         animation: clicked 0.45s ease;
@@ -394,23 +538,47 @@
         <div class="cloud cloud-2"></div>
       </div>
 
-      <div class="title">
-        <h1>Mentari Mod</h1>
-        <p>two little foxes living their own little life</p>
-      </div>
+      <div class="ground">
+        <!-- Wave bukit di tepi atas ground -->
+        <svg
+          class="ground-wave"
+          viewBox="0 0 1440 60"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,60 L0,38 C80,18 160,8 240,18 C320,28 400,52 480,50 C560,48 640,24 720,16 C800,8 880,18 960,28 C1040,38 1120,42 1200,32 C1280,22 1360,8 1440,20 L1440,60 Z"
+          />
+        </svg>
 
-      <div class="status">
-        <strong>🦊 Fox Playground</strong>
-      </div>
+        <div class="grass"></div>
 
-      <div class="ground"><div class="grass"></div></div>
+        <!-- Rocks -->
+        <div class="rock lg" style="left: 8%"></div>
+        <div class="rock sm" style="left: 12%"></div>
+        <div class="rock md" style="left: 31%"></div>
+        <div class="rock sm" style="left: 34%; bottom: 20px"></div>
+        <div class="rock lg" style="left: 62%"></div>
+        <div class="rock md" style="left: 67%"></div>
+        <div class="rock sm" style="left: 82%"></div>
+        <div class="rock lg" style="left: 88%"></div>
+
+        <!-- Grass blades -->
+        <div class="grass-blades" id="grassBlades"></div>
+      </div>
 
       <div class="shadow" id="shadowOrange"></div>
       <div class="shadow" id="shadowWhite"></div>
-      <div class="reaction" id="reaction"></div>
+      <div class="shadow" id="shadowChicken"></div>
+      <div class="reaction" id="reactionOrange"></div>
+      <div class="reaction" id="reactionWhite"></div>
+      <div class="reaction" id="reactionChicken"></div>
 
       <div class="fox" id="orange"><img id="orangeImg" alt="Orange Fox" /></div>
       <div class="fox" id="white"><img id="whiteImg" alt="White Fox" /></div>
+      <div class="chicken" id="chicken">
+        <img id="chickenImg" alt="Chicken" />
+      </div>
 
       <div class="controls">
         <button id="nightButton">🌙 Malam</button>
