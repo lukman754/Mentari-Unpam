@@ -16,7 +16,11 @@
     {
       "matches": ["https://mentari.unpam.ac.id/*"],
       "exclude_matches": ["https://mentari.unpam.ac.id/login"],
-      "js": ["src/content/apiKeyManager.js", "src/content/content.js"]
+      "js": [
+        "src/content/apiKeyManager.js",
+        "src/content/token.js",
+        "src/content/content.js"
+      ]
     },
     {
       "matches": ["https://mentari.unpam.ac.id/login"],
@@ -56,7 +60,7 @@
         "pet.html",
         "pet.js"
       ],
-      "matches": ["https://mentari.unpam.ac.id/*"]
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {

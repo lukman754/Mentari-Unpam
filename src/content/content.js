@@ -177,17 +177,24 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
       const headings = Array.from(
         document.querySelectorAll("h6, h5, h4, h3, h2, h1"),
       );
-      const courseHeading = headings.find(
-        (el) => el.textContent.trim() === "Courses",
-      );
+      const courseHeading = headings.find((el) => {
+        const txt = el.textContent.trim().toLowerCase();
+        return (
+          txt === "courses" ||
+          txt.includes("course") ||
+          txt.includes("mata kuliah")
+        );
+      });
 
       if (courseHeading) {
-        const courseContainer = courseHeading.parentElement.parentElement;
-        if (courseContainer) {
+        const courseContainer =
+          courseHeading.closest(".MuiGrid-root") ||
+          courseHeading.parentElement?.parentElement;
+        if (courseContainer && courseContainer.parentNode) {
           const changelog = document.createElement("div");
           changelog.id = "mentari-developer-changelog";
           changelog.style.cssText =
-            "width:100%; margin:10px; box-sizing:border-box;";
+            "width:100%; margin:10px 0; box-sizing:border-box;";
           changelog.innerHTML = `
             <div style="width:100%; box-sizing:border-box; overflow:hidden; border-radius:16px; border:1px solid rgba(240,135,45,0.28); box-shadow:0 10px 28px rgba(0,0,0,0.12);">
               <iframe src="${chrome.runtime.getURL("pet.html")}" style="width:100%; height:360px; border:none; display:block; overflow:hidden;" title="Mentari Fox Playground"></iframe>
@@ -202,44 +209,12 @@ if (window.location.href === "https://mentari.unpam.ac.id/login") {
     // Interval cadangan yang lebih cepat
     const headerCheckInterval = setInterval(injectHeaderToggle, 500);
 
-    let scriptsLoaded = false;
-    let isLoading = false;
-    let loadQueue = [];
-
-    function loadScripts(callback) {
-      if (scriptsLoaded) {
-        if (callback) callback();
-        return;
-      }
-      if (callback) loadQueue.push(callback);
-      if (isLoading) return;
-
-      isLoading = true;
-      let apiScript = document.createElement("script");
-      apiScript.src = chrome.runtime.getURL("src/content/apiKeyManager.js");
-      apiScript.onload = function () {
-        let tokenScript = document.createElement("script");
-        tokenScript.src = chrome.runtime.getURL("src/content/token.js");
-        tokenScript.onload = function () {
-          scriptsLoaded = true;
-          isLoading = false;
-          loadQueue.forEach((cb) => cb());
-          loadQueue = [];
-        };
-        document.body.appendChild(tokenScript);
-      };
-      document.body.appendChild(apiScript);
-    }
-
     function clickButton() {
-      loadScripts(() => {
+      if (typeof window.toggleTokenPopup === "function") {
+        window.toggleTokenPopup();
+      } else {
         window.dispatchEvent(new CustomEvent("mentari-toggle-popup"));
-      });
+      }
     }
-
-    // Pre-load scripts di background TANPA membuka popup
-    setTimeout(() => {
-      loadScripts(null); // null = jangan buka popup setelah load
-    }, 300);
   })();
 }
