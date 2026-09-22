@@ -16,14 +16,15 @@
 **MENTARI MOD** hadir sebagai ekstensi browser yang memperkaya platform ini dengan berbagai fitur tambahan untuk memaksimalkan produktivitas dalam pembelajaran daring.
 
 <div align="center">
-  <img width="1920" height="887" alt="{9292697D-E7C6-449D-839F-CCAC2C95D736}" src="https://github.com/user-attachments/assets/44c82042-ae47-447c-aef1-ab86b9926409" />
+<img width="863" height="452" alt="image" src="https://github.com/user-attachments/assets/18a7b96d-e472-4381-9ea2-1f421a04826e" />
+<img width="863" height="452" alt="Screenshot 2026-09-22 131620" src="https://github.com/user-attachments/assets/aecbbf0a-1be0-4b7f-abe6-0a83767992aa" />
 </div>
 
 ## 📦 Download
 
 <p align="center">
-   <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v2.0/Mentari-Unpam-v2.0.zip" style="display: block; width: 60%;">
-    <img src="https://img.shields.io/badge/⬇%20Download-Mentari%20Mod%20v2.0-00C853?style=for-the-badge&logo=github&logoColor=white"/>
+   <a href="https://github.com/lukman754/Mentari-Unpam/releases/download/v2.1/Mentari.Mod.v2.0.Sunset.zip" style="display: block; width: 60%;">
+    <img src="https://img.shields.io/badge/⬇%20Download-Mentari%20Mod%20v2.0%20Sunset-c29e15?style=for-the-badge&logo=github&logoColor=white"/>
   </a>
 </p>
 
@@ -75,3 +76,39 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
   <p>© 2025 <a href="https://instagram.com/_.chopin">Lukman Muludin</a>. All Rights Reserved.</p>
 </div>
+
+
+
+> [!NOTE]
+> ## Status Proyek
+>
+> **Mentari Mod sudah tidak lagi dikembangkan secara aktif oleh pengembang ([Lukman754](https://github.com/lukman754)).**
+>
+> Source code proyek ini kini dibuka sebagai **open source** agar dapat dipelajari, digunakan, dikembangkan, atau dilanjutkan oleh komunitas.
+>
+> Mentari Mod merupakan browser extension yang dibuat untuk membantu mahasiswa **melacak forum diskusi pada platform e-learning yang belum dikerjakan**. Extension ini berfokus pada penyederhanaan proses pemantauan dan pengelolaan forum diskusi.
+>
+> ## Perubahan Terakhir
+>
+> Versi terakhir Mentari Mod mencakup beberapa perubahan utama:
+>
+> - Menghapus fitur AI Assistant untuk menyederhanakan extension.
+> - Mempercepat proses pelacakan forum diskusi yang belum dikerjakan.
+> - Menambahkan fitur untuk membalas forum diskusi langsung melalui popup Mentari Mod.
+> - Memusatkan informasi dan fitur utama ke dalam popup, sehingga pengguna dapat melihat forum yang perlu ditindaklanjuti dan melakukan tindakan yang diperlukan dari satu tempat.
+>
+> Dengan perubahan tersebut, popup Mentari Mod menjadi pusat utama untuk memantau dan menindaklanjuti forum diskusi.
+>
+> ## Open Source
+>
+> Karena proyek ini tidak lagi dikembangkan secara aktif oleh pengembang asli, komunitas dipersilakan untuk:
+>
+> - Fork dan memodifikasi proyek.
+> - Memperbaiki bug.
+> - Menambahkan fitur baru.
+> - Menyesuaikan extension dengan perubahan pada platform e-learning.
+> - Melanjutkan pengembangan proyek melalui Pull Request.
+>
+> **Catatan:** Karena proyek tidak lagi dipelihara secara aktif, beberapa fitur mungkin tidak berfungsi apabila terjadi perubahan pada platform e-learning.
+>
+> Proyek ini dibuat sebagai alat bantu mahasiswa dan **tidak berafiliasi secara resmi dengan Universitas Pamulang maupun pengelola platform e-learning terkait**.
