@@ -457,6 +457,8 @@
       .settings-row-title .ms { color: #f0872d; font-size: 16px; }
       .settings-row-desc { margin: 2px 0 0 23px; color: #94a3b8; font-size: 10px; }
       .settings-quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+      #token-runner-popup .token-button.btn-outline { background: transparent; border-color: rgba(240,135,45,0.45); color: #f1f5f9; }
+      #token-runner-popup .token-button.btn-outline:hover { background: rgba(240,135,45,0.12); border-color: rgba(240,135,45,0.7); }
       .settings-model-list { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; padding: 8px; }
       .settings-disclaimer { padding: 8px 10px; margin-bottom: 12px; border-left: 2px solid rgba(240,135,45,0.45); border-radius: 4px; background: rgba(240,135,45,0.05); }
       .settings-status-badge { display: inline-flex; align-items: center; padding: 2px 6px; border: 1px solid rgba(74,222,128,0.2); border-radius: 5px; background: rgba(74,222,128,0.12); color: #4ade80; font-size: 9px; font-weight: 700; line-height: 1.2; }
@@ -667,7 +669,8 @@
         // Format: [{role, token}, ...] — format Mentari
         if (Array.isArray(parsed)) {
           for (const item of parsed) {
-            if (item && item.token && this.decodeToken(item.token)) return item.token;
+            if (item && item.token && this.decodeToken(item.token))
+              return item.token;
           }
         }
         // Format: {token: "eyJ..."} atau {access: "eyJ..."}
